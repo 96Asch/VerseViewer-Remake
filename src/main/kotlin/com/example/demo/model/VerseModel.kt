@@ -28,6 +28,10 @@ class Verse (id: Int = 0, translation: Translation = Translation(), book: String
 
     val textProperty = SimpleStringProperty(this, "text", text)
     var text: String by textProperty
+
+    override fun toString(): String {
+        return "${translation.abbreviation} $book ($chapter:$verse) $text"
+    }
 }
 
 class VerseModel : ItemViewModel<Verse>() {

@@ -1,15 +1,16 @@
 package com.example.demo.controller
 
 import com.example.demo.model.TableVersesModel
+import com.example.demo.model.Translation
 import com.example.demo.model.Verse
 import com.example.demo.model.event.RequestColumnResize
+import javafx.beans.property.SimpleObjectProperty
 import tornadofx.*
 
-class TableVersesController : Controller(){
+class TableVersesController : Controller() {
 
     private val tableModel : TableVersesModel by inject()
     private val dbController : DBController by inject()
-
 
     fun swapVersesByTranslation(translation: String) {
         if (tableModel.cache.isNotEmpty()) {

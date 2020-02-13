@@ -1,5 +1,6 @@
 package com.example.demo.view.versebox
 
+import com.example.demo.controller.DragVerseController
 import com.example.demo.controller.VerseSearchController
 import com.example.demo.model.*
 import com.example.demo.model.datastructure.GroupType
@@ -32,6 +33,7 @@ class VerseBox : Fragment() {
     private val displayModel : DisplayVersesModel by inject()
     private val translationModel: TranslationModel by inject()
 
+    private val dragVerseController : DragVerseController by inject()
     private val verseSearchController : VerseSearchController by inject()
 
     private val helpPane : HelpPane by inject()
@@ -39,8 +41,6 @@ class VerseBox : Fragment() {
 
 
     private val multiCursor = Cursor.CROSSHAIR
-    private var isMulButtonDown = false
-    private var isMouseDown = false
     private var inGroupModeProperty = SimpleBooleanProperty(false)
     private val displayLimit = 10
 
@@ -80,6 +80,7 @@ class VerseBox : Fragment() {
                         selectionModel.selectFirst()
                 })
                 setRowFactory(this@VerseBox::rowFactory)
+                setOnDragDetected(::dragStart)
             }
             isShowFromTop = false
             isCloseButtonVisible = false
@@ -131,16 +132,14 @@ class VerseBox : Fragment() {
     }
 
     private fun rowFactory(tv: TableView<Verse>) : TableRow<Verse> {
-        val row = TableRow<Verse>()
-        row.onDragDetected = onDragStart(row)
-        row.addEventFilter(MouseEvent.MOUSE_PRESSED) {
-            if (it.isSecondaryButtonDown) {
-                tv.selectionModel.clearSelection()
-                inGroupModeProperty.value = true
+        return TableRow<Verse>().apply {
+            addEventFilter(MouseEvent.MOUSE_PRESSED) {
+                if (it.isSecondaryButtonDown) {
+                    tv.selectionModel.clearSelection()
+                    inGroupModeProperty.value = true
+                }
             }
         }
-
-        return row
     }
 
     
@@ -165,24 +164,17 @@ class VerseBox : Fragment() {
                     inGroupModeProperty.value = false
                     fire(RefreshList(tv.selectionModel.selectedItems, GroupType.MONO_TRANSLATION))
                 }
+                else -> {}
             }
         }
     }
 
-    private fun onDragStart(row : TableRow<Verse>) : EventHandler<MouseEvent> = EventHandler {
-        if (!row.isEmpty) {
-            val db = tv.startDragAndDrop(TransferMode.COPY)
-            val content = ClipboardContent()
-            val ids = tv.selectionModel.selectedItems.joinToString(separator = ",") { v -> v.id.toString() }
-            content.putString(ids)
-            db.setContent(content)
-            it.consume()
-        }
+    private fun dragStart(evt: MouseEvent) {
+        dragVerseController.dragStart(evt, tv)
     }
 
 
     private fun onSelectionChange() : ListChangeListener<Verse> = ListChangeListener<Verse> { changed ->
-        println("groupMode: $inGroupModeProperty")
         if (changed.list.isEmpty().not() && !inGroupModeProperty.value && changed.list.size < displayLimit) {
             displayModel.rebind{ group = VerseGroup(changed.list.toMutableList(), GroupType.MONO_TRANSLATION) }
         }

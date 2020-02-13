@@ -1,5 +1,6 @@
 package com.example.demo.view.schedule
 
+import com.example.demo.controller.DragVerseController
 import com.example.demo.controller.TableVersesController
 import com.example.demo.model.DisplayVersesModel
 import com.example.demo.model.Verse
@@ -18,6 +19,7 @@ import javafx.scene.layout.Priority
 import kotlinx.coroutines.selects.select
 import tornadofx.*
 import tornadofx.controlsfx.detail
+import tornadofx.controlsfx.hiddensidepane
 import tornadofx.controlsfx.master
 import tornadofx.controlsfx.masterdetailpane
 
@@ -27,14 +29,14 @@ class Schedule : View("My View") {
 
     private val displayModel : DisplayVersesModel by inject()
 
-    private val tableController : TableVersesController by inject()
+    private val dragVerseController : DragVerseController by inject()
 
     private val tv = tableview(scheduleList)
 
     override val root = masterdetailpane {
 
          master {
-             hbox {
+             hiddensidepane {
                  tv.apply {
                      readonlyColumn("Verse", VerseGroup::verses) {
                          isSortable = false
@@ -52,18 +54,18 @@ class Schedule : View("My View") {
                              lvList.setAll(new.verses)
                          }
                      }
-                     onDragOver = onDragOver(this)
-                     onDragDropped = onDragDropped(this)
+
+                     setOnDragDropped(::dragDrop)
+                     setOnDragOver(::dragOver)
                      multiSelect(true)
                      smartResize()
                      hboxConstraints {
                          hgrow = Priority.ALWAYS
                      }
-
                  }
 
-                 this += tv
-                 vbox {
+                 content = tv
+                 right = vbox {
                      paddingAll = 10
                      paddingTop = 30
                      button("Up") {
@@ -91,7 +93,9 @@ class Schedule : View("My View") {
                          }
                      }
                  }
+                 triggerDistance = 80.toDouble()
              }
+
          }
 
         detail {
@@ -191,24 +195,13 @@ class Schedule : View("My View") {
         lvList.setAll(tv.selectedItem?.verses)
     }
 
-
-    private fun onDragOver(tv : TableView<VerseGroup>) : EventHandler<DragEvent> = EventHandler {
-        if (it.gestureSource != tv && it.dragboard.hasString()) {
-            it.acceptTransferModes(TransferMode.COPY)
-        }
-        it.consume()
+    private fun dragOver(evt: DragEvent) {
+        println("Drag Entered")
+        dragVerseController.dragOver(evt, tv)
     }
 
-    private fun onDragDropped (tv : TableView<VerseGroup>) : EventHandler<DragEvent> = EventHandler {
-        val db = it.dragboard
-        var success = false
-        if (db.hasString()) {
-            val ids = db.string.split(",").map {s -> s.toInt() }
-            val verseGroup = VerseGroup(tableController.get(ids), GroupType.MONO_TRANSLATION)
-            scheduleList.add(verseGroup)
-            success = true
-        }
-        it.isDropCompleted = success
-        it.consume()
+    private fun dragDrop(evt: DragEvent) {
+        println("Drag drop")
+        dragVerseController.dragDrop(evt, scheduleList)
     }
  }

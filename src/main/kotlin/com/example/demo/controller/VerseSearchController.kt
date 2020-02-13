@@ -48,12 +48,14 @@ class VerseSearchController : Controller() {
                 fire(SendNotification("Unknown translation: $token", NotificationType.ERROR, errorDuration))
             }
             else -> {
-                translationModel.name.value = list.first()
+                translationModel.item = list.first()
+                translationModel.commit()
+
                 bookTrie.clear()
-                dbController.getBooksByTranslation(list.first()).forEach {
+                dbController.getBooksByTranslation(list.first().name).forEach {
                     bookTrie.insert(it)
                 }
-                tableController.swapVersesByTranslation(list.first())
+                tableController.swapVersesByTranslation(list.first().name)
 
             }
         }
