@@ -1,58 +1,49 @@
 package com.example.demo.view.schedule
 
+import tornadofx.*
 import com.example.demo.controller.DragVerseController
-import com.example.demo.controller.TableVersesController
+import com.example.demo.controller.ScheduleTableController
 import com.example.demo.model.DisplayVersesModel
-import com.example.demo.model.Verse
-import com.example.demo.model.datastructure.GroupType
+import com.example.demo.model.ScheduleScope
 import com.example.demo.model.datastructure.VerseGroup
-import javafx.collections.FXCollections
-import javafx.collections.ObservableList
-import javafx.event.EventHandler
+import javafx.event.ActionEvent
 import javafx.geometry.Side
 import javafx.scene.control.TableView
-import javafx.scene.input.DataFormat
 import javafx.scene.input.DragEvent
-import javafx.scene.input.MouseEvent
-import javafx.scene.input.TransferMode
 import javafx.scene.layout.Priority
-import kotlinx.coroutines.selects.select
-import tornadofx.*
 import tornadofx.controlsfx.detail
 import tornadofx.controlsfx.hiddensidepane
 import tornadofx.controlsfx.master
 import tornadofx.controlsfx.masterdetailpane
 
-class Schedule : View("My View") {
-    private val scheduleList = mutableListOf<VerseGroup>().observable()
-    private val lvList = FXCollections.observableArrayList<Verse>()
+class Schedule : Fragment("My View") {
+    override val scope = super.scope as ScheduleScope
 
-    private val displayModel : DisplayVersesModel by inject()
+    private val controller = scope.controller
+    private val dragVerseController : DragVerseController by inject(FX.defaultScope)
+    private val displayModel : DisplayVersesModel by inject(FX.defaultScope)
 
-    private val dragVerseController : DragVerseController by inject()
-
-    private val tv = tableview(scheduleList)
+    private var tv : TableView<VerseGroup> by singleAssign()
 
     override val root = masterdetailpane {
 
          master {
              hiddensidepane {
-                 tv.apply {
+                 tv = tableview (controller.list) {
+
                      readonlyColumn("Verse", VerseGroup::verses) {
                          isSortable = false
                          cellFormat {
                              graphic = text {
                                  text = it.joinToString { "${it.translation.abbreviation} ${it.book} ${it.chapter}:${it.verse}" }
-                                 wrappingWidthProperty().bind(this@apply.widthProperty().subtract(20))
+                                 wrappingWidthProperty().bind(widthProperty().subtract(20))
                              }
                          }
                          remainingWidth()
                      }
                      bindSelected(displayModel)
                      selectionModel.selectedItemProperty().addListener{_, _, new ->
-                         if (new != null) {
-                             lvList.setAll(new.verses)
-                         }
+                        new?.let { controller.setDetail(new) }
                      }
 
                      setOnDragDropped(::dragDrop)
@@ -68,30 +59,12 @@ class Schedule : View("My View") {
                  right = vbox {
                      paddingAll = 10
                      paddingTop = 30
-                     button("Up") {
-                         action {
-                             moveSelectedUp(tv)
-                             tv.requestFocus()
-                         }
-                     }
-                     button("Down") {
-                         action {
-                             moveSelectedDown(tv)
-                             tv.requestFocus()
-                         }
-                     }
-                     button("Group") {
-                         action {
-                             group(tv)
-                             tv.requestFocus()
-                         }
-                     }
-                     button("Ungroup") {
-                         action {
-                             ungroup(tv)
-                             tv.requestFocus()
-                         }
-                     }
+                     button("Up").setOnAction(::moveSelectedUp)
+                     button("Down").setOnAction(::moveSelectedDown)
+                     button("Group").setOnAction(::groupSelected)
+                     button("Ungroup").setOnAction(::ungroupSelected)
+                     button("Delete").setOnAction(::deleteSelected)
+                     button("Clear").setOnAction(::clearSchedule)
                  }
                  triggerDistance = 80.toDouble()
              }
@@ -99,7 +72,7 @@ class Schedule : View("My View") {
          }
 
         detail {
-            listview(lvList) {
+            listview(controller.detailList) {
                 cellFormat {
                     graphic = form {
                         fieldset("${it.translation.abbreviation} ${it.book} ${it.chapter} : ${it.verse}") {
@@ -115,84 +88,44 @@ class Schedule : View("My View") {
         }
 
         dividerPosition = 0.4
-        showDetailNodeProperty().bind(lvList.sizeProperty.greaterThan(0).and(hoverProperty()))
+        showDetailNodeProperty().bind(controller.detailList.sizeProperty.greaterThan(0).and(hoverProperty()))
         detailSide = Side.BOTTOM
     }
 
-    private fun moveSelectedUp(tv : TableView<VerseGroup>) {
-        val selectModel = tv.selectionModel
-        val indices = selectModel.selectedIndices.toMutableList()
-        val items = scheduleList
-
-        selectModel.clearSelection()
-        indices.forEachIndexed { i, selectedIndex ->
-            if (selectedIndex > 0) {
-                if (selectedIndex - 1 !in indices) {
-                    items.swap(selectedIndex, selectedIndex - 1)
-                    indices[i]--
-                }
-            }
-        }
-        indices.forEach { selectModel.select(it) }
+    private fun moveSelectedUp(evt : ActionEvent) {
+        controller.moveSelectedUp(tv)
+        tv.requestFocus()
+        evt.consume()
     }
 
-    private fun moveSelectedDown(tv : TableView<VerseGroup>) {
-        val selectModel = tv.selectionModel
-        val lastIndex = tv.items.size - 1
-        val indices = selectModel.selectedIndices.reversed().toMutableList()
-        val items = scheduleList
-
-        selectModel.clearSelection()
-        indices.forEachIndexed { i, selectedIndex ->
-            println("$indices, $selectedIndex")
-            if (selectedIndex < lastIndex) {
-                if (selectedIndex + 1 !in indices) {
-                    items.swap(selectedIndex, selectedIndex + 1)
-                    indices[i]++
-                }
-            }
-        }
-        indices.forEach { selectModel.select(it) }
+    private fun moveSelectedDown(evt : ActionEvent) {
+        controller.moveSelectedDown(tv)
+        tv.requestFocus()
+        evt.consume()
     }
 
-    private fun group(tv: TableView<VerseGroup>) {
-        if (tv.items.isEmpty()) return
-
-        val selectModel = tv.selectionModel
-        val firstIndex = selectModel.selectedIndices.first()
-        val items = scheduleList
-        selectModel.selectedIndices.forEach {
-            println(items)
-            if (it != firstIndex) {
-                items[firstIndex].merge(items[it])
-            }
-        }
-        selectModel.selectedIndices.reversed().forEach {
-            if (it != firstIndex)
-                items.removeAt(it)
-        }
-        selectModel.clearAndSelect(firstIndex)
-        lvList.setAll(tv.selectedItem?.verses)
+    private fun groupSelected(evt : ActionEvent) {
+        controller.groupSelected(tv)
+        tv.requestFocus()
+        evt.consume()
     }
 
-    //todo: Allow multi selection
-    private fun ungroup(tv: TableView<VerseGroup>) {
-        if (tv.items.isEmpty()) return
-        val selectModel = tv.selectionModel
-        if (selectModel.selectedIndices.isEmpty()) return
+    private fun ungroupSelected(evt : ActionEvent) {
+        controller.ungroupSelected(tv)
+        tv.requestFocus()
+        evt.consume()
+    }
 
-        val items = scheduleList
-        val firstIndex = selectModel.selectedIndices.first()
-        if (items[firstIndex].verses.size > 1) {
-            val newList = items[firstIndex].verses.map {v ->
-                VerseGroup(mutableListOf(v), GroupType.MONO_TRANSLATION)
-            }
-            items.removeAt(firstIndex)
-            items.addAll(firstIndex, newList)
-        }
+    private fun deleteSelected(evt : ActionEvent) {
+        controller.deleteSelected(tv)
+        tv.requestFocus()
+        evt.consume()
+    }
 
-        selectModel.clearAndSelect(firstIndex)
-        lvList.setAll(tv.selectedItem?.verses)
+    private fun clearSchedule(evt : ActionEvent) {
+        controller.clear()
+        tv.requestFocus()
+        evt.consume()
     }
 
     private fun dragOver(evt: DragEvent) {
@@ -202,6 +135,6 @@ class Schedule : View("My View") {
 
     private fun dragDrop(evt: DragEvent) {
         println("Drag drop")
-        dragVerseController.dragDrop(evt, scheduleList)
+        dragVerseController.dragDrop(evt, controller.list)
     }
  }

@@ -18,8 +18,8 @@
     </repositories>
 
     <properties>
-        <kotlin.version>1.2.60</kotlin.version>
-        <tornadofx.version>1.7.17</tornadofx.version>
+        <kotlin.version>1.3.60</kotlin.version>
+        <tornadofx.version>1.7.18</tornadofx.version>
     </properties>
 
     <dependencies>
@@ -70,6 +70,7 @@
             <artifactId>tilesfx</artifactId>
             <version>1.5.2</version>
         </dependency>
+
     </dependencies>
 
     <build>

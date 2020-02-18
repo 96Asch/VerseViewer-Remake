@@ -58,6 +58,7 @@ class DragVerseController : Controller() {
         if (isDrag.value && dragGroup != null) {
             success = true
             isDrag.value = false
+            println("Add $dragGroup")
             list.add(dragGroup!!)
             dragGroup = null
         }

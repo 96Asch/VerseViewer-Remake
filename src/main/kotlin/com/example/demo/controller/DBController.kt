@@ -14,8 +14,6 @@ import java.sql.Connection
 
 class DBController : Controller() {
 
-    private val tableModel : TableVersesModel by inject()
-
     companion object DBSettings {
         private const val dbname = "data/bible.db"
         private const val jdbc = "jdbc:sqlite:file:"
