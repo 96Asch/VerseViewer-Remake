@@ -9,7 +9,7 @@ import tornadofx.getValue
 import tornadofx.setValue
 
 
-class TableVersesModel(translation: String = String.notAvailableValue()) : ViewModel() {
+class TableVersesModel() : ViewModel() {
     var cache = listOf<Verse>()
     val verses = FXCollections.observableArrayList<Verse>()
 }

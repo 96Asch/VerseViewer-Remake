@@ -10,4 +10,4 @@ enum class NotificationType {
     HELP
 }
 
-class SendNotification(val message: String, val type: NotificationType, val duration: Int, val node: Node? = null) : FXEvent()
+class SendNotification(val message: String, val type: NotificationType, val duration: Int) : FXEvent()

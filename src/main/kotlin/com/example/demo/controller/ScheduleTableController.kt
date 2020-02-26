@@ -8,8 +8,8 @@ import tornadofx.*
 
 class ScheduleTableController : Controller() {
 
-    val list = mutableListOf<VerseGroup>().observable()
-    val detailList = listOf<Verse>().observable()
+    val list = mutableListOf<VerseGroup>().asObservable()
+    val detailList = mutableListOf<Verse>().asObservable()
 
     fun setAll(l: List<VerseGroup>) {
         list.setAll(l)
@@ -97,10 +97,13 @@ class ScheduleTableController : Controller() {
 
         val toRemove = selectModel.selectedItems
         list.removeAll(toRemove)
+        if (list.isEmpty())
+            detailList.clear()
     }
 
     fun clear() {
         list.clear()
+        detailList.clear()
     }
 
 }

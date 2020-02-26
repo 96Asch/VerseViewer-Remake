@@ -1,0 +1,14 @@
+[
+  {
+    "grid" : 1,
+    "tiles" : [
+      {
+        "componentId" : 1,
+        "x" : 0,
+        "y" : 0,
+        "colspan" : 7,
+        "rowspan" : 7
+      }
+    ]
+  }
+]

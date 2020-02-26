@@ -48,10 +48,6 @@ class VerseBox : Fragment() {
     private val errorIm = imageview("icons/error.png")
 
     override val root = vbox {
-        label(translationModel.name) {
-            textAlignment = TextAlignment.CENTER
-        }
-
         val np = notificationPane {
             content = tv.apply {
                 readonlyColumn("B", Verse::book).isSortable = false
@@ -87,12 +83,15 @@ class VerseBox : Fragment() {
             vboxConstraints { vGrow = Priority.ALWAYS }
 
         }
+        label(translationModel.name) {
+            textAlignment = TextAlignment.CENTER
+        }
 
         textfield {
             action {
                 if (!text.isNullOrEmpty()) {
                     val verses = verseSearchController.processText(text)
-                    if (verses != null) {
+                    if (verses.isNotEmpty()) {
                         tableModel.verses.setAll(verses)
                         tv.requestResize()
                     }
@@ -103,7 +102,7 @@ class VerseBox : Fragment() {
         }
 
         subscribe<SendNotification> {
-            showNotification(np, it.message, it.type, it.duration, it.node)
+            showNotification(np, it.message, it.type, it.duration)
         }
 
         subscribe<RefreshList>() {
@@ -117,7 +116,7 @@ class VerseBox : Fragment() {
         }
     }
 
-    private fun showNotification(np : NotificationPane, message: String, type: NotificationType, duration : Int, node: Node?) {
+    private fun showNotification(np : NotificationPane, message: String, type: NotificationType, duration : Int) {
         np.isCloseButtonVisible = false
         when (type) {
             NotificationType.NOTIFICATION -> np.showForSeconds(message, duration = duration)
@@ -142,11 +141,8 @@ class VerseBox : Fragment() {
         }
     }
 
-    
     private fun multiSelectButtonEvent(tv : TableView<Verse>) {
         tv.onKeyPressed = EventHandler {
-            print(it.code.getName() + " pressed")
-
             when {
                 it.isControlDown || it.isShiftDown -> {
                     inGroupModeProperty.value = true
@@ -156,8 +152,6 @@ class VerseBox : Fragment() {
             }
         }
         tv.onKeyReleased = EventHandler {
-            println(it.code.getName() + " released")
-
             when (it.code) {
                 KeyCode.CONTROL, KeyCode.SHIFT -> {
                     tv.scene.cursor = Cursor.DEFAULT
