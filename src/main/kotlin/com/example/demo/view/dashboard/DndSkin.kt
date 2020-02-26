@@ -5,10 +5,11 @@ import eu.hansolo.tilesfx.skins.CustomTileSkin
 import eu.hansolo.tilesfx.tools.Helper
 
 
-open class DndSkin(TILE: Tile) : CustomTileSkin(TILE) {
+open class DndSkin(TILE: Tile, size : Double) : CustomTileSkin(TILE) {
 
     lateinit var resizeRegion: ResizeRegion
     lateinit var closeRegion: CloseRegion
+    val regionSize = size
 
     override fun initGraphics() {
         super.initGraphics()
@@ -27,9 +28,11 @@ open class DndSkin(TILE: Tile) : CustomTileSkin(TILE) {
     override fun resize() {
         super.resize()
 
-        val regionSize = size * 0.1
+
+        println(size)
         resizeRegion.setPrefSize(regionSize, regionSize)
         resizeRegion.relocate(width - regionSize, height - regionSize)
+
         closeRegion.setPrefSize(regionSize, regionSize)
         closeRegion.relocate(0.0, 0.0)
     }

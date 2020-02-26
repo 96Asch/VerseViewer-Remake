@@ -89,8 +89,8 @@ abstract class TileRegion(protected var size: Double = 0.0,
         private const val PREFERRED_HEIGHT = 52.0
         private const val MINIMUM_WIDTH = 1.0
         private const val MINIMUM_HEIGHT = 1.0
-        private const val MAXIMUM_WIDTH = 1024.0
-        private const val MAXIMUM_HEIGHT = 1024.0
+        private const val MAXIMUM_WIDTH = 52.0
+        private const val MAXIMUM_HEIGHT = 52.0
     }
 
     // ******************** Constructors **************************************

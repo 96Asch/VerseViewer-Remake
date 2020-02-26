@@ -1,6 +1,5 @@
 package com.example.demo.view.dashboard
 
-import com.example.demo.controller.TileBuilderController
 import com.example.demo.model.DashBoardModel
 import com.example.demo.model.GridBuilder
 import javafx.geometry.HPos
@@ -15,7 +14,6 @@ class DashBoard : View("My View") {
     private val dashboardModel : DashBoardModel by inject()
     private val json = resources.jsonArray("/layout/gridinfo.json").toModel<GridBuilder>()
     private val dim = 16
-    private val tileSize = 30.0
 
     override val root = gridpane {
         isGridLinesVisible = true
@@ -24,7 +22,7 @@ class DashBoard : View("My View") {
             val c = ColumnConstraints().apply {
                 halignment = HPos.CENTER
                 hgrow = Priority.ALWAYS
-                this.prefWidth = tileSize
+                this.prefWidth = dashboardModel.tileSize
             }
             columnConstraints.add(c)
         }
@@ -33,7 +31,7 @@ class DashBoard : View("My View") {
             val r = RowConstraints().apply {
                 valignment = VPos.CENTER
                 vgrow = Priority.ALWAYS
-                this.prefHeight = tileSize
+                this.prefHeight = dashboardModel.tileSize
             }
             rowConstraints.add(r)
         }

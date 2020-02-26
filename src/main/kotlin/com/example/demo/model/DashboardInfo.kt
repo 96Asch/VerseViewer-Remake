@@ -1,11 +1,9 @@
 package com.example.demo.model
 
-import com.example.demo.controller.TileBuilderController
 import com.example.demo.view.dashboard.DndSkin
 import com.example.demo.view.schedule.Schedule
 import com.example.demo.view.versebox.VerseBox
 import eu.hansolo.tilesfx.Tile
-import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.paint.Color
 import tornadofx.*
 import kotlin.reflect.KClass
@@ -30,6 +28,7 @@ class DashBoardModel : ItemViewModel<DashBoardInfo>() {
     private var editMode = false
     private val minRowspan = 4
     private val minColspan = 4
+    val tileSize = 25.0
 
 
     fun build(list: List<GridBuilder>, activeDb: Int, isEditable: Boolean = false) {
@@ -52,6 +51,9 @@ class DashBoardModel : ItemViewModel<DashBoardInfo>() {
     private fun createTile(component: VVComponent) : Tile {
         val fragment = component.getInstance()
         val testTile = eu.hansolo.tilesfx.TileBuilder.create()
+                .prefWidth(tileSize)
+                .prefHeight(tileSize)
+                .prefSize(tileSize, tileSize)
                 .activeColor(Color.GREEN)
                 .backgroundColor(Color.WHEAT)
                 .skinType(Tile.SkinType.CUSTOM)
@@ -60,7 +62,7 @@ class DashBoardModel : ItemViewModel<DashBoardInfo>() {
                 .build()
 
         if (editMode) {
-            val dndSkin = DndSkin(testTile)
+            val dndSkin = DndSkin(testTile, tileSize)
             dndSkin.resizeRegion.backgroundColor = Tile.GRAY
             dndSkin.resizeRegion.foregroundColor = Tile.DARK_BLUE
             dndSkin.closeRegion.backgroundColor = Tile.RED
