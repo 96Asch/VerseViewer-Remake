@@ -167,8 +167,12 @@ class VerseBox : Fragment() {
         dragVerseController.dragStart(evt, tv)
     }
 
+    private fun test(l : ListChangeListener<Verse>) {
 
-    private fun onSelectionChange() : ListChangeListener<Verse> = ListChangeListener<Verse> { changed ->
+    }
+
+
+    private fun onSelectionChange() : ListChangeListener<Verse> = ListChangeListener { changed ->
         if (changed.list.isEmpty().not() && !inGroupModeProperty.value && changed.list.size < displayLimit) {
             displayModel.rebind{ group = VerseGroup(changed.list.toMutableList(), GroupType.MONO_TRANSLATION) }
         }
@@ -177,17 +181,13 @@ class VerseBox : Fragment() {
 }
 
 fun NotificationPane.showForSeconds(message: String, graphic: Node? = null, duration: Int) {
-    if (graphic != null) {
+    if (graphic != null)
         show(message, graphic)
-    }
-    else {
+    else
         show(message)
-    }
 
     val pause = PauseTransition(Duration.seconds(duration.toDouble()))
-    pause.onFinished = EventHandler {
-        hide()
-    }
+    pause.onFinished = EventHandler { hide() }
     pause.play()
 }
 

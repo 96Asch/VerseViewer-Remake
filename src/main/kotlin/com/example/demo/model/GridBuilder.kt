@@ -1,6 +1,7 @@
 package com.example.demo.model
 
 import javafx.beans.property.SimpleIntegerProperty
+import javafx.beans.property.SimpleStringProperty
 import tornadofx.*
 import tornadofx.getValue
 import tornadofx.setValue
@@ -32,7 +33,7 @@ class GridBuilder() : JsonModel {
 }
 
 class TileBuilder() : JsonModel {
-    val componentIdProperty = SimpleIntegerProperty()
+    val componentIdProperty = SimpleStringProperty()
     var componentId by componentIdProperty
 
     val xProperty = SimpleIntegerProperty()
@@ -53,7 +54,7 @@ class TileBuilder() : JsonModel {
 
     override fun updateModel(json: JsonObject) {
         with(json) {
-            componentId = int("componentId") ?: -1
+            componentId = string("componentId") ?: ""
             x = int("x") ?: -1
             y = int("y") ?: -1
             rowspan = int("rowspan") ?: -1

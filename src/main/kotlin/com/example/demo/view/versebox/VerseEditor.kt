@@ -6,8 +6,11 @@ import com.example.demo.model.VerseModel
 import com.example.demo.model.datastructure.GroupType
 import com.example.demo.model.event.RefreshList
 import javafx.beans.value.ChangeListener
+import javafx.event.ActionEvent
 import javafx.geometry.Side
 import javafx.scene.control.TextArea
+import org.controlsfx.glyphfont.FontAwesome
+import org.controlsfx.glyphfont.GlyphFontRegistry
 import tornadofx.*
 import tornadofx.controlsfx.*
 
@@ -42,23 +45,20 @@ class VerseEditor : Fragment() {
 
         center = master
 
+        val glyph = GlyphFontRegistry.font("FontAwesome")
         left = vbox {
             isFillWidth = true
-            button("Save") {
+            button(graphic = glyph.create(FontAwesome.Glyph.SAVE)) {
                 enableWhen(verseModel.dirty)
-                action {
-                    save()
-                }
+                setOnAction(::save)
                 shortcut("Ctrl+S")
-                maxWidth = Double.MAX_VALUE
             }
-            button("Cancel") {
-                action {
-                    cancel()
-                }
-                maxWidth = Double.MAX_VALUE
+            button(graphic = glyph.create(FontAwesome.Glyph.UNDO)) {
+                setOnAction(::save)
             }
-            toggleswitch ("Symbols", master.showDetailNodeProperty()) {
+            togglebutton {
+                graphic = glyph.create(FontAwesome.Glyph.ASTERISK)
+                master.showDetailNodeProperty().bind(selectedProperty())
                 isSelected = false
                 shortcut("Ctrl+Y") {
                     this.isSelected = !this.isSelected
@@ -72,12 +72,12 @@ class VerseEditor : Fragment() {
         fire(RefreshList(listOf(verseModel.item), GroupType.MONO_TRANSLATION))
     }
 
-    private fun cancel() {
+    private fun cancel(evt : ActionEvent) {
         verseModel.rollback()
         close()
     }
 
-    private fun save() {
+    private fun save(evt: ActionEvent) {
         verseModel.commit()
         dbController.updateVerseText(verseModel.item)
         close()

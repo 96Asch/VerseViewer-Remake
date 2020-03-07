@@ -4,7 +4,7 @@ import com.example.demo.app.Styles
 import tornadofx.*
 import com.example.demo.controller.DragVerseController
 import com.example.demo.model.DisplayVersesModel
-import com.example.demo.model.ScheduleScope
+import com.example.demo.model.scope.ScheduleScope
 import com.example.demo.model.datastructure.VerseGroup
 import javafx.beans.Observable
 import javafx.event.ActionEvent
@@ -13,6 +13,8 @@ import javafx.scene.control.ScrollPane
 import javafx.scene.control.TableView
 import javafx.scene.input.DragEvent
 import javafx.scene.layout.Priority
+import org.controlsfx.glyphfont.FontAwesome
+import org.controlsfx.glyphfont.GlyphFontRegistry
 import tornadofx.controlsfx.detail
 import tornadofx.controlsfx.hiddensidepane
 import tornadofx.controlsfx.masterdetailpane
@@ -79,20 +81,23 @@ class Schedule : Fragment("My View") {
 
             }
 
-
+        val glyph = GlyphFontRegistry.font("FontAwesome")
             right = scrollpane {
+                this.addClass(Styles.transparent)
                 vbox {
+                    this.addClass(Styles.transparent)
                     paddingAll = 10
                     paddingTop = 30
-                    button("Up").setOnAction(::moveSelectedUp)
-                    button("Down").setOnAction(::moveSelectedDown)
-                    button("Group").setOnAction(::groupSelected)
-                    button("Ungroup").setOnAction(::ungroupSelected)
-                    button("Delete").setOnAction(::deleteSelected)
-                    button("Clear").setOnAction(::clearSchedule)
+                    button(graphic = glyph.create(FontAwesome.Glyph.SAVE))
+                    button(graphic = glyph.create(FontAwesome.Glyph.FOLDER_OPEN))
+                    button(graphic = glyph.create(FontAwesome.Glyph.ARROW_UP)).setOnAction(::moveSelectedUp)
+                    button(graphic = glyph.create(FontAwesome.Glyph.ARROW_DOWN)).setOnAction(::moveSelectedDown)
+                    button(graphic = glyph.create(FontAwesome.Glyph.LINK)).setOnAction(::groupSelected)
+                    button(graphic = glyph.create(FontAwesome.Glyph.UNLINK)).setOnAction(::ungroupSelected)
+                    button(graphic = glyph.create(FontAwesome.Glyph.REMOVE)).setOnAction(::deleteSelected)
+                    button(graphic = glyph.create(FontAwesome.Glyph.TRASH)).setOnAction(::clearSchedule)
                 }
                 vbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
-                this.addClass(Styles.transparent)
             }
             triggerDistance = 80.toDouble()
 

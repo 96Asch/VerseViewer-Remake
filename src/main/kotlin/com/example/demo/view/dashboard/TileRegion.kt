@@ -7,12 +7,13 @@ import javafx.scene.Node
 import javafx.scene.layout.Region
 import javafx.scene.paint.Color
 import javafx.scene.shape.Path
+import tornadofx.*
 
 abstract class TileRegion(protected var size: Double = 0.0,
                           private var w: Double = 0.0,
                           private var h: Double = 0.0,
                           protected val path: Path = Path(),
-                          protected val icon: Path = Path(),
+                          val icon: Node,
                           var backgroundColor: Color = Tile.GREEN,
                           var foregroundColor: Color = Tile.FOREGROUND,
                           var roundedCorner: Boolean = true) : Region() {
@@ -28,7 +29,6 @@ abstract class TileRegion(protected var size: Double = 0.0,
             }
         }
         path.stroke = Color.TRANSPARENT
-        icon.stroke = Color.TRANSPARENT
         icon.isMouseTransparent = true
         children.setAll(path, icon)
     }
@@ -75,13 +75,25 @@ abstract class TileRegion(protected var size: Double = 0.0,
         }
     }
 
+    fun addCss(rule : CssRule) {
+        addPathCss(rule)
+        addIconCss(rule)
+    }
+
+    fun addPathCss(rule : CssRule) {
+        path.apply { addClass(rule) }
+    }
+
+    fun addIconCss(rule : CssRule) {
+        icon.apply { addClass(rule) }
+    }
+
     abstract fun drawPath()
 
     abstract fun drawIcon()
 
     private fun redraw() {
         path.fill = backgroundColor
-        icon.fill = foregroundColor
     }
 
     companion object {

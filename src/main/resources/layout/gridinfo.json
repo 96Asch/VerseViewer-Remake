@@ -3,25 +3,11 @@
     "id" : 1,
     "tiles" : [
       {
-        "componentId" : 1,
+        "componentId" : "VerseBox",
         "x" : 0,
         "y" : 0,
-        "colspan" : 10,
-        "rowspan" : 15
-      },
-      {
-        "componentId" : 2,
-        "x" : 11,
-        "y" : 0,
-        "colspan" : 7,
-        "rowspan" : 7
-      },
-      {
-        "componentId" : 2,
-        "x" : 11,
-        "y" : 8,
-        "colspan" : 7,
-        "rowspan" : 7
+        "colspan" : 9,
+        "rowspan" : 9
       }
     ]
   }

@@ -1,47 +1,60 @@
 package com.example.demo.view.dashboard
 
-import com.example.demo.model.DashBoardModel
-import com.example.demo.model.GridBuilder
+import com.example.demo.controller.DashBoardController
+import com.example.demo.model.TileProperties
 import javafx.geometry.HPos
 import javafx.geometry.VPos
-import javafx.scene.layout.ColumnConstraints
-import javafx.scene.layout.Priority
-import javafx.scene.layout.RowConstraints
+import javafx.scene.layout.*
 import tornadofx.*
 
 class DashBoard : View("My View") {
-
-    private val dashboardModel : DashBoardModel by inject()
-    private val json = resources.jsonArray("/layout/gridinfo.json").toModel<GridBuilder>()
-    private val dim = 16
+    val numTiles = 16
+    val tileSize = 25.0
+    private val controller : DashBoardController by inject()
 
     override val root = gridpane {
         isGridLinesVisible = true
 
-        for (i in 0 until dim) {
+        for (i in 0 until numTiles) {
             val c = ColumnConstraints().apply {
                 halignment = HPos.CENTER
                 hgrow = Priority.ALWAYS
-                this.prefWidth = dashboardModel.tileSize
+                this.prefWidth = tileSize
             }
             columnConstraints.add(c)
         }
 
-        for (i in 0 until dim) {
+        for (i in 0 until numTiles) {
             val r = RowConstraints().apply {
                 valignment = VPos.CENTER
                 vgrow = Priority.ALWAYS
-                this.prefHeight = dashboardModel.tileSize
+                this.prefHeight = tileSize
             }
             rowConstraints.add(r)
+        }
+
+        for (y in 0 until numTiles) {
+            for (x in 0 until numTiles) {
+                val pane = GridCell(x,y)
+                add(pane, x, y)
+            }
+        }
+    }
+
+    fun addTiles() {
+        controller.tileList.forEach {
+            root.addTile(it)
         }
     }
 
     init {
-        dashboardModel.build(json, 1, true)
-        dashboardModel.item.tiles.forEach {
-            root.add(it.tile, it.x, it.y, it.colspan, it.rowspan)
-        }
+        addTiles()
     }
 }
+
+fun GridPane.addTile(property : TileProperties) {
+    add(property.tile, property.x, property.y, property.colspan, property.rowspan)
+}
+
+class GridCell(val x : Int, val y : Int) : Pane()
 

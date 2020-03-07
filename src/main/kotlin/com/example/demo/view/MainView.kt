@@ -1,6 +1,6 @@
 package com.example.demo.view
 
-import com.example.demo.model.ScheduleScope
+import com.example.demo.model.scope.ScheduleScope
 import com.example.demo.view.schedule.Schedule
 import com.example.demo.view.versebox.VerseBox
 import javafx.geometry.HPos
