@@ -1,0 +1,11 @@
+{
+  "tiles" : [
+    {
+      "componentId" : "VerseBox",
+      "x" : 0,
+      "y" : 0,
+      "colspan" : 9,
+      "rowspan" : 9
+    }
+  ]
+}
