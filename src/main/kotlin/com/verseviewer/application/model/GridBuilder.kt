@@ -18,8 +18,11 @@ class GridBuilder() : JsonModel {
     }
 
     override fun updateModel(json: JsonObject) {
-        with(json) {
-            tiles = getJsonArray("tiles").toModel()
+        //TODO Fix empty json
+        if (json.isNotEmpty()) {
+            with(json) {
+                tiles = getJsonArray("tiles").toModel()
+            }
         }
     }
 

@@ -15,3 +15,9 @@ class Book(book_id : Int = 0, name: String = "", type : String = "") {
     var type by typeProperty
 }
 
+class BookModel : ItemViewModel<Book>() {
+    val book_id = bind(Book::book_id)
+    val name = bind(Book::name)
+    val type = bind(Book::type)
+}
+

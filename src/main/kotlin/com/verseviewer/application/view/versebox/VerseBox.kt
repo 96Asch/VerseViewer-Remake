@@ -166,11 +166,6 @@ class VerseBox : Fragment() {
         dragVerseController.dragStart(evt, tv)
     }
 
-    private fun test(l : ListChangeListener<Verse>) {
-
-    }
-
-
     private fun onSelectionChange() : ListChangeListener<Verse> = ListChangeListener { changed ->
         if (changed.list.isEmpty().not() && !inGroupModeProperty.value && changed.list.size < displayLimit) {
             displayModel.rebind{ group = VerseGroup(changed.list.toMutableList(), GroupType.MONO_TRANSLATION) }

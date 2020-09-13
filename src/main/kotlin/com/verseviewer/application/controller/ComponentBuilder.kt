@@ -3,6 +3,7 @@ package com.verseviewer.application.controller
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.model.scope.ScheduleScope
 import com.verseviewer.application.view.Dummy
+import com.verseviewer.application.view.booklist.BookList
 import com.verseviewer.application.view.dashboard.DndSkin
 import com.verseviewer.application.view.dashboard.ListSkin
 import com.verseviewer.application.view.schedule.Schedule
@@ -25,7 +26,8 @@ class ComponentBuilder : Controller() {
     
     val components = mapOf(
             VerseBox::class.simpleName to VVComponent(VerseBox::class, maxInstances = 1, required = true),
-            Schedule::class.simpleName to VVComponent(Schedule::class, maxInstances = -1, scope = ScheduleScope::class, required = false)
+            Schedule::class.simpleName to VVComponent(Schedule::class, maxInstances = -1, scope = ScheduleScope::class, required = false),
+            BookList::class.simpleName to VVComponent(BookList::class, maxInstances = 1, required = false)
     )
 
     fun isInstanceAllowed(tile: Tile) : Boolean {
