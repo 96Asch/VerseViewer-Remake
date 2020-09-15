@@ -22,6 +22,10 @@ class Translation(name: String = String.notAvailableValue(),
     var isDeutercanonic by isDeutercanonicProperty
 
     constructor(tl : TranslationDAO) : this(tl.id.value, tl.abbreviation, tl.lang, tl.isDeutercanonic)
+
+    override fun toString(): String {
+        return "$abbreviation - $name ($lang)"
+    }
 }
 
 class TranslationModel : ItemViewModel<Translation>() {

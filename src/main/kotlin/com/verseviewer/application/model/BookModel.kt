@@ -13,4 +13,8 @@ class Book(book_id : Int = 0, name: String = "", type : String = "") {
 
     val typeProperty = SimpleStringProperty(type)
     var type by typeProperty
+
+    override fun toString(): String {
+        return "$book_id - $name - $type"
+    }
 }

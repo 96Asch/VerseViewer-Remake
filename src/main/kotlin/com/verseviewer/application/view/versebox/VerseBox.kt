@@ -21,6 +21,7 @@ import javafx.scene.Cursor
 import javafx.scene.Node
 import javafx.scene.control.TableRow
 import javafx.scene.control.TableView
+import javafx.scene.control.TextField
 import javafx.scene.input.*
 import javafx.scene.layout.Priority
 import javafx.scene.text.TextAlignment
@@ -44,7 +45,6 @@ class VerseBox : Fragment() {
 
     private val translationListener = ChangeListener<Translation> { _, old, new ->
         if (old != new && new != null) {
-            println("VerseBox tlistener")
             verseSearchController.updateBookTrie(new)
         }
     }
@@ -93,19 +93,21 @@ class VerseBox : Fragment() {
             textAlignment = TextAlignment.CENTER
         }
 
-        textfield {
-            action {
-                if (!text.isNullOrEmpty()) {
-                    val verses = verseSearchController.processText(text)
-                    if (verses.isNotEmpty()) {
-                        controller.verseList.setAll(verses)
-                        tv.requestResize()
-                    }
-                    selectAll()
+        hbox {
+            textfield {
+                action {
+                    handleText(this)
                 }
+                promptText = "Type .h for help"
+                hboxConstraints { hGrow = Priority.ALWAYS }
             }
-            promptText = "Type .h for help"
+            togglebutton {
+                text = "Filter"
+                verseSearchController.filterModeProperty.bind(selectedProperty())
+            }
         }
+
+
         subscribe<SendNotification> {
             showNotification(np, it.message, it.type, it.duration)
         }
@@ -118,6 +120,7 @@ class VerseBox : Fragment() {
 
         subscribe<BroadcastVerses> {
             controller.verseList.setAll(it.verses)
+            controller.setCache(it.verses)
         }
 
         translationModel.itemProperty.addListener(translationListener)
@@ -132,6 +135,18 @@ class VerseBox : Fragment() {
     init {
         displayModel.groupProperty.addListener { _ ->
             println("Changed: " + displayModel.group)
+        }
+    }
+
+    private fun handleText(tf : TextField) {
+        if (!tf.text.isNullOrEmpty()) {
+            val index = verseSearchController.processText(tf.text, controller.verseList)
+            if (controller.verseList.isNotEmpty()) {
+                tv.requestResize()
+            }
+            if (index >= 0)
+                tv.selectionModel.clearAndSelect(index)
+            tf.selectAll()
         }
     }
 

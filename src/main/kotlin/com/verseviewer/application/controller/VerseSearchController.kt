@@ -4,10 +4,12 @@ import com.verseviewer.application.model.Translation
 import com.verseviewer.application.model.TranslationModel
 import com.verseviewer.application.model.Verse
 import com.verseviewer.application.model.datastructure.BookTrie
+import com.verseviewer.application.model.datastructure.Range
 import com.verseviewer.application.model.datastructure.TranslationTrie
 import com.verseviewer.application.model.datastructure.inRange
 import com.verseviewer.application.model.event.NotificationType
 import com.verseviewer.application.model.event.SendNotification
+import javafx.beans.property.SimpleBooleanProperty
 import tornadofx.*
 
 class VerseSearchController : Controller() {
@@ -24,19 +26,20 @@ class VerseSearchController : Controller() {
     private val errorDuration = 2
     private val warningDuration = 2
 
-    fun processText(text: String) : List<Verse> {
+    val filterModeProperty = SimpleBooleanProperty(false)
+
+    fun processText(text: String, list : MutableList<Verse>) : Int {
         return when {
             text.startsWith(".t") -> {
                 setTranslation(text)
-                listOf()
+                0
             }
             text.startsWith(".h") -> {
                 fire(SendNotification("", NotificationType.HELP, 0))
-                listOf()
+                0
             }
-            else -> retrieveVerses(text)
+            else -> retrieveVerses(text, list)
         }
-
     }
 
     fun updateBookTrie(translation : Translation) {
@@ -79,19 +82,34 @@ class VerseSearchController : Controller() {
         }
     }
 
-    private fun retrieveVerses(text: String) : List<Verse> {
-        if (!validate(text)) return listOf()
+    private fun retrieveVerses(text: String, list : MutableList<Verse>) : Int {
+        if (!validate(text)) return 0
+
 
         val matchResult = regex.find(text)!!
         val (book, chapter, verse) = matchResult.destructured
         val flag = getFlag(matchResult.groupValues.subList(1, matchResult.groupValues.size))
-        val list = getBookVerses(book)
+
+        list.clear()
+        list.addAll(getBookVerses(book))
 
         val ch = chapter.replace("\\s".toRegex(), "")
         val v = verse.replace("\\s".toRegex(), "")
 
-        return list.filter {
-            when(flag) {
+        if (filterModeProperty.value) {
+            list.filter {
+                when(flag) {
+                    0b111, 0b011 -> (it.chapter == ch.toInt() && v.toInt() inRange it.verse)
+                    0b110        -> it.chapter == ch.toInt()
+                    0b101, 0b001 -> v.toInt() inRange it.verse
+                    0b010        -> ch.toInt() inRange it.verse
+                    else -> true
+                }
+            }
+        }
+
+        return list.indexOfFirst {
+            when (flag) {
                 0b111, 0b011 -> (it.chapter == ch.toInt() && v.toInt() inRange it.verse)
                 0b110        -> it.chapter == ch.toInt()
                 0b101, 0b001 -> v.toInt() inRange it.verse
