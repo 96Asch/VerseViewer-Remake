@@ -31,6 +31,8 @@ class TranslationModel : ItemViewModel<Translation>() {
     val isDeutercanonic = bind(Translation::isDeutercanonicProperty)
 }
 
+fun String.Companion.notAvailableValue() : String = "N.A"
+
 
 
 

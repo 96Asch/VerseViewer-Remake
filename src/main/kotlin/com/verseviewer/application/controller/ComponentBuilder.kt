@@ -1,6 +1,7 @@
 package com.verseviewer.application.controller
 
 import com.verseviewer.application.app.Styles
+import com.verseviewer.application.model.scope.EditorScope
 import com.verseviewer.application.model.scope.ScheduleScope
 import com.verseviewer.application.view.Dummy
 import com.verseviewer.application.view.booklist.BookList
@@ -13,6 +14,8 @@ import eu.hansolo.tilesfx.TileBuilder
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.event.EventHandler
 import javafx.scene.Cursor
+import javafx.scene.image.ImageView
+import javafx.scene.image.WritableImage
 import javafx.scene.paint.Color
 import tornadofx.*
 import kotlin.reflect.KClass
@@ -21,10 +24,11 @@ import kotlin.reflect.full.createInstance
 class ComponentBuilder : Controller() {
 
     private val componentIdName = "componentId"
-    val tileSize = 25.0
+    private val tileSize = 25.0
     private val dummyComponent = VVComponent(Dummy::class, maxInstances = -1)
+    private val editorScope = EditorScope()
     
-    val components = mapOf(
+    private val components = mapOf(
             VerseBox::class.simpleName to VVComponent(VerseBox::class, maxInstances = 1, required = true),
             Schedule::class.simpleName to VVComponent(Schedule::class, maxInstances = -1, scope = ScheduleScope::class, required = false),
             BookList::class.simpleName to VVComponent(BookList::class, maxInstances = 1, required = false)
@@ -41,8 +45,13 @@ class ComponentBuilder : Controller() {
         val component = components[tile.properties[componentIdName] as String]
         component?.apply { numInstances++ }
     }
+
+    fun createListComponents() = components.map {
+        createListTile(it.value, it.value.classType.simpleName!!)
+    }
+
     
-    fun createListTile(component : VVComponent, id : String) : Tile {
+    private fun createListTile(component : VVComponent, id : String) : Tile {
         val listTile = TileBuilder.create()
                 .prefSize(tileSize, tileSize)
                 .maxHeight(Double.MAX_VALUE)
@@ -54,7 +63,7 @@ class ComponentBuilder : Controller() {
                 .roundedCorners(true)
                 .showInfoRegion(component.required)
                 .infoRegionTooltipText("Component required")
-                .graphic(component.getInstance().root)
+                .graphic(component.getInstance(editorScope = editorScope).root)
                 .build()
 
         listTile.properties[componentIdName] = id
@@ -97,10 +106,14 @@ class ComponentBuilder : Controller() {
         }
     }
 
-    private fun createTile(component : VVComponent, isEditable: Boolean = false, activeInstance: Boolean = false) : Tile {
-
+    private fun createTile(component : VVComponent,
+                           isEditable: Boolean = false,
+                           activeInstance: Boolean = false,
+                           width : Double = tileSize,
+                           height : Double = tileSize) : Tile {
+        val fragment = component.getInstance(activeInstance)
         val tile = TileBuilder.create()
-                .prefSize(tileSize, tileSize)
+                .prefSize(width, height)
                 .maxHeight(Double.MAX_VALUE)
                 .maxWidth(Double.MAX_VALUE)
                 .activeColor(Color.GREEN)
@@ -108,7 +121,7 @@ class ComponentBuilder : Controller() {
                 .skinType(Tile.SkinType.CUSTOM)
                 .textVisible(false)
                 .roundedCorners(true)
-                .graphic(component.getInstance(activeInstance).root)
+                .graphic(fragment.root)
                 .build()
 
         tile.properties[componentIdName] = component.classType.simpleName!!
@@ -128,12 +141,16 @@ class ComponentBuilder : Controller() {
     }
 
 
-    fun createTile(componentId : String, isEditable: Boolean = false, activeInstance: Boolean = false) : Tile {
-        return createTile(components.getOrElse(componentId) {dummyComponent}, isEditable, activeInstance)
+    fun createTile(componentId : String,
+                   isEditable: Boolean = false,
+                   activeInstance: Boolean = false,
+                   width : Double = tileSize,
+                   height : Double = tileSize) : Tile {
+        return createTile(components.getOrElse(componentId) {dummyComponent}, isEditable, activeInstance, width, height)
     }
 
     fun createTile(tile : Tile, isEditable: Boolean = false, activeInstance: Boolean = false) : Tile {
-        return createTile(tile.properties[componentIdName] as String, isEditable, activeInstance)
+        return createTile(tile.properties[componentIdName] as String, isEditable, activeInstance, tile.width, tile.height)
     }
 
     fun refreshCounters() {
@@ -159,12 +176,14 @@ data class VVComponent (val classType : KClass<out Fragment>,
     val numInstancesProperty = SimpleIntegerProperty(maxInstances)
     var numInstances by numInstancesProperty
 
-    fun getInstance(activeInstance : Boolean = false) : Fragment{
+    fun getInstance(activeInstance: Boolean = false, editorScope: Scope? = null) : Fragment{
         if (activeInstance)
             this.numInstances--
 
         return if (scope != null)
             find(classType, scope.createInstance())
+        else if (editorScope != null)
+            find(classType, editorScope)
         else
             find(classType)
     }

@@ -1,17 +1,27 @@
 package com.verseviewer.application.view.booklist
 
 import com.verseviewer.application.controller.BookListController
-import com.verseviewer.application.model.BookModel
+import com.verseviewer.application.model.Book
+import com.verseviewer.application.model.Translation
 import com.verseviewer.application.model.TranslationModel
-import javafx.scene.Parent
 import tornadofx.*
-import javax.swing.text.html.ListView
 
 class BookList() : Fragment("BookList") {
 
     private val translationModel : TranslationModel by inject()
-    private val bookModel : BookModel by inject()
     private val controller : BookListController by inject()
+
+    private val translationListener = ChangeListener<Translation> { _, old, new ->
+        if (old != new) {
+            controller.populateBooks(new)
+        }
+    }
+    private val selectedBookListener = ChangeListener<Book> { _, old, new ->
+        if (old != new) {
+            controller.sendVerses(translationModel.name.value, new.book_id)
+        }
+    }
+    private val listView = listview(values = controller.bookList)
 
     override val root = vbox {
         combobox(values = controller.translationList) {
@@ -20,24 +30,24 @@ class BookList() : Fragment("BookList") {
             }
             valueProperty().bindBidirectional(translationModel.itemProperty)
         }
-        listview(values = controller.bookList) {
-            bindSelected(bookModel)
+
+        this += listView.apply {
             cellFormat {
                 text = it.name
             }
+            selectionModel.selectedItemProperty().addListener(selectedBookListener)
         }
-
     }
 
+    override fun onUndock() {
+        super.onUndock()
+        subscribedEvents.clear()
+        translationModel.itemProperty.removeListener(translationListener)
+        listView.selectionModel.selectedItemProperty().removeListener(selectedBookListener)
+    }
+
+
     init {
-        translationModel.itemProperty.addListener { _, oldValue, newValue ->
-            if (oldValue != newValue && newValue != null )
-                controller.populateBooks(newValue)
-        }
-        bookModel.itemProperty.onChange {
-            if (it != null) {
-                println(it.name)
-            }
-        }
+        translationModel.itemProperty.addListener(translationListener)
     }
 }

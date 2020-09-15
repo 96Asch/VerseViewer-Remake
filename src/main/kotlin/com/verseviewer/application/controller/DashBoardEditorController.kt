@@ -6,9 +6,12 @@ import com.verseviewer.application.model.UserModel
 import com.verseviewer.application.view.dashboard.DashBoardEditor
 import com.verseviewer.application.view.dashboard.DndSkin
 import eu.hansolo.tilesfx.Tile
+import eu.hansolo.tilesfx.TileBuilder
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.scene.Node
 import javafx.scene.image.Image
+import javafx.scene.image.ImageView
+import javafx.scene.image.WritableImage
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Region
 import tornadofx.*
@@ -25,7 +28,7 @@ class DashBoardEditorController : Controller() {
     private val userModel : UserModel by inject()
 
 
-    private lateinit var inFlightTile: Tile
+    private var inFlightTile: Tile? = null
     private var selectedTile: Tile? = null
     private var dropDimension : Dimension? = null
     private var action = EditAction.NONE
@@ -75,43 +78,45 @@ class DashBoardEditorController : Controller() {
                 }
             }
         }
+        println(selectedTile)
     }
 
     private fun setInFlight(tile : Tile) {
         inFlightTile = builder.createTile(tile)
                 .apply { addClass(Styles.partialTransparant)
-                    setPrefSize(tile.width, tile.height)
                     relocate(tile.layoutX, tile.layoutY)
                     isVisible = false }
-        view.root.children.last().add(inFlightTile)
+        view.root.children.last().add(inFlightTile!!)
     }
 
     fun animateDrag(evt : MouseEvent) {
         if (action != EditAction.NONE) {
             selectedTile?.apply { if (isVisible) isVisible = false }
             val mousePt = view.root.sceneToLocal(evt.sceneX, evt.sceneY)
-            inFlightTile.isVisible = true
-            inFlightTile.toFront()
+            inFlightTile?.apply {
+                isVisible = true
+                toFront()
+            }
 
             val cell = dashboardController.pickCell(evt)
 
             when(action) {
                 EditAction.NEW_DRAG_DROP -> {
-                    inFlightTile.relocate(mousePt.x, mousePt.y)
+                    inFlightTile?.relocate(mousePt.x, mousePt.y)
                     cell?.let {
                         dropDimension = dashboardController.validateDrop(it, minColSpan, minRowSpan)
                     }
                 }
 
                 EditAction.RELOCATE_DRAG_DROP -> {
-                    inFlightTile.relocate(mousePt.x, mousePt.y)
+                    inFlightTile?.relocate(mousePt.x, mousePt.y)
                     cell?.let {
                         dropDimension = dashboardController.validateDrop(it, tileModel.colspan.value, tileModel.rowspan.value)
                     }
                 }
 
                 EditAction.RESIZE -> {
-                    inFlightTile.setPrefSize(mousePt.x - selectedTile!!.layoutX, mousePt.y - selectedTile!!.layoutY)
+                    inFlightTile?.setPrefSize(mousePt.x - selectedTile!!.layoutX, mousePt.y - selectedTile!!.layoutY)
                     cell?.let {
                         val cspan = it.x - tileModel.x.value + 1
                         val rspan = it.y - tileModel.y.value + 1
@@ -132,8 +137,8 @@ class DashBoardEditorController : Controller() {
     }
 
     fun stopDrag(evt: MouseEvent) {
-        if (action != EditAction.NONE) {
-            inFlightTile.isVisible = false
+        if (action != EditAction.NONE && inFlightTile != null) {
+            inFlightTile!!.isVisible = false
         }
     }
 
@@ -153,6 +158,7 @@ class DashBoardEditorController : Controller() {
                 EditAction.RESIZE -> {
                     if (dashboardController.dropOnGrid(action, dropDimension!!, selectedTile)) {
                         dirty = true
+                        selectedTile = null
                         evt.consume()
                     }
                 }
@@ -164,6 +170,8 @@ class DashBoardEditorController : Controller() {
             selectedTile?.apply { isVisible = true }
             dashboardController.clearHighlighted()
         }
+        inFlightTile?.graphic?.removeFromParent()
+        inFlightTile = null
         action = EditAction.NONE
     }
 
@@ -180,16 +188,12 @@ class DashBoardEditorController : Controller() {
             = region.contains(region.sceneToLocal(evt.x, evt.y))
 
     private fun refreshComponents() {
-        val tileList = builder.components
-                .map { builder.createListTile(it.value, it.value.classType.simpleName!!) }
         componentList.clear()
-        componentList.addAll(tileList)
+        componentList.addAll(builder.createListComponents())
     }
-
 
     init {
         refreshComponents()
-        userModel.item = dbController.getUsers().first()
     }
 }
 

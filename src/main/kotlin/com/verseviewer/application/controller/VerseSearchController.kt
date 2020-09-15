@@ -1,5 +1,6 @@
 package com.verseviewer.application.controller
 
+import com.verseviewer.application.model.Translation
 import com.verseviewer.application.model.TranslationModel
 import com.verseviewer.application.model.Verse
 import com.verseviewer.application.model.datastructure.BookTrie
@@ -13,7 +14,7 @@ class VerseSearchController : Controller() {
 
     private val regex = """^([1-3]?\s*[a-zA-Z]+)?(\s?\d{1,3})?\s?(?::)?\s?((?<=:)\d{1,3})?""".toRegex()
     private val dbController : DBController by inject()
-    private val tableController : TableVersesController by inject()
+    private val tableController : VerseBoxController by inject()
 
     private val translationModel : TranslationModel by inject()
 
@@ -27,15 +28,22 @@ class VerseSearchController : Controller() {
         return when {
             text.startsWith(".t") -> {
                 setTranslation(text)
-                listOf<Verse>()
+                listOf()
             }
             text.startsWith(".h") -> {
                 fire(SendNotification("", NotificationType.HELP, 0))
-                listOf<Verse>()
+                listOf()
             }
             else -> retrieveVerses(text)
         }
 
+    }
+
+    fun updateBookTrie(translation : Translation) {
+        bookTrie.clear()
+        dbController.getBooksByTranslation(translation.name).forEach {
+            bookTrie.insert(it)
+        }
     }
 
     private fun setTranslation(text: String) {
@@ -50,11 +58,7 @@ class VerseSearchController : Controller() {
             else -> {
                 translationModel.item = list.first()
                 translationModel.commit()
-
-                bookTrie.clear()
-                dbController.getBooksByTranslation(list.first().name).forEach {
-                    bookTrie.insert(it)
-                }
+                updateBookTrie(list.first())
                 tableController.swapVersesByTranslation(list.first().name)
 
             }
@@ -63,7 +67,7 @@ class VerseSearchController : Controller() {
 
     private fun validate(text: String) : Boolean {
         return when {
-            text.isNullOrEmpty() ->  {
+            text.isEmpty() ->  {
                 fire(SendNotification("Input was empty", NotificationType.ERROR, errorDuration))
                 false
             }
@@ -76,7 +80,7 @@ class VerseSearchController : Controller() {
     }
 
     private fun retrieveVerses(text: String) : List<Verse> {
-        if (!validate(text)) return listOf<Verse>()
+        if (!validate(text)) return listOf()
 
         val matchResult = regex.find(text)!!
         val (book, chapter, verse) = matchResult.destructured
@@ -101,14 +105,14 @@ class VerseSearchController : Controller() {
     private fun getFlag(list: List<String>) : Int {
         var result = 0b000
         list.reversed().forEachIndexed { index, s ->
-            if (s.isNullOrEmpty().not())
+            if (s.isEmpty().not())
                 result = result or (1 shl index)
         }
         return result
     }
 
     private fun getBookVerses(book : String) : List<Verse> {
-        if (book.isNullOrEmpty().not()) {
+        if (book.isEmpty().not()) {
             val bookMap = bookTrie.retrieve(book)
             val list = mutableListOf<Verse>()
 

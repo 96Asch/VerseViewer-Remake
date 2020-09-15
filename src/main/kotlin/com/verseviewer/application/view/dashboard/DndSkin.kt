@@ -4,6 +4,7 @@ import com.verseviewer.application.app.Styles
 import eu.hansolo.tilesfx.Tile
 import eu.hansolo.tilesfx.skins.CustomTileSkin
 import eu.hansolo.tilesfx.tools.Helper
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.EventHandler
 import javafx.scene.Cursor
 import javafx.scene.Group
@@ -16,6 +17,7 @@ open class DndSkin(tile: Tile, private val regionSize : Double) : CustomTileSkin
     lateinit var resizeRegion: ResizeRegion
     lateinit var closeRegion: CloseRegion
     lateinit var relocateRegion: RelocateRegion
+    val isActiveProperty = SimpleBooleanProperty(true)
 
     override fun initGraphics() {
         super.initGraphics()

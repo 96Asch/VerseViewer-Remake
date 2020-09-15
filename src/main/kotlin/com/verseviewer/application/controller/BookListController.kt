@@ -3,6 +3,8 @@ package com.verseviewer.application.controller
 import com.verseviewer.application.model.Book
 import com.verseviewer.application.model.Translation
 import com.verseviewer.application.model.TranslationModel
+import com.verseviewer.application.model.event.BroadcastVerses
+import javafx.beans.property.SimpleObjectProperty
 import tornadofx.*
 
 class BookListController : Controller() {
@@ -11,11 +13,12 @@ class BookListController : Controller() {
     private val translationModel : TranslationModel by inject()
 
     val bookList = mutableListOf<Book>().asObservable()
-    val translationList by lazy { initTranslationList() }
+    val translationList by lazy { dbController.getTranslations().asObservable() }
+    val selectedTranslation = SimpleObjectProperty<Translation>()
 
-    private fun initTranslationList() = dbController.getTranslations().asObservable()
 
     fun populateBooks(translation : Translation) {
+        println("Populate")
         bookList.clear()
         bookList.addAll(dbController.getBooksByTranslation(translation.name).filter {
             if (!translation.isDeutercanonic)
@@ -23,6 +26,11 @@ class BookListController : Controller() {
             else
                true
         })
+    }
+
+    fun sendVerses(translation : String, bookId : Int) {
+        val verses = dbController.getBookVerses(translation, bookId)
+//        fire(BroadcastVerses(verses))
     }
 
 

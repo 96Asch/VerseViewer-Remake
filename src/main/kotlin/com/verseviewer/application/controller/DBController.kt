@@ -87,6 +87,7 @@ class DBController : Controller() {
     }
 
     fun getUsers() : List<User> = transaction(db) {
+        addLogger(StdOutSqlLogger)
         UserDAO.all().map { User(it) }
     }
 

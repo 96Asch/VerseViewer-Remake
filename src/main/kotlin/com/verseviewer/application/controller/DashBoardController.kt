@@ -148,10 +148,15 @@ class DashBoardController : Controller() {
 
     fun bindProperty(tile : Tile) {
         getProperty(tile)?.apply { tileModel.item = this }
+        println(tileModel.itemProperty.isBound)
     }
 
     private fun removeProperty(tile : Tile) {
-        getProperty(tile)?.apply { tileList.remove(this) }
+        getProperty(tile)?.apply {
+            println(tileList.remove(this))
+            tile.graphic.removeFromParent()
+            tileModel.item = null
+        }
     }
 
     private fun build(gridBuilder: GridBuilder, builder: ComponentBuilder, isEditable: Boolean) : List<TileProperties> {
@@ -167,7 +172,6 @@ class DashBoardController : Controller() {
 
     fun commitTiles() {
         val tileBuilders = tileList.map { TileBuilder(builder.getId(it.tile), it.x, it.y, it.colspan, it.rowspan) }
-        println(tileBuilders)
         userModel.layout.value.tiles.setAll(tileBuilders)
     }
 
@@ -179,7 +183,7 @@ class DashBoardController : Controller() {
     fun getTiles() = tileList.toList()
 
     fun removeTile(tile: Tile) {
-        view.root.children.remove(tile)
+        println(view.root.children.remove(tile))
         builder.removeInstance(tile)
         removeProperty(tile)
     }
@@ -193,12 +197,11 @@ class DashBoardController : Controller() {
         }
     }
 
+    private val dbController : DBController by inject()
+
 
     init {
-        userModel.item = User(0, "", json.toModel())
-        userModel.itemProperty.onChange { println("User Changed to ${userModel.name}")
-
-        }
+        userModel.item = dbController.getUsers().first()
         tileList.addAll(build(userModel.layout.value, builder, true))
     }
 
