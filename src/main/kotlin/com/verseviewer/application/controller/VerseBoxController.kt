@@ -1,15 +1,13 @@
 package com.verseviewer.application.controller
 
-import com.verseviewer.application.model.Translation
-import com.verseviewer.application.model.Verse
-import javafx.beans.property.SimpleObjectProperty
+import com.verseviewer.application.model.Passage
 import tornadofx.Controller
 import tornadofx.asObservable
 
 class VerseBoxController : Controller() {
 
-    val verseList = mutableListOf<Verse>().asObservable()
-    private var verseCache = listOf<Verse>()
+    val verseList = mutableListOf<Passage>().asObservable()
+    private var verseCache = listOf<Passage>()
 
     private val dbController : DBController by inject()
 
@@ -23,13 +21,13 @@ class VerseBoxController : Controller() {
         }
     }
 
-    fun get(ids : List<Int>) : List<Verse> {
+    fun get(ids : List<Int>) : List<Passage> {
         return verseCache.filter { it.id in ids }
     }
 
-    fun setCache(list : List<Verse>) {
+    fun setCache(list : List<Passage>) {
         verseCache = list
     }
 
-    fun getCache() : List<Verse>  = verseCache
+    fun getCache() : List<Passage>  = verseCache
 }

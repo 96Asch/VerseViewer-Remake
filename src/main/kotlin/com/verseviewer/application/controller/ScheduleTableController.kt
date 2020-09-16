@@ -1,6 +1,6 @@
 package com.verseviewer.application.controller
 
-import com.verseviewer.application.model.Verse
+import com.verseviewer.application.model.Passage
 import com.verseviewer.application.model.datastructure.GroupType
 import com.verseviewer.application.model.datastructure.VerseGroup
 import javafx.scene.control.TableView
@@ -9,7 +9,7 @@ import tornadofx.*
 class ScheduleTableController : Controller() {
 
     val list = mutableListOf<VerseGroup>().asObservable()
-    val detailList = mutableListOf<Verse>().asObservable()
+    val detailList = mutableListOf<Passage>().asObservable()
 
     fun setAll(l: List<VerseGroup>) {
         list.setAll(l)

@@ -3,10 +3,11 @@ package com.verseviewer.application.controller
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.model.scope.EditorScope
 import com.verseviewer.application.model.scope.ScheduleScope
-import com.verseviewer.application.view.Dummy
+import com.verseviewer.application.view.dummy.Dummy
 import com.verseviewer.application.view.booklist.BookList
 import com.verseviewer.application.view.dashboard.DndSkin
 import com.verseviewer.application.view.dashboard.ListSkin
+import com.verseviewer.application.view.projectionbar.ProjectionBar
 import com.verseviewer.application.view.schedule.Schedule
 import com.verseviewer.application.view.versebox.VerseBox
 import eu.hansolo.tilesfx.Tile
@@ -14,8 +15,6 @@ import eu.hansolo.tilesfx.TileBuilder
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.event.EventHandler
 import javafx.scene.Cursor
-import javafx.scene.image.ImageView
-import javafx.scene.image.WritableImage
 import javafx.scene.paint.Color
 import tornadofx.*
 import kotlin.reflect.KClass
@@ -29,6 +28,7 @@ class ComponentBuilder : Controller() {
     private val editorScope = EditorScope()
     
     private val components = mapOf(
+            ProjectionBar::class.simpleName to VVComponent(ProjectionBar::class, maxInstances = 1, required = true),
             VerseBox::class.simpleName to VVComponent(VerseBox::class, maxInstances = 1, required = true),
             Schedule::class.simpleName to VVComponent(Schedule::class, maxInstances = -1, scope = ScheduleScope::class, required = false),
             BookList::class.simpleName to VVComponent(BookList::class, maxInstances = 1, required = false)

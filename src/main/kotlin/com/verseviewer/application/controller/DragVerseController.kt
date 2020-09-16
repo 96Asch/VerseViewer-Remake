@@ -1,6 +1,6 @@
 package com.verseviewer.application.controller
 
-import com.verseviewer.application.model.Verse
+import com.verseviewer.application.model.Passage
 import com.verseviewer.application.model.datastructure.GroupType
 import com.verseviewer.application.model.datastructure.VerseGroup
 import javafx.beans.property.SimpleBooleanProperty
@@ -19,7 +19,7 @@ class DragVerseController : Controller() {
     val isDrag = SimpleBooleanProperty(false)
 
 
-    fun dragStart(evt: MouseEvent, tv : TableView<Verse>) {
+    fun dragStart(evt: MouseEvent, tv : TableView<Passage>) {
         if (tv.selectionModel.selectedItems.isNotEmpty()) {
             val vg = VerseGroup(tv.selectionModel.selectedItems, GroupType.MONO_TRANSLATION)
             dragGroup = vg
@@ -58,7 +58,6 @@ class DragVerseController : Controller() {
         if (isDrag.value && dragGroup != null) {
             success = true
             isDrag.value = false
-            println("Add $dragGroup")
             list.add(dragGroup!!)
             dragGroup = null
         }

@@ -1,6 +1,7 @@
 package com.verseviewer.application.app
 
 import com.verseviewer.application.view.booklist.BookList
+import com.verseviewer.application.view.dashboard.DashBoard
 import com.verseviewer.application.view.dashboard.DashBoardEditor
 import tornadofx.*
 

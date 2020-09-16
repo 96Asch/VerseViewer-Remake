@@ -42,9 +42,8 @@ class Schedule : Fragment("My View") {
                         remainingWidth()
                     }
                     bindSelected(displayModel)
-                    displayModel.groupProperty.addListener { _ : Observable ->
-                        println("Changed: " + displayModel.group)
-                    }
+                    focusedProperty().addListener { _, _, new -> if (new) displayModel.item = selectedItem }
+
                     selectionModel.selectedItemProperty().addListener{_, _, new ->
                         new?.let { controller.setDetail(new) }
                     }
@@ -65,7 +64,7 @@ class Schedule : Fragment("My View") {
                         cellFormat {
                             graphic = form {
                                fieldset("${it.translation.abbreviation} ${it.book} ${it.chapter} : ${it.verse}") {
-                                    text("${it.text}") {
+                                    text(it.text) {
                                         wrappingWidthProperty().bind(this@listview.widthProperty().subtract(50))
                                     }
                                 }
@@ -140,12 +139,10 @@ class Schedule : Fragment("My View") {
     }
 
     private fun dragOver(evt: DragEvent) {
-        println("Drag Entered")
         dragVerseController.dragOver(evt, tv)
     }
 
     private fun dragDrop(evt: DragEvent) {
-        println("Drag drop")
         dragVerseController.dragDrop(evt, controller.list)
     }
  }

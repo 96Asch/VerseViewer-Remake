@@ -3,7 +3,7 @@ package com.verseviewer.application.controller
 import com.verseviewer.application.model.Book
 import com.verseviewer.application.model.Translation
 import com.verseviewer.application.model.User
-import com.verseviewer.application.model.Verse
+import com.verseviewer.application.model.Passage
 import com.verseviewer.application.model.datastructure.Range
 import com.verseviewer.application.model.db.*
 import org.jetbrains.exposed.sql.*
@@ -37,7 +37,7 @@ class DBController : Controller() {
         }
     }
 
-    fun getBookVerses(translation: String, book: Int) : List<Verse> = transaction(db) {
+    fun getBookVerses(translation: String, book: Int) : List<Passage> = transaction(db) {
         addLogger(StdOutSqlLogger)
 
         val trans = TranslationDAO.find { Translations.name eq translation }.first()
@@ -45,7 +45,7 @@ class DBController : Controller() {
         val books = object : BooksTable(trans.lang) {}
         table.join(books, JoinType.INNER, additionalConstraint = {table.bookId eq books.bookId})
                 .select { table.bookId eq book }
-                .map { Verse(id = it[table.verseId],
+                .map { Passage(id = it[table.verseId],
                               translation = Translation(trans.id.value, trans.abbreviation, trans.lang, trans.isDeutercanonic),
                               book = it[books.name],
                               chapter = it[table.chapter],
@@ -54,15 +54,15 @@ class DBController : Controller() {
                 }
     }
 
-    fun exchangeVersesByTranslation(verses: List<Verse>, translation: String) : List<Verse> = transaction(db) {
+    fun exchangeVersesByTranslation(passages: List<Passage>, translation: String) : List<Passage> = transaction(db) {
         addLogger(StdOutSqlLogger)
         val trans = TranslationDAO.find { Translations.name eq translation }.first()
-        val ids = verses.map { it.id }
+        val ids = passages.map { it.id }
         val table = object : TranslationBible(translation) {}
         val books = object : BooksTable(trans.lang) {}
         table.join(books, JoinType.INNER, additionalConstraint = {table.bookId eq books.bookId})
                 .select { table.verseId inList ids }
-                .map { Verse(id = it[table.verseId],
+                .map { Passage(id = it[table.verseId],
                             translation = Translation(trans.id.value, trans.abbreviation, trans.lang, trans.isDeutercanonic),
                             book = it[books.name],
                             chapter = it[table.chapter],
@@ -76,12 +76,12 @@ class DBController : Controller() {
         TranslationDAO.all().map { Translation(it) }
     }
 
-    fun updateVerseText(verse: Verse) {
+    fun updateVerseText(passage: Passage) {
         transaction(db) {
             addLogger(StdOutSqlLogger)
-            val table = object : TranslationBible(verse.translation.name) {}
-            table.update ({ table.verseId eq verse.id} ) {
-                it[table.text] = verse.text
+            val table = object : TranslationBible(passage.translation.name) {}
+            table.update ({ table.verseId eq passage.id} ) {
+                it[table.text] = passage.text
             }
         }
     }

@@ -13,7 +13,7 @@ class DashBoardEditor : View("My View") {
 
     private val controller : DashBoardEditorController by inject()
     private val dashboardController : DashBoardController by inject()
-    private val dashboard = find(DashBoard::class)
+    private val dashboard = find<DashBoard>(mapOf("inEditor" to true))
 
     override val root = stackpane {
         borderpane {

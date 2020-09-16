@@ -26,7 +26,6 @@ class DashBoardController : Controller() {
     private val allowedStyle = Styles.placementAllowed
     private val notAllowedStyle = Styles.placementNotAllowed
 
-
     fun pickCell(evt : MouseEvent) = view.root.children.firstOrNull {
             val mPt = it.sceneToLocal(evt.sceneX, evt.sceneY)
             it.contains(mPt) && it is GridCell
@@ -197,12 +196,16 @@ class DashBoardController : Controller() {
         }
     }
 
+    fun initGrid(inEditor : Boolean) {
+        tileList.addAll(build(userModel.layout.value, builder, inEditor))
+    }
+
     private val dbController : DBController by inject()
 
 
     init {
         userModel.item = dbController.getUsers().first()
-        tileList.addAll(build(userModel.layout.value, builder, true))
+
     }
 
 

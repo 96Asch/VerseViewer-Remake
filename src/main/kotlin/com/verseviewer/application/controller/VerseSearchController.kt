@@ -2,7 +2,7 @@ package com.verseviewer.application.controller
 
 import com.verseviewer.application.model.Translation
 import com.verseviewer.application.model.TranslationModel
-import com.verseviewer.application.model.Verse
+import com.verseviewer.application.model.Passage
 import com.verseviewer.application.model.datastructure.BookTrie
 import com.verseviewer.application.model.datastructure.Range
 import com.verseviewer.application.model.datastructure.TranslationTrie
@@ -11,10 +11,11 @@ import com.verseviewer.application.model.event.NotificationType
 import com.verseviewer.application.model.event.SendNotification
 import javafx.beans.property.SimpleBooleanProperty
 import tornadofx.*
+import java.lang.NumberFormatException
 
 class VerseSearchController : Controller() {
 
-    private val regex = """^([1-3]?\s*[a-zA-Z]+)?(\s?\d{1,3})?\s?(?::)?\s?((?<=:)\d{1,3})?""".toRegex()
+    private val regex = """^([1-3]?\s*[a-zA-Z]+)?\s*(\d{1,3})?\s*(?::)?\s*(\d{1,3}(?:-\d{1,3})?)?""".toRegex()
     private val dbController : DBController by inject()
     private val tableController : VerseBoxController by inject()
 
@@ -28,15 +29,15 @@ class VerseSearchController : Controller() {
 
     val filterModeProperty = SimpleBooleanProperty(false)
 
-    fun processText(text: String, list : MutableList<Verse>) : Int {
+    fun processText(text: String, list : MutableList<Passage>) : Int {
         return when {
             text.startsWith(".t") -> {
                 setTranslation(text)
-                0
+                -1
             }
             text.startsWith(".h") -> {
                 fire(SendNotification("", NotificationType.HELP, 0))
-                0
+                -1
             }
             else -> retrieveVerses(text, list)
         }
@@ -63,7 +64,6 @@ class VerseSearchController : Controller() {
                 translationModel.commit()
                 updateBookTrie(list.first())
                 tableController.swapVersesByTranslation(list.first().name)
-
             }
         }
     }
@@ -82,9 +82,8 @@ class VerseSearchController : Controller() {
         }
     }
 
-    private fun retrieveVerses(text: String, list : MutableList<Verse>) : Int {
+    private fun retrieveVerses(text: String, list : MutableList<Passage>) : Int {
         if (!validate(text)) return 0
-
 
         val matchResult = regex.find(text)!!
         val (book, chapter, verse) = matchResult.destructured
@@ -93,29 +92,39 @@ class VerseSearchController : Controller() {
         list.clear()
         list.addAll(getBookVerses(book))
 
-        val ch = chapter.replace("\\s".toRegex(), "")
-        val v = verse.replace("\\s".toRegex(), "")
+        val (ch, v) = convertPassageIndex(chapter.replace("\\s".toRegex(), ""), verse.replace("\\s".toRegex(), ""))
 
-        if (filterModeProperty.value) {
-            list.filter {
-                when(flag) {
-                    0b111, 0b011 -> (it.chapter == ch.toInt() && v.toInt() inRange it.verse)
-                    0b110        -> it.chapter == ch.toInt()
-                    0b101, 0b001 -> v.toInt() inRange it.verse
-                    0b010        -> ch.toInt() inRange it.verse
-                    else -> true
-                }
+        if (filterModeProperty.value)
+            list.removeAll { !filterVersesPredicate(flag, ch, v, it) }
+
+        return list.indexOfFirst { filterVersesPredicate(flag, ch, v, it) }
+    }
+
+    private fun convertPassageIndex(chapterStr : String, verseStr : String) : Pair<Int, Range> {
+        var chapter = 0
+        var verse = Range(0..0)
+
+        try {
+            chapter = chapterStr.toInt()
+            verse = if (verseStr.contains('-')) {
+                val numStrings = verseStr.split('-')
+                Range(numStrings.first().toInt().rangeTo(numStrings.last().toInt()))
+            } else {
+                Range(verseStr.toInt().rangeTo(verseStr.toInt()))
             }
+        } catch (e : NumberFormatException) {
+            e.printStackTrace()
         }
+        return Pair(chapter, verse)
+    }
 
-        return list.indexOfFirst {
-            when (flag) {
-                0b111, 0b011 -> (it.chapter == ch.toInt() && v.toInt() inRange it.verse)
-                0b110        -> it.chapter == ch.toInt()
-                0b101, 0b001 -> v.toInt() inRange it.verse
-                0b010        -> ch.toInt() inRange it.verse
-                else -> true
-            }
+    private fun filterVersesPredicate(flag : Int, chapterIndex : Int, verseIndex : Range, passage : Passage): Boolean {
+       return when (flag) {
+            0b111, 0b011 -> (passage.chapter == chapterIndex && verseIndex inRangeFirst passage.verse)
+            0b110        -> passage.chapter == chapterIndex
+            0b101, 0b001 -> verseIndex inRangeFirst passage.verse
+            0b010        -> chapterIndex inRange passage.verse
+            else -> true
         }
     }
 
@@ -129,10 +138,10 @@ class VerseSearchController : Controller() {
         return result
     }
 
-    private fun getBookVerses(book : String) : List<Verse> {
+    private fun getBookVerses(book : String) : List<Passage> {
         if (book.isEmpty().not()) {
             val bookMap = bookTrie.retrieve(book)
-            val list = mutableListOf<Verse>()
+            val list = mutableListOf<Passage>()
 
             if (bookMap.isEmpty()) {
                 fire(SendNotification("No book found with prefix \"$book\"", NotificationType.WARNING, warningDuration))

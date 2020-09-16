@@ -8,6 +8,10 @@ class Range (val range: ClosedRange<Int>) {
             else -> "${range.start}-${range.endInclusive}"
         }
     }
+
+    infix fun inRangeFirst(verse: Range): Boolean {
+        return range.contains(verse.range.start)
+    }
 }
 
 infix fun Int.inRange(range: Range) : Boolean {

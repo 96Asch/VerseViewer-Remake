@@ -33,7 +33,7 @@ class DashBoardEditorController : Controller() {
     private var dropDimension : Dimension? = null
     private var action = EditAction.NONE
     private val minColSpan = 7
-    private val minRowSpan = 4
+    private val minRowSpan = 2
 
     val dirtyProperty = SimpleBooleanProperty(false)
     var dirty by dirtyProperty
@@ -78,7 +78,6 @@ class DashBoardEditorController : Controller() {
                 }
             }
         }
-        println(selectedTile)
     }
 
     private fun setInFlight(tile : Tile) {

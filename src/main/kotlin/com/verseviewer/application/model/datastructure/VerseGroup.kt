@@ -1,6 +1,6 @@
 package com.verseviewer.application.model.datastructure
 
-import com.verseviewer.application.model.Verse
+import com.verseviewer.application.model.Passage
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.FXCollections
 import tornadofx.getValue
@@ -12,8 +12,8 @@ enum class GroupType {
     POLY_TRANSLATION
 }
 
-class VerseGroup (verses: List<Verse>, var type : GroupType) : Serializable {
-    val versesProperty = SimpleListProperty<Verse>(FXCollections.observableArrayList(verses))
+class VerseGroup (passages: List<Passage>, var type : GroupType) : Serializable {
+    val versesProperty = SimpleListProperty<Passage>(FXCollections.observableArrayList(passages))
     var verses by versesProperty
 
 

@@ -11,10 +11,8 @@ import com.verseviewer.application.model.event.NotificationType
 import com.verseviewer.application.model.event.RefreshList
 import com.verseviewer.application.model.event.SendNotification
 import javafx.animation.PauseTransition
-import javafx.beans.Observable
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ChangeListener
-import javafx.beans.value.ObservableValue
 import javafx.collections.ListChangeListener
 import javafx.event.EventHandler
 import javafx.scene.Cursor
@@ -32,7 +30,7 @@ import tornadofx.controlsfx.notificationPane
 
 
 class VerseBox : Fragment() {
-    private val verseModel : VerseModel by inject()
+    private val passageModel : PassageModel by inject()
     private val displayModel : DisplayVersesModel by inject()
     private val translationModel: TranslationModel by inject()
 
@@ -59,15 +57,16 @@ class VerseBox : Fragment() {
     override val root = vbox {
         val np = notificationPane {
             content = tv.apply {
-                readonlyColumn("B", Verse::book).isSortable = false
-                readonlyColumn("C", Verse::chapter).isSortable = false
-                readonlyColumn("V", Verse::verse).isSortable = false
-                column("Text", Verse::textProperty).enableTextWrap().remainingWidth().isSortable = false
+                readonlyColumn("B", Passage::book).isSortable = false
+                readonlyColumn("C", Passage::chapter).isSortable = false
+                readonlyColumn("V", Passage::verse).isSortable = false
+                column("Text", Passage::textProperty).enableTextWrap().remainingWidth().isSortable = false
 
                 onUserSelect {
                     openInternalWindow<VerseEditor>(escapeClosesWindow = true)
                 }
-                bindSelected(verseModel)
+                bindSelected(passageModel)
+                focusedProperty().addListener { _, _, new -> if (new) displayModel.item = VerseGroup(selectionModel.selectedItems, GroupType.MONO_TRANSLATION) }
                 multiSelect(true)
                 multiSelectButtonEvent(tv)
                 hoverProperty().and(inGroupModeProperty).addListener { _, _, new ->
@@ -94,33 +93,36 @@ class VerseBox : Fragment() {
         }
 
         hbox {
-            textfield {
+            val tf = textfield {
                 action {
                     handleText(this)
                 }
                 promptText = "Type .h for help"
                 hboxConstraints { hGrow = Priority.ALWAYS }
             }
+            this += tf
             togglebutton {
                 text = "Filter"
                 verseSearchController.filterModeProperty.bind(selectedProperty())
+                action {
+                    handleText(tf)
+                }
             }
         }
-
 
         subscribe<SendNotification> {
             showNotification(np, it.message, it.type, it.duration)
         }
 
-        subscribe<RefreshList>() {
-            displayModel.rebind{ group = VerseGroup(it.verses.toMutableList(), it.type) }
+        subscribe<RefreshList> {
+            displayModel.item = VerseGroup(it.passages.toMutableList(), it.type)
             displayModel.commit()
             tv.requestResize()
         }
 
         subscribe<BroadcastVerses> {
-            controller.verseList.setAll(it.verses)
-            controller.setCache(it.verses)
+            controller.verseList.setAll(it.passages)
+            controller.setCache(it.passages)
         }
 
         translationModel.itemProperty.addListener(translationListener)
@@ -132,20 +134,16 @@ class VerseBox : Fragment() {
         translationModel.itemProperty.removeListener(translationListener)
     }
 
-    init {
-        displayModel.groupProperty.addListener { _ ->
-            println("Changed: " + displayModel.group)
-        }
-    }
-
     private fun handleText(tf : TextField) {
         if (!tf.text.isNullOrEmpty()) {
             val index = verseSearchController.processText(tf.text, controller.verseList)
             if (controller.verseList.isNotEmpty()) {
                 tv.requestResize()
             }
-            if (index >= 0)
+            if (index >= 0) {
                 tv.selectionModel.clearAndSelect(index)
+                tv.scrollTo(index)
+            }
             tf.selectAll()
         }
     }
@@ -164,8 +162,8 @@ class VerseBox : Fragment() {
         }
     }
 
-    private fun rowFactory(tv: TableView<Verse>) : TableRow<Verse> {
-        return TableRow<Verse>().apply {
+    private fun rowFactory(tv: TableView<Passage>) : TableRow<Passage> {
+        return TableRow<Passage>().apply {
             addEventFilter(MouseEvent.MOUSE_PRESSED) {
                 if (it.isSecondaryButtonDown) {
                     tv.selectionModel.clearSelection()
@@ -175,7 +173,7 @@ class VerseBox : Fragment() {
         }
     }
 
-    private fun multiSelectButtonEvent(tv : TableView<Verse>) {
+    private fun multiSelectButtonEvent(tv : TableView<Passage>) {
         tv.onKeyPressed = EventHandler {
             when {
                 it.isControlDown || it.isShiftDown -> {
@@ -201,9 +199,9 @@ class VerseBox : Fragment() {
         dragVerseController.dragStart(evt, tv)
     }
 
-    private fun onSelectionChange() : ListChangeListener<Verse> = ListChangeListener { changed ->
+    private fun onSelectionChange() : ListChangeListener<Passage> = ListChangeListener { changed ->
         if (changed.list.isEmpty().not() && !inGroupModeProperty.value && changed.list.size < displayLimit) {
-            displayModel.rebind{ group = VerseGroup(changed.list.toMutableList(), GroupType.MONO_TRANSLATION) }
+            displayModel.item =  VerseGroup(changed.list.toMutableList(), GroupType.MONO_TRANSLATION)
         }
     }
 

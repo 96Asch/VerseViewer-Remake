@@ -12,6 +12,7 @@ class DashBoard : View("My View") {
     val heightTiles = 16
     val widthTiles = 32
     val tileSize = 25.0
+
     private val controller : DashBoardController by inject()
 
     override val root = gridpane {
@@ -51,6 +52,8 @@ class DashBoard : View("My View") {
     }
 
     init {
+        val inEditor = params["inEditor"] as? Boolean ?: false
+        controller.initGrid(inEditor)
         refreshTiles()
     }
 }

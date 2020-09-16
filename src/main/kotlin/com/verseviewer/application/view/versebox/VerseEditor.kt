@@ -2,7 +2,7 @@ package com.verseviewer.application.view.versebox
 
 import com.verseviewer.application.controller.DBController
 import com.verseviewer.application.model.SpecialSymbolModel
-import com.verseviewer.application.model.VerseModel
+import com.verseviewer.application.model.PassageModel
 import com.verseviewer.application.model.datastructure.GroupType
 import com.verseviewer.application.model.event.RefreshList
 import javafx.beans.value.ChangeListener
@@ -15,14 +15,14 @@ import tornadofx.*
 import tornadofx.controlsfx.*
 
 class VerseEditor : Fragment() {
-    private val verseModel : VerseModel by inject()
+    private val passageModel : PassageModel by inject()
     private val symbolModel : SpecialSymbolModel by inject()
     private val dbController : DBController by inject()
     private val stView : SpecialSymbolTable by inject()
 
     override val root = borderpane {
         val master = masterdetailpane {
-            val ta = textarea(verseModel.text) {
+            val ta = textarea(passageModel.text) {
                 isWrapText = true
                 focusedProperty().addListener { _, _, new ->
                     if (new.not()) {
@@ -49,7 +49,7 @@ class VerseEditor : Fragment() {
         left = vbox {
             isFillWidth = true
             button(graphic = glyph.create(FontAwesome.Glyph.SAVE)) {
-                enableWhen(verseModel.dirty)
+                enableWhen(passageModel.dirty)
                 setOnAction(::save)
                 shortcut("Ctrl+S")
             }
@@ -69,17 +69,17 @@ class VerseEditor : Fragment() {
     }
 
     override fun onUndock() {
-        fire(RefreshList(listOf(verseModel.item), GroupType.MONO_TRANSLATION))
+        fire(RefreshList(listOf(passageModel.item), GroupType.MONO_TRANSLATION))
     }
 
     private fun cancel(evt : ActionEvent) {
-        verseModel.rollback()
+        passageModel.rollback()
         close()
     }
 
     private fun save(evt: ActionEvent) {
-        verseModel.commit()
-        dbController.updateVerseText(verseModel.item)
+        passageModel.commit()
+        dbController.updateVerseText(passageModel.item)
         close()
     }
 
