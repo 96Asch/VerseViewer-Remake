@@ -45,7 +45,7 @@ class BookTrie() {
             map[str] = currentNode.id
             unique += currentNode.id
         }
-        else if (!str.isNullOrEmpty())
+        else if (!str.isEmpty())
             autocomplete(str, currentNode, map, unique)
 
         return map

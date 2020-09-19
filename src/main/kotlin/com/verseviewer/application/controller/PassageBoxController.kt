@@ -1,7 +1,10 @@
 package com.verseviewer.application.controller
 
 import com.verseviewer.application.model.Passage
+import javafx.beans.property.SimpleDoubleProperty
+import javafx.beans.property.SimpleIntegerProperty
 import javafx.scene.Node
+import javafx.scene.text.Font
 import javafx.scene.text.Text
 import tornadofx.Controller
 
@@ -11,24 +14,35 @@ class PassageBoxController : Controller() {
     val passageTexts = mutableListOf<Pair<Text, Text>>()
 
     val wrapWidth = 500.0
+    val startY = 10.0
+
+    val containerWidthProperty = SimpleDoubleProperty()
+    val fs = 35.0
+
 
 
     fun buildText(list : List<Passage>) {
-        var lastY = 10.0
         val bookSorted = sortByBooks(list)
+        var lastText : Text? = null
 
         passageTexts.clear()
 
         bookSorted.forEach {
-            val header = Text(formatHeader(it.key, it.value)).apply {
-                y = lastY
-                wrappingWidth = wrapWidth
+            val header = Text(formatHeader(it.key, it.value) + "\n").apply {
+                if (lastText == null)
+                    y = startY
+                else
+                    yProperty().bind(lastText!!.yProperty().add(lastText!!.boundsInLocal.height))
+                wrappingWidth = containerWidthProperty.value - 20.0
+                font = Font.font(fs)
             }
-            val body = Text(it.value.joinToString("\n") { ps -> ps.text }).apply {
+            val body = Text(it.value.joinToString("\n") { ps -> ps.text } + "\n").apply {
                 yProperty().bind(header.yProperty().add(header.boundsInLocal.height))
-                lastY = this.boundsInLocal.height + this.y
-                wrappingWidth = wrapWidth
+                wrappingWidth = containerWidthProperty.value - 20.0
+                font = Font.font(fs)
+
             }
+            lastText = body
 
             passageTexts.add(Pair(header, body))
         }

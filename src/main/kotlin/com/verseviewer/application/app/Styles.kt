@@ -13,6 +13,9 @@ class Styles : Stylesheet() {
         val placementNotAllowed by cssclass()
         val partialTransparant by cssclass()
         val greyedOut by cssclass()
+
+        val anchorPaneTest by cssclass()
+        val anchorPaneTest2 by cssclass()
     }
 
     init {
@@ -26,6 +29,14 @@ class Styles : Stylesheet() {
 //            backgroundColor += c(0,100,0, 0.toDouble())
             backgroundColor += c(0, 100, 100, 0.05)
 //            borderRadius += box(25.px)
+        }
+
+        anchorPaneTest {
+            backgroundColor += c(100,100,20,1.0)
+        }
+
+        anchorPaneTest2 {
+            backgroundColor += c(100,0,20,1.0)
         }
 
         highlightTile {

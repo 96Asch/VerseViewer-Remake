@@ -7,7 +7,7 @@ import com.verseviewer.application.view.dummy.Dummy
 import com.verseviewer.application.view.booklist.BookList
 import com.verseviewer.application.view.dashboard.DndSkin
 import com.verseviewer.application.view.dashboard.ListSkin
-import com.verseviewer.application.view.projectionbar.ProjectionBar
+import com.verseviewer.application.view.projection.ProjectionBar
 import com.verseviewer.application.view.schedule.Schedule
 import com.verseviewer.application.view.versebox.VerseBox
 import eu.hansolo.tilesfx.Tile

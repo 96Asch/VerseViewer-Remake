@@ -1,4 +1,4 @@
-package com.verseviewer.application.view.projectionbar
+package com.verseviewer.application.view.projection
 
 import com.verseviewer.application.model.ProjectionModel
 import com.verseviewer.application.view.projection.Projection
@@ -31,7 +31,7 @@ class ProjectionBar : Fragment() {
         }
         vboxConstraints { vGrow = Priority.ALWAYS }
         paddingAll = 5
-        projectionModel.displayIndex.value = 2
+        projectionModel.displayIndex.value = 1
     }
 
     override fun onUndock() {
