@@ -2,6 +2,7 @@ package com.verseviewer.application.model.datastructure
 
 import com.verseviewer.application.model.Passage
 import javafx.beans.property.SimpleListProperty
+import javafx.beans.property.SimpleMapProperty
 import javafx.collections.FXCollections
 import tornadofx.getValue
 import tornadofx.setValue
@@ -16,7 +17,6 @@ class VerseGroup (passages: List<Passage>, var type : GroupType) : Serializable 
     val versesProperty = SimpleListProperty<Passage>(FXCollections.observableArrayList(passages))
     var verses by versesProperty
 
-
     fun merge(group : VerseGroup) {
         verses.addAll(group.verses)
 
@@ -28,8 +28,24 @@ class VerseGroup (passages: List<Passage>, var type : GroupType) : Serializable 
             type = GroupType.POLY_TRANSLATION
     }
 
+    fun sortedByTranslation(): Map<String, MutableList<Passage>> {
+        val sorted = mutableMapOf<String, MutableList<Passage>>()
+
+        verses.forEach {
+            if (sorted.containsKey(it.translation.name)) {
+                sorted[it.translation.name]!!.add(it)
+            }
+            else {
+                sorted[it.translation.name] = mutableListOf(it)
+            }
+        }
+        return sorted
+    }
+
     override fun toString(): String {
         val ids = verses.joinToString { it.id.toString() }
         return "VerseGroup {type: $type, ids: $ids}"
     }
+
+
 }

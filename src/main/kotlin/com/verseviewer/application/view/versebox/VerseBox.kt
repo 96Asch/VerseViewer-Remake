@@ -66,7 +66,7 @@ class VerseBox : Fragment() {
                     openInternalWindow<VerseEditor>(escapeClosesWindow = true)
                 }
                 bindSelected(passageModel)
-                focusedProperty().addListener { _, _, new -> if (new) displayModel.item = VerseGroup(selectionModel.selectedItems, GroupType.MONO_TRANSLATION) }
+                focusedProperty().addListener { _, _, new -> if (new) displayModel.item = VerseGroup(selectionModel.selectedItems.toList(), GroupType.MONO_TRANSLATION) }
                 multiSelect(true)
                 multiSelectButtonEvent(tv)
                 hoverProperty().and(inGroupModeProperty).addListener { _, _, new ->

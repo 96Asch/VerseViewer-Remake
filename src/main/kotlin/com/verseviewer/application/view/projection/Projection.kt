@@ -1,5 +1,6 @@
 package com.verseviewer.application.view.projection
 
+import com.verseviewer.application.controller.ProjectionController
 import com.verseviewer.application.model.DisplayVersesModel
 import com.verseviewer.application.model.ProjectionModel
 import javafx.scene.text.Font
@@ -9,28 +10,11 @@ import tornadofx.*
 class Projection : Fragment() {
 
     private val displayVersesModel : DisplayVersesModel by inject()
+    private val controller : ProjectionController by inject();
     private val projectionModel : ProjectionModel by inject()
 
     override val root = anchorpane {
-
-        text {
-            textProperty().bind(displayVersesModel.header)
-//            val bounds = Screen.getScreens()[projectionModel.displayIndex.value].bounds
-//            x = bounds.width / 2
-//            y = bounds.height / 2 - 200
-            font = Font.font(30.0)
-        }
-        println("projection: $displayVersesModel")
-        text {
-            textProperty().bind(displayVersesModel.bodies)
-            wrappingWidth = 500.0
-            val bounds = Screen.getScreens()[projectionModel.displayIndex.value].bounds
-//            x = bounds.width / 2
-            y = bounds.height / 2
-            font = Font.font(30.0)
-        }
-
-
+        add(find<PassageBox>())
     }
 
     override fun onDock() {

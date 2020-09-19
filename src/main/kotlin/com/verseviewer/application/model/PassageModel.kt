@@ -28,6 +28,8 @@ class Passage (id: Int = 0, translation: Translation = Translation(), book: Stri
     val textProperty = SimpleStringProperty(this, "text", text)
     var text: String by textProperty
 
+    fun isAdjacentTo(other : Passage) = (chapter == other.chapter && verse.last()+1 == other.verse.first())
+
     override fun toString(): String {
         return "${translation.abbreviation} $book ($chapter:$verse) $text"
     }
