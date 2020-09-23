@@ -1,56 +1,36 @@
 package com.verseviewer.application.controller
 
 import com.verseviewer.application.model.Passage
+import com.verseviewer.application.model.ProjectionModel
 import javafx.beans.property.SimpleDoubleProperty
-import javafx.beans.property.SimpleIntegerProperty
+import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.Node
+import javafx.scene.control.Label
 import javafx.scene.text.Font
-import javafx.scene.text.Text
 import tornadofx.Controller
 
 class PassageBoxController : Controller() {
 
     val uiElements = mutableListOf<Node>()
-    val passageTexts = mutableListOf<Pair<Text, Text>>()
+    val passageStrings = mutableListOf<Pair<String, String>>()
 
-    val wrapWidth = 500.0
-    val startY = 10.0
-
-    val containerWidthProperty = SimpleDoubleProperty()
-    val fs = 35.0
+    val projectionModel : ProjectionModel by inject()
 
 
 
-    fun buildText(list : List<Passage>) {
-        val bookSorted = sortByBooks(list)
-        var lastText : Text? = null
-
-        passageTexts.clear()
-
-        bookSorted.forEach {
-            val header = Text(formatHeader(it.key, it.value) + "\n").apply {
-                if (lastText == null)
-                    y = startY
-                else
-                    yProperty().bind(lastText!!.yProperty().add(lastText!!.boundsInLocal.height))
-                wrappingWidth = containerWidthProperty.value - 20.0
-                font = Font.font(fs)
-            }
-            val body = Text(it.value.joinToString("\n") { ps -> ps.text } + "\n").apply {
-                yProperty().bind(header.yProperty().add(header.boundsInLocal.height))
-                wrappingWidth = containerWidthProperty.value - 20.0
-                font = Font.font(fs)
-
-            }
-            lastText = body
-
-            passageTexts.add(Pair(header, body))
+    fun buildTexts(list : List<Passage>): List<Pair<String, String>> {
+        val strings =  sortByBooks(list).map {
+            val (header, body) = formatProjection(it.key, it.value)
+            Pair(header, body)
         }
+        passageStrings.clear()
+        passageStrings.addAll(strings)
+        return strings
     }
 
-
-    private fun formatHeader(book : String, passages : List<Passage>): String {
+    private fun formatProjection(book : String, passages : List<Passage>): Pair<String, String> {
         var headerString = "$book "
+        var bodyString = ""
         var mode = FormatMode.NONE
 
         for (i in passages.indices) {
@@ -59,22 +39,28 @@ class PassageBoxController : Controller() {
 
             when (mode) {
                 FormatMode.NEW_CHAPTER -> {
-                    if (i != 0)
+                    if (i == 0) {
+                        bodyString += "${ps.text} "
+                    }
+                    else {
+                        bodyString += "\n${ps.text} "
                         headerString += ", "
+                    }
                     headerString += "${ps.chapter}:${ps.verse}"
+
                 }
                 FormatMode.NORMAL, FormatMode.BEGIN_ADJACENT -> {
                     headerString += ",${ps.verse}"
+                    bodyString += ps.text + ' '
                 }
                 FormatMode.END_ADJACENT -> {
                     headerString += "-${ps.verse.last()}"
+                    bodyString += ps.text + ' '
                 }
-                else -> {}
+                else -> { bodyString += ps.text + ' '}
             }
-            println("$mode - $i")
         }
-        println(headerString)
-        return headerString
+        return Pair(headerString,bodyString)
     }
 
     private fun getMode(mode : FormatMode, pass: Int, passages: List<Passage>): FormatMode {

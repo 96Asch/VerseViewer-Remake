@@ -3,6 +3,7 @@ package com.verseviewer.application.view.projection
 import com.verseviewer.application.controller.ProjectionController
 import com.verseviewer.application.model.DisplayVersesModel
 import com.verseviewer.application.model.ProjectionModel
+import javafx.geometry.Orientation
 import javafx.scene.layout.Priority
 import javafx.scene.text.Font
 import javafx.stage.Screen
@@ -14,13 +15,11 @@ class Projection : Fragment() {
     private val controller : ProjectionController by inject();
     private val projectionModel : ProjectionModel by inject()
 
-    override val root =
-        hbox {
-            add(find<PassageBox>())
-            add(find<PassageBox>())
+    override val root = vbox {
 
-        }
-
+        this += find<PassageBox>()
+        this += find<PassageBox>()
+    }
 
     override fun onDock() {
         super.onDock()

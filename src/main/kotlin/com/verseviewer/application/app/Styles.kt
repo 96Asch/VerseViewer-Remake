@@ -3,6 +3,7 @@ package com.verseviewer.application.app
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
 import tornadofx.*
+import kotlin.random.Random
 
 class Styles : Stylesheet() {
     companion object {
@@ -32,7 +33,7 @@ class Styles : Stylesheet() {
         }
 
         anchorPaneTest {
-            backgroundColor += c(100,100,20,1.0)
+            backgroundColor += c(100 ,100,20,1.0)
         }
 
         anchorPaneTest2 {

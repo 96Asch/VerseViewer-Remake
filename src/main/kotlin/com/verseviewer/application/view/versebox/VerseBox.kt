@@ -47,9 +47,14 @@ class VerseBox : Fragment() {
         }
     }
 
+    private val onSelectionChange : ListChangeListener<Passage> = ListChangeListener { changed ->
+        if (changed.list.isEmpty().not() && !inGroupModeProperty.value) {
+            displayModel.item =  VerseGroup(changed.list.toMutableList(), GroupType.MONO_TRANSLATION)
+        }
+    }
+
     private val multiCursor = Cursor.CROSSHAIR
     private var inGroupModeProperty = SimpleBooleanProperty(false)
-    private val displayLimit = 10
 
     private val warningIm = imageview("icons/warning.png")
     private val errorIm = imageview("icons/error.png")
@@ -66,8 +71,8 @@ class VerseBox : Fragment() {
                     openInternalWindow<VerseEditor>(escapeClosesWindow = true)
                 }
                 bindSelected(passageModel)
-                focusedProperty().addListener { _, _, new -> if (new) displayModel.item = VerseGroup(selectionModel.selectedItems.toList(), GroupType.MONO_TRANSLATION) }
                 multiSelect(true)
+
                 multiSelectButtonEvent(tv)
                 hoverProperty().and(inGroupModeProperty).addListener { _, _, new ->
                     if (new) {
@@ -78,7 +83,7 @@ class VerseBox : Fragment() {
                     }
                 }
                 columnResizePolicy = SmartResize.POLICY
-                selectionModel.selectedItems.addListener(onSelectionChange())
+                selectionModel.selectedItems.addListener(onSelectionChange)
 
                 setRowFactory(this@VerseBox::rowFactory)
                 setOnDragDetected(::dragStart)
@@ -116,8 +121,7 @@ class VerseBox : Fragment() {
 
         subscribe<RefreshList> {
             displayModel.item = VerseGroup(it.passages.toMutableList(), it.type)
-            displayModel.commit()
-            tv.requestResize()
+//            tv.requestResize()
         }
 
         subscribe<BroadcastVerses> {
@@ -199,11 +203,7 @@ class VerseBox : Fragment() {
         dragVerseController.dragStart(evt, tv)
     }
 
-    private fun onSelectionChange() : ListChangeListener<Passage> = ListChangeListener { changed ->
-        if (changed.list.isEmpty().not() && !inGroupModeProperty.value && changed.list.size < displayLimit) {
-            displayModel.item =  VerseGroup(changed.list.toMutableList(), GroupType.MONO_TRANSLATION)
-        }
-    }
+
 
 }
 
