@@ -9,21 +9,19 @@ import tornadofx.ItemViewModel
 import tornadofx.getValue
 import tornadofx.setValue
 
-class ProjectionData(displayIndex : Int = 0, isVisible : Boolean = false, textPadding : Double = 5.0, fontSize : Double = 15.0) {
-    val fontProperty = SimpleObjectProperty<Font>(Font.font(fontSize))
+class ProjectionData() {
+    val fontProperty = SimpleObjectProperty<Font>(Font.font(50.0))
     var font by fontProperty
 
-    val fontSizeProperty = SimpleDoubleProperty(fontSize)
-    var fontSize by fontSizeProperty
+    val textMarginProperty = SimpleDoubleProperty(50.0)
+    var textMargin by textMarginProperty
 
-    val textPaddingProperty = SimpleDoubleProperty(textPadding)
-    var textPadding by textPaddingProperty
-
-    val displayIndexProperty = SimpleIntegerProperty(displayIndex)
+    val displayIndexProperty = SimpleIntegerProperty(0)
     var displayIndex by displayIndexProperty
 
-    val isVisibleProperty = SimpleBooleanProperty(isVisible)
-    var isVisible by isVisibleProperty
+    val liveProperty = SimpleBooleanProperty(false)
+    var isLive by liveProperty
+
 
 
 }
@@ -31,8 +29,8 @@ class ProjectionData(displayIndex : Int = 0, isVisible : Boolean = false, textPa
 
 class ProjectionModel : ItemViewModel<ProjectionData>() {
     val displayIndex = bind(ProjectionData::displayIndex)
-    val isVisible = bind(ProjectionData::isVisible)
-    val textPadding = bind(ProjectionData::textPadding)
+    val isLive = bind(ProjectionData::isLive)
     val font = bind(ProjectionData::fontProperty)
+    val textMargin = bind(ProjectionData::textMargin)
 }
 

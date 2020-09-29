@@ -1,18 +1,17 @@
 package com.verseviewer.application.view.projection
 
+import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.PassageBoxController
 import com.verseviewer.application.model.DisplayVersesModel
 import com.verseviewer.application.model.Passage
 import com.verseviewer.application.model.ProjectionModel
-import javafx.beans.binding.Bindings
-import javafx.beans.binding.BooleanBinding
-import javafx.scene.Group
+import com.verseviewer.application.model.event.CloseProjection
+import com.verseviewer.application.model.event.InitAfterBoundsSet
+import com.verseviewer.application.model.event.OpenProjection
+import javafx.beans.property.SimpleDoubleProperty
+import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.layout.Priority
-import javafx.scene.shape.Rectangle
-import javafx.scene.text.Font
-import javafx.scene.text.Text
-import javafx.scene.text.TextAlignment
-import javafx.scene.text.TextFlow
+import javafx.scene.text.*
 import tornadofx.*
 
 
@@ -22,102 +21,175 @@ class PassageBox : Fragment() {
     private val displayVersesModel : DisplayVersesModel by inject()
     private val projectionModel : ProjectionModel by inject()
 
-    private val passageTexts = mutableListOf<Pair<Text, Text>>()
-
-    private val translationHeader = text()
-
     private var tf : TextFlow by singleAssign()
-    private var rectBound : Rectangle by singleAssign()
+    private var headerTf : TextFlow by singleAssign()
+    private val bodyFontProperty = SimpleObjectProperty<Font>()
+    private val headerFontProperty = SimpleObjectProperty<Font>()
 
-    var fs = 50.0
-    private val heightPadding = 20.0
+    private var headerFontSize = 0.0
+    private var bodyFontSize = 0.0
+    private val heightMargin = 40.0
+    private val frameHeightMargin = 30.0
 
+    val textFlowMarginProperty = SimpleDoubleProperty(10.0)
+    var textflowMargin by textFlowMarginProperty
 
     override val root = anchorpane {
 
+        val frame = Frame(layoutBoundsProperty()).apply {
+            subscribe<OpenProjection> {
+                println("open")
+                this@apply.playFromStart()
+            }
+
+            subscribe<CloseProjection> {
+                println("close")
+                this@apply.reversePlay()
+            }
+        }
+
+        this += frame
+
+        headerTf = textflow {
+            anchorpaneConstraints {
+                topAnchor = textflowMargin
+                leftAnchor = textflowMargin + 10.0
+            }
+            maxHeightProperty().bind(this@anchorpane.heightProperty().divide(10))
+            paddingTop = -10.0
+            this.prefWidthProperty().bind(this@anchorpane.widthProperty().divide(1.5).subtract(textflowMargin))
+            textAlignment = TextAlignment.CENTER
+            frame.buildHeaderFadeTransition(this)
+            this.sceneProperty().addListener { _, _, new ->
+                new?.let { resizeHeaderTextFlow(this) }
+            }
+        }
+
         tf = textflow {
             anchorpaneConstraints {
-                topAnchor = 0.0
-                leftAnchor = 0.0
-                rightAnchor = 0.0
-                bottomAnchor = 0.0
-            }
-            maxHeightProperty().bind(this@anchorpane.heightProperty())
-            prefHeightProperty().bind(this@anchorpane.heightProperty())
-            paddingAll = 10.0
-            textAlignment = TextAlignment.CENTER
+                topAnchor = textflowMargin + heightMargin + frameHeightMargin
+                leftAnchor = textflowMargin
+                rightAnchor = textflowMargin
 
-            sceneProperty().addListener {_, _, new ->
-                new?.let { resizeTexts(this) }
             }
+            paddingLeftProperty.bind(textFlowMarginProperty)
+            paddingRightProperty.bind(textFlowMarginProperty)
+            this.maxHeightProperty().bind(this@anchorpane.heightProperty().subtract(textflowMargin + heightMargin + frameHeightMargin + 10.0))
+            textAlignment = TextAlignment.LEFT
+            this.sceneProperty().addListener { _, _, new ->
+                new?.let { resizeBodyTextFlow(this) }
+            }
+            frame.buildBodyFadeTransition(this)
         }
 
-        rectBound = Rectangle().apply {
-            heightProperty().bind(this@anchorpane.heightProperty())
-            widthProperty().bind(this@anchorpane.widthProperty())
+        subscribe<InitAfterBoundsSet> {
+            frame.buildSimpleSequentialAnimation(textflowMargin, frameHeightMargin)
+            frame.initAnimation()
         }
 
-        projectionModel.font.value = Font.font(50.0)
         vboxConstraints { vGrow = Priority.ALWAYS }
         hboxConstraints { hGrow = Priority.ALWAYS }
     }
 
-
-
     init {
+        projectionModel.font.value = Font.font(80.0)
 
         displayVersesModel.itemProperty.addListener { _, _, new ->
             if (new != null) {
-                fs = 50.0
-                projectionModel.font.value = Font.font(fs)
+                headerFontSize = projectionModel.font.value.size
+                bodyFontSize = projectionModel.font.value.size
+                setFont(bodyFontProperty, bodyFontSize)
+                setFont(headerFontProperty, bodyFontSize)
                 val passages = displayVersesModel.sorted[0]
-                translationHeader.text = passages.first().translation.abbreviation
                 rebuildTexts(passages)
             }
         }
     }
 
-
     private fun rebuildTexts(list : List<Passage>) {
         runAsync {
             controller.buildTexts(list)
         } ui {
-            rebuildUI(it)
+            val translationName = if (displayVersesModel.sorted.size > 3)
+                list.first().translation.abbreviation
+            else
+                list.first().translation.name
+
+            rebuildHeader(translationName)
+            rebuildBody(it)
         }
     }
 
-    private fun resizeTexts(tf : TextFlow) {
-        if (tf.children.size >= 2) {
-            var textHeight = 0.0
+    private fun resizeBodyTextFlow(tf : TextFlow) {
+        var textHeight = 0.0
+        tf.children.filterIsInstance<Text>().forEach {
+            textHeight += it.layoutBounds.height
+        }
+        while (tf.maxHeight > 0 && textHeight > tf.maxHeight) {
+            bodyFontSize -= 0.25
+            setFont(bodyFontProperty, bodyFontSize)
+            textHeight = 0.0
+            tf.layout()
             tf.children.filterIsInstance<Text>().forEach {
+                it.applyCss()
                 textHeight += it.layoutBounds.height
             }
-            while (textHeight > tf.height) {
-                fs -= 1
-                projectionModel.font.value = Font.font(fs)
-                textHeight = 0.0
-                tf.layout()
-                tf.children.filterIsInstance<Text>().forEach {
-                    it.applyCss()
-                    textHeight += it.layoutBounds.height
-                }
+        }
+    }
+
+    private fun resizeHeaderTextFlow(tf : TextFlow) {
+        var textHeight = 0.0
+        tf.children.filterIsInstance<Text>().forEach {
+            textHeight += it.layoutBounds.height
+        }
+
+        while (tf.maxHeight > 0 && textHeight > tf.maxHeight) {
+            headerFontSize -= 0.25
+            setFont(headerFontProperty, headerFontSize)
+            textHeight = 0.0
+            tf.layout()
+            tf.children.filterIsInstance<Text>().forEach {
+                it.applyCss()
+                textHeight += it.layoutBounds.height
             }
         }
     }
 
-    private fun rebuildUI(list: List<Pair<String, String>> = controller.passageStrings.toList()) {
-        root.children.clear()
+    private fun rebuildHeader(translationString : String) {
+        root.children.remove(headerTf)
+        headerTf.clear()
+        val translationHeader = Text(translationString).apply {
+            fontProperty().bind(headerFontProperty)
+            addClass(Styles.passageHeader)
+        }
+        headerTf.add(translationHeader)
+        root.add(headerTf)
+    }
+
+    private fun rebuildBody(list: List<Pair<String, String>> = controller.passageStrings.toList()) {
+        root.children.remove(tf)
         tf.clear()
-        list.forEach {
+        list.forEachIndexed { i, it ->
             val header = Text(it.first + "\n").apply {
-                fontProperty().bind(projectionModel.font)
+                fontProperty().bind(bodyFontProperty)
+                addClass(Styles.passageHeader)
             }
             val body = Text(it.second).apply {
-                fontProperty().bind(projectionModel.font)
+                fontProperty().bind(bodyFontProperty)
+                addClass(Styles.passageBody)
             }
             tf.add(header)
             tf.add(body)
+
+            if (i+1 < list.size) {
+                tf.add(Text(System.lineSeparator()))
+            }
         }
         root.add(tf)
+    }
+
+    private fun setFont(property : SimpleObjectProperty<Font>, size : Double) {
+        val font = Font.font("Courier", FontWeight.BOLD, FontPosture.REGULAR, size)
+        property.value = font
     }
 }

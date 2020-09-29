@@ -9,9 +9,9 @@ import javafx.stage.Stage
 import javafx.stage.StageStyle
 import tornadofx.*
 
-class MyApp: App(DashBoardEditor::class, Styles::class) {
+class MyApp: App(DashBoard::class, Styles::class) {
 
-    override fun createPrimaryScene(view: UIComponent): Scene {
-        return BorderlessScene(view.currentStage, StageStyle.UTILITY, view.root)
-    }
+//    override fun createPrimaryScene(view: UIComponent): Scene {
+//        return BorderlessScene(view.currentStage, StageStyle.UTILITY, view.root)
+//    }
 }

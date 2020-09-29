@@ -1,30 +1,32 @@
 package com.verseviewer.application.app
 
 import javafx.scene.paint.Color
+import javafx.scene.paint.Paint
+import javafx.scene.text.Font
+import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import tornadofx.*
 import kotlin.random.Random
 
 class Styles : Stylesheet() {
+
     companion object {
-        val heading by cssclass()
         val highlightTile by cssclass()
         val transparent by cssclass()
         val placementAllowed by cssclass()
         val placementNotAllowed by cssclass()
         val partialTransparant by cssclass()
         val greyedOut by cssclass()
+        val invisible by cssclass()
 
-        val anchorPaneTest by cssclass()
-        val anchorPaneTest2 by cssclass()
+        val passageHeader by cssclass()
+        val passageBody by cssclass()
+        val frame by cssclass()
+
+        var fontsize = 10.0
     }
 
     init {
-        label and heading {
-            padding = box(10.px)
-            fontSize = 20.px
-            fontWeight = FontWeight.BOLD
-        }
 
         transparent {
 //            backgroundColor += c(0,100,0, 0.toDouble())
@@ -32,12 +34,25 @@ class Styles : Stylesheet() {
 //            borderRadius += box(25.px)
         }
 
-        anchorPaneTest {
-            backgroundColor += c(100 ,100,20,1.0)
+        invisible {
+            backgroundColor += c(0, 0, 0, 0.4)
         }
 
-        anchorPaneTest2 {
-            backgroundColor += c(100,0,20,1.0)
+        passageHeader {
+            stroke = Paint.valueOf("black")
+            strokeWidth = 3.px
+            fill = Paint.valueOf("white")
+        }
+
+        passageBody {
+            stroke = Paint.valueOf("black")
+            strokeWidth = 2.px
+            fill = Paint.valueOf("white")
+        }
+
+        frame {
+            stroke = Paint.valueOf("grey")
+            strokeWidth = 7.0.px
         }
 
         highlightTile {

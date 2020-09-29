@@ -15,6 +15,7 @@ class DisplayVersesModel : ItemViewModel<VerseGroup>() {
 
     init {
         itemProperty.addListener { _,_, new ->
+            println("Item changed: $new")
             if (new != null)
                 sorted = new.sortedByTranslation().values.toList()
         }

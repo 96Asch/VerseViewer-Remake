@@ -48,8 +48,9 @@ class VerseBox : Fragment() {
     }
 
     private val onSelectionChange : ListChangeListener<Passage> = ListChangeListener { changed ->
-        if (changed.list.isEmpty().not() && !inGroupModeProperty.value) {
+        if (changed.list.isEmpty().not() && !inGroupModeProperty.value && changed.list.size == 1) {
             displayModel.item =  VerseGroup(changed.list.toMutableList(), GroupType.MONO_TRANSLATION)
+            println("onSelection")
         }
     }
 
