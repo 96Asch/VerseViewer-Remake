@@ -180,11 +180,10 @@ data class VVComponent (val classType : KClass<out Fragment>,
         if (activeInstance)
             this.numInstances--
 
-        return if (scope != null)
-            find(classType, scope.createInstance())
-        else if (editorScope != null)
-            find(classType, editorScope)
-        else
-            find(classType)
+        return when {
+            (scope != null) -> find (classType, scope.createInstance())
+            (editorScope != null) -> find(classType, editorScope)
+            else -> find(classType)
+        }
     }
 }

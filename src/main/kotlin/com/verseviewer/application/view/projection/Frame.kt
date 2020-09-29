@@ -3,20 +3,18 @@ package com.verseviewer.application.view.projection
 import com.verseviewer.application.app.Styles
 import javafx.animation.*
 import javafx.beans.property.ReadOnlyObjectProperty
-import javafx.beans.property.SimpleBooleanProperty
+import javafx.event.ActionEvent
+import javafx.event.EventHandler
 import javafx.geometry.Bounds
 import javafx.geometry.Rectangle2D
 import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.Scene
 import javafx.scene.layout.Region
-import javafx.scene.paint.Color
 import javafx.scene.shape.Line
 import javafx.scene.shape.Rectangle
-import javafx.scene.text.Text
 import javafx.util.Duration
-import tornadofx.addClass
-import tornadofx.getValue
+import tornadofx.*
 
 
 class Frame(parentBoundsProperty: ReadOnlyObjectProperty<Bounds>) : Group() {
@@ -25,10 +23,10 @@ class Frame(parentBoundsProperty: ReadOnlyObjectProperty<Bounds>) : Group() {
     private val fadeTime = 2000.0
     private val fadeDelayTime = 800.0
     private val bounds: Bounds by parentBoundsProperty
+    private var isReverse = false
     private var frameAnimation: Animation? = null
     private var headerAnimation: Animation? = null
     private var bodyAnimation: Animation? = null
-    private val visibilityProperty = SimpleBooleanProperty(false)
     private val animation = ParallelTransition()
     private val list = mutableListOf<Node>()
 
@@ -55,6 +53,7 @@ class Frame(parentBoundsProperty: ReadOnlyObjectProperty<Bounds>) : Group() {
         sequentialAnimation.children.add(buildLineAnimation(topLine, (xRight - margin) / 1.5, topMargin))
 
         frameAnimation = sequentialAnimation
+
         children.addAll(topLeftLine, leftLine, bottomLine, rightLine, topLine)
         children.filterIsInstance<Line>().forEach {
             it.addClass(Styles.frame)
@@ -65,21 +64,22 @@ class Frame(parentBoundsProperty: ReadOnlyObjectProperty<Bounds>) : Group() {
 
     fun initAnimation() {
         animation.children.clear()
+
         animation.children.addAll(frameAnimation, headerAnimation, bodyAnimation)
+        animation.cycleCount = 2
+        animation.isAutoReverse = true
     }
 
     fun playFromStart(rate : Double = 1.0) {
+        isReverse = false
         children.forEach { it.isVisible = false }
-        animation.isAutoReverse = false
         animation.rate = rate
-        animation.setOnFinished { println("finished") }
         animation.playFromStart()
         
     }
 
     fun reversePlay() {
-//        animation.isAutoReverse = false
-//        animation.rate = -1.0
+        isReverse = true
         animation.play()
     }
 
@@ -96,6 +96,10 @@ class Frame(parentBoundsProperty: ReadOnlyObjectProperty<Bounds>) : Group() {
             fromValue = 0.0
             toValue = 1.0
             delay = Duration.millis(fadeDelayTime)
+            onFinished = EventHandler {
+                if (!isReverse)
+                    animation.pause()
+            }
         }
     }
 

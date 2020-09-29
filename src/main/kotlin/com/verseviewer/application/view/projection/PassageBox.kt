@@ -31,6 +31,7 @@ class PassageBox : Fragment() {
     private val heightMargin = 40.0
     private val frameHeightMargin = 30.0
 
+
     val textFlowMarginProperty = SimpleDoubleProperty(10.0)
     var textflowMargin by textFlowMarginProperty
 

@@ -34,8 +34,8 @@ class Projection : View() {
         fadeOutTransition = FadeTransition(fadeDuration, this).apply {
             fromValueProperty().bind(opacityProperty())
             toValue = 0.0
-//            setOnFinished { currentStage?.close() }
-            delay = Duration.seconds(1.0)
+            setOnFinished { currentStage?.close() }
+            delay = Duration.seconds(2.0)
         }
 
         subscribe<OpenProjection> {
