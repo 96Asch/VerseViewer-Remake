@@ -63,4 +63,3 @@ fun GridPane.addTile(property : TileProperties) {
 }
 
 class GridCell(val x : Int, val y : Int) : Pane()
-

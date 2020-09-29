@@ -2,10 +2,7 @@ package com.verseviewer.application.view.projection
 
 import com.verseviewer.application.app.Styles
 import javafx.animation.*
-import javafx.beans.property.ReadOnlyObjectProperty
-import javafx.event.ActionEvent
 import javafx.event.EventHandler
-import javafx.geometry.Bounds
 import javafx.geometry.Rectangle2D
 import javafx.scene.Group
 import javafx.scene.Node
@@ -17,12 +14,11 @@ import javafx.util.Duration
 import tornadofx.*
 
 
-class Frame(parentBoundsProperty: ReadOnlyObjectProperty<Bounds>) : Group() {
+class Frame(val width : Double, val height : Double) : Group() {
 
     private val frameSegmentTime = 400.0
     private val fadeTime = 2000.0
     private val fadeDelayTime = 800.0
-    private val bounds: Bounds by parentBoundsProperty
     private var isReverse = false
     private var frameAnimation: Animation? = null
     private var headerAnimation: Animation? = null
@@ -35,8 +31,8 @@ class Frame(parentBoundsProperty: ReadOnlyObjectProperty<Bounds>) : Group() {
         children.clear()
 
         val tloffset = 20.0
-        val xRight = bounds.width - margin
-        val bottomY = bounds.height - margin
+        val xRight = width - margin
+        val bottomY = height - margin
 
         val topLeftLine = Line(margin + tloffset, topMargin, margin + tloffset, topMargin)
         val leftLine = Line(margin, topMargin, margin, topMargin)
@@ -103,15 +99,6 @@ class Frame(parentBoundsProperty: ReadOnlyObjectProperty<Bounds>) : Group() {
         }
     }
 
-    private fun buildRectangleHorizontalAnimation(rect : Rectangle, endWidth : Double): Animation {
-        return Timeline(
-                KeyFrame(Duration.millis(1.0),
-                        KeyValue(rect.visibleProperty(), true)),
-                KeyFrame(Duration.millis(frameSegmentTime),
-                        KeyValue(rect.widthProperty(), endWidth))
-        )
-    }
-
     private fun buildLineAnimation(line: Line, endX: Double, endY: Double, segmentTime : Double = frameSegmentTime): Animation {
         return Timeline(
                 KeyFrame(Duration.millis(1.0),
@@ -123,13 +110,4 @@ class Frame(parentBoundsProperty: ReadOnlyObjectProperty<Bounds>) : Group() {
         )
     }
 
-    private fun getBoundsUpfront(node: Region): Rectangle2D {
-        // Calculate main title width and height
-        val titleRoot = Group()
-        Scene(titleRoot)
-        titleRoot.children.add(node)
-        titleRoot.applyCss()
-        titleRoot.layout()
-        return Rectangle2D(0.0, 0.0, node.width, node.height)
-    }
 }

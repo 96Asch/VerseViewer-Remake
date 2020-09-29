@@ -5,9 +5,7 @@ import com.verseviewer.application.controller.PassageBoxController
 import com.verseviewer.application.model.DisplayVersesModel
 import com.verseviewer.application.model.Passage
 import com.verseviewer.application.model.ProjectionModel
-import com.verseviewer.application.model.event.CloseProjection
-import com.verseviewer.application.model.event.InitAfterBoundsSet
-import com.verseviewer.application.model.event.OpenProjection
+import com.verseviewer.application.model.event.*
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.layout.Priority
@@ -26,10 +24,13 @@ class PassageBox : Fragment() {
     private val bodyFontProperty = SimpleObjectProperty<Font>()
     private val headerFontProperty = SimpleObjectProperty<Font>()
 
+    private var lastTranslationName = ""
+
     private var headerFontSize = 0.0
     private var bodyFontSize = 0.0
     private val heightMargin = 40.0
     private val frameHeightMargin = 30.0
+
 
 
     val textFlowMarginProperty = SimpleDoubleProperty(10.0)
@@ -37,14 +38,17 @@ class PassageBox : Fragment() {
 
     override val root = anchorpane {
 
-        val frame = Frame(layoutBoundsProperty()).apply {
-            subscribe<OpenProjection> {
-                println("open")
+        val boxHeight = projectionModel.height.value
+        val boxWidth = projectionModel.width.value
+
+        println("$boxWidth - $boxHeight")
+
+        val frame = Frame(boxWidth, boxHeight).apply {
+            subscribe<PlayFrameAnimation> {
                 this@apply.playFromStart()
             }
 
-            subscribe<CloseProjection> {
-                println("close")
+            subscribe<PlayReverseFrameAnimation> {
                 this@apply.reversePlay()
             }
         }
@@ -56,9 +60,9 @@ class PassageBox : Fragment() {
                 topAnchor = textflowMargin
                 leftAnchor = textflowMargin + 10.0
             }
-            maxHeightProperty().bind(this@anchorpane.heightProperty().divide(10))
+            maxHeight = boxHeight/ 15
             paddingTop = -10.0
-            this.prefWidthProperty().bind(this@anchorpane.widthProperty().divide(1.5).subtract(textflowMargin))
+            prefWidth = (boxWidth/ 1.5) - textflowMargin
             textAlignment = TextAlignment.CENTER
             frame.buildHeaderFadeTransition(this)
             this.sceneProperty().addListener { _, _, new ->
@@ -75,7 +79,7 @@ class PassageBox : Fragment() {
             }
             paddingLeftProperty.bind(textFlowMarginProperty)
             paddingRightProperty.bind(textFlowMarginProperty)
-            this.maxHeightProperty().bind(this@anchorpane.heightProperty().subtract(textflowMargin + heightMargin + frameHeightMargin + 10.0))
+            maxHeight = boxHeight - textflowMargin - heightMargin - frameHeightMargin - 10.0
             textAlignment = TextAlignment.LEFT
             this.sceneProperty().addListener { _, _, new ->
                 new?.let { resizeBodyTextFlow(this) }
@@ -88,22 +92,27 @@ class PassageBox : Fragment() {
             frame.initAnimation()
         }
 
+        maxWidth = boxWidth
+        maxHeight = boxHeight
+        prefWidth = boxWidth
+        prefHeight = boxHeight
         vboxConstraints { vGrow = Priority.ALWAYS }
         hboxConstraints { hGrow = Priority.ALWAYS }
     }
 
     init {
-        projectionModel.font.value = Font.font(80.0)
+        projectionModel.font.value = Font.font(60.0)
+        val translationIndex = params["translationIndex"] as? Int ?: 0
+        setFont(headerFontProperty, 80.0)
 
-        displayVersesModel.itemProperty.addListener { _, _, new ->
-            if (new != null) {
-                headerFontSize = projectionModel.font.value.size
-                bodyFontSize = projectionModel.font.value.size
-                setFont(bodyFontProperty, bodyFontSize)
-                setFont(headerFontProperty, bodyFontSize)
-                val passages = displayVersesModel.sorted[0]
-                rebuildTexts(passages)
-            }
+
+        subscribe<BuildPassageContent> {
+            headerFontSize = projectionModel.font.value.size
+            bodyFontSize = projectionModel.font.value.size
+            setFont(bodyFontProperty, bodyFontSize)
+            val index = if (translationIndex >= displayVersesModel.sorted.size) 0 else translationIndex
+            val passages = displayVersesModel.sorted[index]
+            rebuildTexts(passages)
         }
     }
 
@@ -115,8 +124,10 @@ class PassageBox : Fragment() {
                 list.first().translation.abbreviation
             else
                 list.first().translation.name
-
-            rebuildHeader(translationName)
+            if (lastTranslationName != translationName) {
+                rebuildHeader(translationName)
+                lastTranslationName = translationName
+            }
             rebuildBody(it)
         }
     }
@@ -126,8 +137,9 @@ class PassageBox : Fragment() {
         tf.children.filterIsInstance<Text>().forEach {
             textHeight += it.layoutBounds.height
         }
+        println("$textHeight > ${tf.maxHeight}")
         while (tf.maxHeight > 0 && textHeight > tf.maxHeight) {
-            bodyFontSize -= 0.25
+            bodyFontSize -= 0.50
             setFont(bodyFontProperty, bodyFontSize)
             textHeight = 0.0
             tf.layout()
@@ -145,7 +157,7 @@ class PassageBox : Fragment() {
         }
 
         while (tf.maxHeight > 0 && textHeight > tf.maxHeight) {
-            headerFontSize -= 0.25
+            headerFontSize -= 0.50
             setFont(headerFontProperty, headerFontSize)
             textHeight = 0.0
             tf.layout()
