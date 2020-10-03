@@ -3,7 +3,6 @@ package com.verseviewer.application.view.versebox
 import com.verseviewer.application.controller.DBController
 import com.verseviewer.application.model.SpecialSymbolModel
 import com.verseviewer.application.model.PassageModel
-import com.verseviewer.application.model.datastructure.GroupType
 import com.verseviewer.application.model.event.RefreshList
 import javafx.beans.value.ChangeListener
 import javafx.event.ActionEvent
@@ -69,7 +68,7 @@ class VerseEditor : Fragment() {
     }
 
     override fun onUndock() {
-        fire(RefreshList(listOf(passageModel.item), GroupType.MONO_TRANSLATION))
+        fire(RefreshList(listOf(passageModel.item)))
     }
 
     private fun cancel(evt : ActionEvent) {

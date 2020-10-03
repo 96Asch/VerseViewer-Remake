@@ -19,6 +19,7 @@ class Styles : Stylesheet() {
         val greyedOut by cssclass()
         val invisible by cssclass()
 
+        val translationHeader by cssclass()
         val passageHeader by cssclass()
         val passageBody by cssclass()
         val frame by cssclass()
@@ -35,23 +36,29 @@ class Styles : Stylesheet() {
         }
 
         invisible {
-            backgroundColor += c(0, 0, 0, 0.4)
+            backgroundColor += c(0, 0, 0, 0.5)
+        }
+
+        translationHeader {
+            stroke = c(0.0,0.0,0.0)
+            fill = c(237, 236, 173)
+            strokeWidth = 1.px
         }
 
         passageHeader {
-            stroke = Paint.valueOf("black")
+            stroke = c(0.0,0.0,0.0)
             strokeWidth = 3.px
-            fill = Paint.valueOf("white")
+            fill = c(255, 255, 255)
         }
 
         passageBody {
-            stroke = Paint.valueOf("black")
+            stroke = c(0.0,0.0,0.0)
             strokeWidth = 2.px
-            fill = Paint.valueOf("white")
+            fill = c(255, 255, 255)
         }
 
         frame {
-            stroke = Paint.valueOf("grey")
+            stroke = c(33, 33, 30)
             strokeWidth = 7.0.px
         }
 

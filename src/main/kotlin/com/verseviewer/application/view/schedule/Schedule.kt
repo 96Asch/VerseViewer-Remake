@@ -42,7 +42,6 @@ class Schedule : Fragment("My View") {
                         remainingWidth()
                     }
                     bindSelected(displayModel)
-                    focusedProperty().addListener { _, _, new -> if (new) displayModel.item = selectedItem }
 
                     selectionModel.selectedItemProperty().addListener{_, _, new ->
                         new?.let { controller.setDetail(new) }

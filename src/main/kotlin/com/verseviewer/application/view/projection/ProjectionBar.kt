@@ -12,7 +12,7 @@ import tornadofx.*
 class ProjectionBar : Fragment() {
 
     private val projectionModel : ProjectionModel by inject()
-    private val projection : Projection by inject()
+    private val projection = find<Projection>(mapOf("isCloseable" to true))
     private val displayVersesModel : DisplayVersesModel by inject()
 
     private val liveChangeListener = ChangeListener<Boolean> { _, _, new ->
@@ -23,7 +23,7 @@ class ProjectionBar : Fragment() {
         else {
             fire(CloseProjection())
         }
-        projectionModel.isLive.value = new
+        projectionModel.isLive = new
     }
 
     private val list = Screen.getScreens().mapIndexed { index, _ -> index }.asObservable()
@@ -35,7 +35,14 @@ class ProjectionBar : Fragment() {
                 list?.isEmpty() ?: true
             })
         }
-        combobox(property = projectionModel.displayIndex, values = list)
+        combobox(property = projectionModel.displayIndexProperty, values = list) {
+            selectionModel.selectedItemProperty().onChange {
+                if (it != null) {
+                    projectionModel.displayIndex = it
+                    projectionModel.screenBounds = Screen.getScreens()[it.toInt()].visualBounds
+                }
+            }
+        }
 
         projection.openWindow(StageStyle.TRANSPARENT, escapeClosesWindow = false)?.apply {
             this.hide()

@@ -5,33 +5,29 @@ import javafx.beans.property.SimpleListProperty
 import javafx.beans.property.SimpleMapProperty
 import javafx.collections.FXCollections
 import tornadofx.getValue
+import tornadofx.observable
 import tornadofx.setValue
+import tornadofx.sizeProperty
 import java.io.Serializable
 
-enum class GroupType {
-    MONO_TRANSLATION,
-    POLY_TRANSLATION
-}
-
-class VerseGroup (passages: List<Passage>, var type : GroupType) : Serializable {
+class VerseGroup (passages: List<Passage>) : Serializable {
     val versesProperty = SimpleListProperty<Passage>(FXCollections.observableArrayList(passages))
     var verses by versesProperty
 
+    val translationSortedProperty by lazy {
+        SimpleListProperty<List<Passage>>(FXCollections.observableArrayList(sortedByTranslation(passages).values))
+    }
+    var translationSorted by translationSortedProperty
+
     fun merge(group : VerseGroup) {
         verses.addAll(group.verses)
-
-        if (group.type == GroupType.MONO_TRANSLATION) {
-            if (group.verses.first()?.book != verses.first()?.book)
-                type = GroupType.POLY_TRANSLATION
-        }
-        else
-            type = GroupType.POLY_TRANSLATION
+        translationSorted = FXCollections.observableArrayList(sortedByTranslation(verses).values)
     }
 
-    fun sortedByTranslation(): Map<String, MutableList<Passage>> {
+    private fun sortedByTranslation(list : List<Passage>): Map<String, MutableList<Passage>> {
         val sorted = mutableMapOf<String, MutableList<Passage>>()
 
-        verses.forEach {
+        list.forEach {
             if (sorted.containsKey(it.translation.name)) {
                 sorted[it.translation.name]!!.add(it)
             }
@@ -44,8 +40,6 @@ class VerseGroup (passages: List<Passage>, var type : GroupType) : Serializable 
 
     override fun toString(): String {
         val ids = verses.joinToString { it.id.toString() }
-        return "VerseGroup {type: $type, ids: $ids}"
+        return "VerseGroup {ids: $ids}"
     }
-
-
 }

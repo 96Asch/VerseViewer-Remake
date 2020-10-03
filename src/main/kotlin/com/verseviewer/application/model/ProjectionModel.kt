@@ -5,15 +5,14 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
+import javafx.geometry.Rectangle2D
 import javafx.scene.text.Font
+import javafx.scene.text.TextAlignment
 import tornadofx.ItemViewModel
 import tornadofx.getValue
 import tornadofx.setValue
 
 class ProjectionData() {
-    val fontProperty = SimpleObjectProperty<Font>(Font.font(50.0))
-    var font by fontProperty
-
     val displayIndexProperty = SimpleIntegerProperty(0)
     var displayIndex by displayIndexProperty
 
@@ -29,15 +28,30 @@ class ProjectionData() {
     val heightProperty = SimpleDoubleProperty(0.0)
     var height by heightProperty
 
+    val screenBoundsProperty = SimpleObjectProperty<Rectangle2D>()
+    var screenBounds by screenBoundsProperty
+
+    val textAlignmentProperty = SimpleObjectProperty<TextAlignment>()
+    var textAlignment by textAlignmentProperty
+
 }
 
 
 class ProjectionModel : ItemViewModel<ProjectionData>() {
-    val displayIndex = bind(ProjectionData::displayIndex)
-    val isLive = bind(ProjectionData::isLive)
-    val font = bind(ProjectionData::fontProperty)
-    val boxLayout = bind(ProjectionData::boxLayoutProperty)
-    val width = bind(ProjectionData::width)
-    val height = bind(ProjectionData::height)
+    val displayIndexProperty = bind(ProjectionData::displayIndexProperty)
+    val liveProperty = bind(ProjectionData::liveProperty)
+    val boxLayoutProperty = bind(ProjectionData::boxLayoutProperty)
+    val boxWidthProperty = bind(ProjectionData::widthProperty)
+    val boxHeightProperty = bind(ProjectionData::heightProperty)
+    val screenBoundsProperty = bind(ProjectionData::screenBoundsProperty)
+    val textAlignmentProperty = bind(ProjectionData::textAlignmentProperty)
+
+    var displayIndex: Number by displayIndexProperty
+    var isLive: Boolean by liveProperty
+    var boxLayout: BoxLayout by boxLayoutProperty
+    var boxWidth: Number by boxWidthProperty
+    var boxHeight: Number by boxHeightProperty
+    var screenBounds: Rectangle2D by screenBoundsProperty
+    var textAlignment: TextAlignment by textAlignmentProperty
 }
 

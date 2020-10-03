@@ -6,27 +6,24 @@ import com.verseviewer.application.model.DisplayVersesModel
 import com.verseviewer.application.model.ProjectionModel
 import com.verseviewer.application.model.event.*
 import javafx.animation.FadeTransition
-import javafx.beans.property.SimpleDoubleProperty
+import javafx.scene.Node
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.VBox
-import javafx.stage.Screen
 import javafx.util.Duration
 import tornadofx.*
 
-class Projection : View() {
+class Projection : Fragment() {
 
     private val displayVersesModel : DisplayVersesModel by inject()
     private val controller : ProjectionController by inject();
     private val projectionModel : ProjectionModel by inject()
 
-    private val screenWidthProperty = SimpleDoubleProperty()
-    private val screenHeightProperty = SimpleDoubleProperty()
-
     private val fadeDuration = Duration.millis(500.0)
     private var fadeOutTransition by singleAssign<FadeTransition>()
 
     private var lastNumTranslations = 0
+    private var isCloseable : Boolean by singleAssign()
 
     private var hbox : HBox by singleAssign()
     private var vbox : VBox by singleAssign()
@@ -40,7 +37,7 @@ class Projection : View() {
         fadeOutTransition = FadeTransition(fadeDuration, this).apply {
             fromValueProperty().bind(opacityProperty())
             toValue = 0.0
-            setOnFinished { currentStage?.close() }
+            setOnFinished { if (isCloseable) currentStage?.close() }
             delay = Duration.seconds(2.0)
         }
 
@@ -55,7 +52,7 @@ class Projection : View() {
             fire(PlayReverseFrameAnimation())
         }
 
-        hbox = hbox {
+        hbox = HBox().apply {
             anchorpaneConstraints {
                 topAnchor = 0.0
                 leftAnchor = 0.0
@@ -63,27 +60,47 @@ class Projection : View() {
                 bottomAnchor= 0.0
             }
         }
-        maxWidthProperty().bind(screenWidthProperty)
-        maxHeightProperty().bind(screenHeightProperty)
 
-        this += hbox
-        screenWidthProperty.addListener { _, _, _ ->
+        vbox = VBox().apply {
+            anchorpaneConstraints {
+                topAnchor = 0.0
+                leftAnchor = 0.0
+                rightAnchor = 0.0
+                bottomAnchor= 0.0
+            }
+        }
+
+        projectionModel.boxLayoutProperty.onChange {
+            if (it != null) {
+                when (it) {
+                    BoxLayout.HORIZONTAL -> {
+                        this.children.remove(vbox)
+                        this.children.add(hbox)
+                    }
+                    BoxLayout.VERTICAL -> {
+                        this.children.remove(hbox)
+                        this.children.add(vbox)
+                    }
+                }
+                project(it, true)
+            }
+        }
+
+        projectionModel.screenBoundsProperty.addListener { _, _, _ ->
+            projectionModel.boxWidthProperty.value = projectionModel.screenBoundsProperty.value.width / displayVersesModel.sorted.value.size
+            projectionModel.boxHeightProperty.value = projectionModel.screenBoundsProperty.value.height
             fire(InitAfterBoundsSet())
         }
 
         displayVersesModel.itemProperty.addListener { _, _, new ->
             if (new != null) {
-                if (lastNumTranslations != displayVersesModel.sorted.size) {
-                    fire(PlayReverseFrameAnimation())
-                    initStageSettings()
-                    buildPassageBoxes(displayVersesModel.sorted.size, hbox)
-                    fire(InitAfterBoundsSet())
-                    lastNumTranslations = displayVersesModel.sorted.size
-                    fire(PlayFrameAnimation())
-                }
-                fire(BuildPassageContent())
+                project(projectionModel.boxLayout, lastNumTranslations != displayVersesModel.sorted.value.size)
             }
         }
+    }
+
+    init {
+        isCloseable = params["isCloseable"] as? Boolean ?: true
     }
 
     override fun onDock() {
@@ -94,19 +111,44 @@ class Projection : View() {
         currentStage?.scene?.fill = null
         modalStage?.isMaximized = true
         modalStage?.isResizable = false
-        val screenBounds = Screen.getScreens()[projectionModel.displayIndex.value].visualBounds
-        screenWidthProperty.value = screenBounds.width
-        screenHeightProperty.value = screenBounds.height
-        modalStage?.x = screenBounds.minX
-        modalStage?.y = screenBounds.minY
+        modalStage?.x = projectionModel.screenBoundsProperty.value.minX
+        modalStage?.y = projectionModel.screenBoundsProperty.value.minY
     }
 
-    private fun buildPassageBoxes(currentSize : Int, container : Pane) {
-        projectionModel.width.value = screenWidthProperty.value / currentSize
-        projectionModel.height.value = screenHeightProperty.value
-        container.children.clear()
-        for (i in 0 until currentSize)
-            container.add(PassageBox::class, mapOf("translationIndex" to i))
+    private fun project(layout : BoxLayout, rebuildBoxes : Boolean) {
+        if (rebuildBoxes) {
+            fire(PlayReverseFrameAnimation())
+            initStageSettings()
+            buildPassageBoxes(displayVersesModel.sorted.value.size, layout)
+            fire(InitAfterBoundsSet())
+            lastNumTranslations = displayVersesModel.sorted.value.size
+            fire(PlayFrameAnimation())
+        }
+        fire(BuildPassageContent())
+    }
+
+    private fun buildPassageBoxes(currentSize : Int, layout : BoxLayout) {
+        var calcWidth = projectionModel.screenBoundsProperty.value.width
+        var calcHeight = projectionModel.screenBoundsProperty.value.height
+        when (layout) {
+            BoxLayout.VERTICAL -> calcHeight /= currentSize
+            BoxLayout.HORIZONTAL -> calcWidth /= currentSize
+        }
+        projectionModel.boxWidth = calcWidth
+        projectionModel.boxHeight = calcHeight
+
+        when (layout) {
+            BoxLayout.VERTICAL -> {
+                vbox.children.clear()
+                for (i in 0 until currentSize)
+                    vbox.add(PassageBox::class, mapOf("translationIndex" to i))
+            }
+            BoxLayout.HORIZONTAL -> {
+                hbox.children.clear()
+                for (i in 0 until currentSize)
+                    hbox.add(PassageBox::class, mapOf("translationIndex" to i))
+            }
+        }
     }
 }
 

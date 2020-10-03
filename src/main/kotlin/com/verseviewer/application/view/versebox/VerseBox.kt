@@ -4,7 +4,6 @@ import com.verseviewer.application.controller.DragVerseController
 import com.verseviewer.application.controller.VerseBoxController
 import com.verseviewer.application.controller.VerseSearchController
 import com.verseviewer.application.model.*
-import com.verseviewer.application.model.datastructure.GroupType
 import com.verseviewer.application.model.datastructure.VerseGroup
 import com.verseviewer.application.model.event.BroadcastVerses
 import com.verseviewer.application.model.event.NotificationType
@@ -49,7 +48,7 @@ class VerseBox : Fragment() {
 
     private val onSelectionChange : ListChangeListener<Passage> = ListChangeListener { changed ->
         if (changed.list.isEmpty().not() && !inGroupModeProperty.value && changed.list.size == 1) {
-            displayModel.item =  VerseGroup(changed.list.toMutableList(), GroupType.MONO_TRANSLATION)
+            displayModel.item =  VerseGroup(changed.list.toMutableList())
         }
     }
 
@@ -120,7 +119,7 @@ class VerseBox : Fragment() {
         }
 
         subscribe<RefreshList> {
-            displayModel.item = VerseGroup(it.passages.toMutableList(), it.type)
+            displayModel.item = VerseGroup(it.passages.toMutableList())
 //            tv.requestResize()
         }
 
@@ -192,7 +191,7 @@ class VerseBox : Fragment() {
                 KeyCode.CONTROL, KeyCode.SHIFT -> {
                     tv.scene.cursor = Cursor.DEFAULT
                     inGroupModeProperty.value = false
-                    fire(RefreshList(tv.selectionModel.selectedItems, GroupType.MONO_TRANSLATION))
+                    fire(RefreshList(tv.selectionModel.selectedItems))
                 }
                 else -> {}
             }

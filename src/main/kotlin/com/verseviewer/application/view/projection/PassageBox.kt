@@ -3,9 +3,11 @@ package com.verseviewer.application.view.projection
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.PassageBoxController
 import com.verseviewer.application.model.DisplayVersesModel
+import com.verseviewer.application.model.FontModel
 import com.verseviewer.application.model.Passage
 import com.verseviewer.application.model.ProjectionModel
 import com.verseviewer.application.model.event.*
+import com.verseviewer.application.util.NodeUtils
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.layout.Priority
@@ -18,9 +20,10 @@ class PassageBox : Fragment() {
     private val controller : PassageBoxController by inject()
     private val displayVersesModel : DisplayVersesModel by inject()
     private val projectionModel : ProjectionModel by inject()
+    private val fontModel : FontModel by inject()
 
-    private var tf : TextFlow by singleAssign()
-    private var headerTf : TextFlow by singleAssign()
+    private var bodyTextFlow : TextFlow by singleAssign()
+    private var headerText : Text by singleAssign()
     private val bodyFontProperty = SimpleObjectProperty<Font>()
     private val headerFontProperty = SimpleObjectProperty<Font>()
 
@@ -28,26 +31,26 @@ class PassageBox : Fragment() {
 
     private var headerFontSize = 0.0
     private var bodyFontSize = 0.0
-    private val heightMargin = 40.0
+    private val heightMargin = 30.0
     private val frameHeightMargin = 30.0
-
+    private val topLineFactor = 2.0
 
 
     val textFlowMarginProperty = SimpleDoubleProperty(10.0)
     var textflowMargin by textFlowMarginProperty
 
+    private val bodyWidth = projectionModel.boxWidth.toDouble() - 50.0
+    private val headerWidth = ((projectionModel.boxWidth.toDouble() - textflowMargin*2) / topLineFactor) -  (60.0)
+
     override val root = anchorpane {
 
-        val boxHeight = projectionModel.height.value
-        val boxWidth = projectionModel.width.value
-
-        println("$boxWidth - $boxHeight")
+        val boxHeight = projectionModel.boxHeight.toDouble()
+        val boxWidth = projectionModel.boxWidth.toDouble()
 
         val frame = Frame(boxWidth, boxHeight).apply {
             subscribe<PlayFrameAnimation> {
                 this@apply.playFromStart()
             }
-
             subscribe<PlayReverseFrameAnimation> {
                 this@apply.reversePlay()
             }
@@ -55,40 +58,46 @@ class PassageBox : Fragment() {
 
         this += frame
 
-        headerTf = textflow {
+        headerText = text {
             anchorpaneConstraints {
-                topAnchor = textflowMargin
-                leftAnchor = textflowMargin + 10.0
+                topAnchor = 5.0
+                leftAnchor = textflowMargin + 40.0
             }
-            maxHeight = boxHeight/ 15
-            paddingTop = -10.0
-            prefWidth = (boxWidth/ 1.5) - textflowMargin
+            addClass(Styles.translationHeader)
+            fontProperty().bind(headerFontProperty)
+            maxWidth = boxWidth / 2.5
             textAlignment = TextAlignment.CENTER
             frame.buildHeaderFadeTransition(this)
-            this.sceneProperty().addListener { _, _, new ->
-                new?.let { resizeHeaderTextFlow(this) }
-            }
         }
 
-        tf = textflow {
+        bodyTextFlow = textflow {
             anchorpaneConstraints {
                 topAnchor = textflowMargin + heightMargin + frameHeightMargin
                 leftAnchor = textflowMargin
                 rightAnchor = textflowMargin
 
             }
+            textAlignmentProperty().bind(projectionModel.textAlignmentProperty)
             paddingLeftProperty.bind(textFlowMarginProperty)
             paddingRightProperty.bind(textFlowMarginProperty)
-            maxHeight = boxHeight - textflowMargin - heightMargin - frameHeightMargin - 10.0
-            textAlignment = TextAlignment.LEFT
-            this.sceneProperty().addListener { _, _, new ->
-                new?.let { resizeBodyTextFlow(this) }
-            }
+            maxHeight = boxHeight - textflowMargin - heightMargin - frameHeightMargin - 30.0
             frame.buildBodyFadeTransition(this)
         }
 
+        subscribe<ScaleUI> {
+            bodyTextFlow.children.forEach { node ->
+                node.scaleX = it.scaleX
+                node.scaleY = it.scaleY
+            }
+
+            headerText.apply {
+                scaleX = it.scaleX
+                scaleY = it.scaleY
+            }
+        }
+
         subscribe<InitAfterBoundsSet> {
-            frame.buildSimpleSequentialAnimation(textflowMargin, frameHeightMargin)
+            frame.buildSimpleSequentialAnimation(textflowMargin, frameHeightMargin, topLineFactor)
             frame.initAnimation()
         }
 
@@ -98,21 +107,35 @@ class PassageBox : Fragment() {
         prefHeight = boxHeight
         vboxConstraints { vGrow = Priority.ALWAYS }
         hboxConstraints { hGrow = Priority.ALWAYS }
+
+        fontModel.familyProperty.onChange {
+            fire(BuildPassageContent())
+        }
+        fontModel.sizeProperty.onChange {
+            if (it != null) {
+                headerFontSize = it.toDouble()
+                bodyFontSize = it.toDouble()
+            }
+            fire(BuildPassageContent())
+        }
+        fontModel.weightProperty.onChange {
+            fire(BuildPassageContent())
+        }
+        fontModel.postureProperty.onChange {
+            fire(BuildPassageContent())
+        }
     }
 
     init {
-        projectionModel.font.value = Font.font(60.0)
         val translationIndex = params["translationIndex"] as? Int ?: 0
-        setFont(headerFontProperty, 80.0)
-
+        setFont(headerFontProperty, 50.0)
 
         subscribe<BuildPassageContent> {
-            headerFontSize = projectionModel.font.value.size
-            bodyFontSize = projectionModel.font.value.size
+            headerFontSize = fontModel.size.toDouble()
+            bodyFontSize = fontModel.size.toDouble()
             setFont(bodyFontProperty, bodyFontSize)
-            val index = if (translationIndex >= displayVersesModel.sorted.size) 0 else translationIndex
-            val passages = displayVersesModel.sorted[index]
-            rebuildTexts(passages)
+            val index = if (translationIndex >= displayVersesModel.sorted.value.size) 0 else translationIndex
+            rebuildTexts(displayVersesModel.sorted.value[index])
         }
     }
 
@@ -120,7 +143,7 @@ class PassageBox : Fragment() {
         runAsync {
             controller.buildTexts(list)
         } ui {
-            val translationName = if (displayVersesModel.sorted.size > 3)
+            val translationName = if (displayVersesModel.sorted.value.size > 3)
                 list.first().translation.abbreviation
             else
                 list.first().translation.name
@@ -132,56 +155,20 @@ class PassageBox : Fragment() {
         }
     }
 
-    private fun resizeBodyTextFlow(tf : TextFlow) {
-        var textHeight = 0.0
-        tf.children.filterIsInstance<Text>().forEach {
-            textHeight += it.layoutBounds.height
-        }
-        println("$textHeight > ${tf.maxHeight}")
-        while (tf.maxHeight > 0 && textHeight > tf.maxHeight) {
-            bodyFontSize -= 0.50
-            setFont(bodyFontProperty, bodyFontSize)
-            textHeight = 0.0
-            tf.layout()
-            tf.children.filterIsInstance<Text>().forEach {
-                it.applyCss()
-                textHeight += it.layoutBounds.height
-            }
-        }
-    }
-
-    private fun resizeHeaderTextFlow(tf : TextFlow) {
-        var textHeight = 0.0
-        tf.children.filterIsInstance<Text>().forEach {
-            textHeight += it.layoutBounds.height
-        }
-
-        while (tf.maxHeight > 0 && textHeight > tf.maxHeight) {
-            headerFontSize -= 0.50
-            setFont(headerFontProperty, headerFontSize)
-            textHeight = 0.0
-            tf.layout()
-            tf.children.filterIsInstance<Text>().forEach {
-                it.applyCss()
-                textHeight += it.layoutBounds.height
-            }
-        }
-    }
-
     private fun rebuildHeader(translationString : String) {
-        root.children.remove(headerTf)
-        headerTf.clear()
-        val translationHeader = Text(translationString).apply {
-            fontProperty().bind(headerFontProperty)
-            addClass(Styles.passageHeader)
-        }
-        headerTf.add(translationHeader)
-        root.add(headerTf)
+        root.children.remove(headerText)
+        resizeHeaderTextFlow(translationString)
+        setFont(headerFontProperty, headerFontSize)
+        headerText.text = translationString
+        root.add(headerText)
     }
 
     private fun rebuildBody(list: List<Pair<String, String>> = controller.passageStrings.toList()) {
-        root.children.remove(tf)
-        tf.clear()
+        root.children.remove(bodyTextFlow)
+        bodyTextFlow.clear()
+        resizeBodyTextFlow(list)
+        setFont(bodyFontProperty, bodyFontSize)
+
         list.forEachIndexed { i, it ->
             val header = Text(it.first + "\n").apply {
                 fontProperty().bind(bodyFontProperty)
@@ -191,18 +178,49 @@ class PassageBox : Fragment() {
                 fontProperty().bind(bodyFontProperty)
                 addClass(Styles.passageBody)
             }
-            tf.add(header)
-            tf.add(body)
+            bodyTextFlow.add(header)
+            bodyTextFlow.add(body)
 
             if (i+1 < list.size) {
-                tf.add(Text(System.lineSeparator()))
+                bodyTextFlow.add(Text(System.lineSeparator()))
             }
         }
-        root.add(tf)
+        root.add(bodyTextFlow)
     }
 
+    private fun resizeHeaderTextFlow(header : String = headerText.text) {
+        var headerFont = Font.font(fontModel.family, fontModel.weight, fontModel.posture, headerFontSize)
+
+        var width = NodeUtils.computeTextWidth(headerFont, header, 0.0)
+        while (width > headerWidth) {
+            headerFontSize -= 1.0
+            headerFont = Font.font(fontModel.family, fontModel.weight, fontModel.posture, headerFontSize)
+            width = NodeUtils.computeTextWidth(headerFont, header, 0.0)
+        }
+    }
+
+    private fun resizeBodyTextFlow(list: List<Pair<String, String>> = controller.passageStrings) {
+        var height = 0.0
+        var bodyFont = Font.font(fontModel.family, fontModel.weight, fontModel.posture, bodyFontSize)
+
+        list.forEach {
+            height += NodeUtils.computeTextHeight(bodyFont, it.first, bodyWidth)
+            height += NodeUtils.computeTextHeight(bodyFont, it.second, bodyWidth)
+        }
+
+        while (height > bodyTextFlow.maxHeight) {
+            bodyFontSize -= 0.50
+            bodyFont = Font.font(fontModel.family, fontModel.weight, fontModel.posture, bodyFontSize)
+            list.forEach {
+                height = NodeUtils.computeTextHeight(bodyFont, it.first, bodyWidth)
+                height += NodeUtils.computeTextHeight(bodyFont, it.second, bodyWidth)
+            }
+        }
+    }
+
+
+
     private fun setFont(property : SimpleObjectProperty<Font>, size : Double) {
-        val font = Font.font("Courier", FontWeight.BOLD, FontPosture.REGULAR, size)
-        property.value = font
+        property.value = Font.font(fontModel.family, fontModel.weight, fontModel.posture, size)
     }
 }

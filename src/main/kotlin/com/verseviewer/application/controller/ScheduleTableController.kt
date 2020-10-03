@@ -1,7 +1,6 @@
 package com.verseviewer.application.controller
 
 import com.verseviewer.application.model.Passage
-import com.verseviewer.application.model.datastructure.GroupType
 import com.verseviewer.application.model.datastructure.VerseGroup
 import javafx.scene.control.TableView
 import tornadofx.*
@@ -80,7 +79,7 @@ class ScheduleTableController : Controller() {
         val firstIndex = selectModel.selectedIndices.first()
         if (list[firstIndex].verses.size > 1) {
             val newList = list[firstIndex].verses.map { v ->
-                VerseGroup(mutableListOf(v), GroupType.MONO_TRANSLATION)
+                VerseGroup(mutableListOf(v))
             }
             list.removeAt(firstIndex)
             list.addAll(firstIndex, newList)

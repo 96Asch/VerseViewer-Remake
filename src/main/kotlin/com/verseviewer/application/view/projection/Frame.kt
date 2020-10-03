@@ -27,7 +27,7 @@ class Frame(val width : Double, val height : Double) : Group() {
     private val list = mutableListOf<Node>()
 
 
-    fun buildSimpleSequentialAnimation(margin : Double, topMargin : Double) {
+    fun buildSimpleSequentialAnimation(margin : Double, topMargin : Double, topLineFactor : Double) {
         children.clear()
 
         val tloffset = 20.0
@@ -46,7 +46,7 @@ class Frame(val width : Double, val height : Double) : Group() {
         sequentialAnimation.children.add(buildLineAnimation(leftLine, margin, bottomY))
         sequentialAnimation.children.add(buildLineAnimation(bottomLine, xRight, bottomY))
         sequentialAnimation.children.add(buildLineAnimation(rightLine, xRight, topMargin))
-        sequentialAnimation.children.add(buildLineAnimation(topLine, (xRight - margin) / 1.5, topMargin))
+        sequentialAnimation.children.add(buildLineAnimation(topLine, (xRight - margin) / topLineFactor, topMargin))
 
         frameAnimation = sequentialAnimation
 
@@ -75,8 +75,10 @@ class Frame(val width : Double, val height : Double) : Group() {
     }
 
     fun reversePlay() {
-        isReverse = true
-        animation.play()
+        if (!isReverse && animation.status == Animation.Status.PAUSED) {
+            isReverse = true
+            animation.play()
+        }
     }
 
     fun buildHeaderFadeTransition(header: Node) {
