@@ -53,6 +53,7 @@ class DashBoard : View("My View") {
 
     init {
         val inEditor = params["inEditor"] as? Boolean ?: false
+        root.isGridLinesVisible = inEditor
         controller.initGrid(inEditor)
         refreshTiles()
     }

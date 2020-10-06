@@ -43,12 +43,12 @@ class Projection : Fragment() {
         subscribe<OpenProjection> {
             fadeOutTransition.stop()
             opacityProperty().animate(1.0, fadeDuration)
-            fire(PlayFrameAnimation())
+            fire(PlayFrameAnimation(scope))
         }
 
         subscribe<CloseProjection> {
             fadeOutTransition.playFromStart()
-            fire(PlayReverseFrameAnimation())
+            fire(PlayReverseFrameAnimation(scope))
         }
 
         hbox = HBox().apply {
@@ -116,12 +116,12 @@ class Projection : Fragment() {
 
     private fun project(layout : Orientation?, rebuildBoxes : Boolean) {
         if (rebuildBoxes) {
-            fire(PlayReverseFrameAnimation())
+            fire(PlayReverseFrameAnimation(scope))
             initStageSettings()
             buildPassageBoxes(displayVersesModel.sorted.value.size, layout)
             fire(InitAfterBoundsSet())
             lastNumTranslations = displayVersesModel.sorted.value.size
-            fire(PlayFrameAnimation())
+            fire(PlayFrameAnimation(scope))
         }
         fire(BuildPassageContent())
     }

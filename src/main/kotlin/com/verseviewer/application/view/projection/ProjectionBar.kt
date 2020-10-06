@@ -19,10 +19,10 @@ class ProjectionBar : Fragment() {
     private val liveChangeListener = ChangeListener<Boolean> { _, _, new ->
         if (new) {
             projection.openWindow(StageStyle.TRANSPARENT, escapeClosesWindow = false)
-            fire(OpenProjection())
+            fire(OpenProjection(scope))
         }
         else {
-            fire(CloseProjection())
+            fire(CloseProjection(scope))
         }
         projectionModel.isLive = new
     }
@@ -54,10 +54,4 @@ class ProjectionBar : Fragment() {
         vboxConstraints { vGrow = Priority.ALWAYS }
         paddingAll = 5
     }
-
-    init {
-        fontModel.item = FontData(50.0)
-        projectionModel.orientation = Orientation.HORIZONTAL
-    }
-
 }

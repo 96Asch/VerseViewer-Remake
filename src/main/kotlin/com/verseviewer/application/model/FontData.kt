@@ -27,7 +27,6 @@ class FontModel : ItemViewModel<FontData>() {
     val familyProperty = bind(FontData::fontFamily)
     val weightProperty = bind(FontData::fontWeight)
     val postureProperty = bind(FontData::fontPosture)
-    val stringProperty = itemProperty.stringBinding{"${it?.fontFamily} - ${it?.fontSize} - ${it?.fontWeight} - ${it?.fontPosture}"}
 
     var size by sizeProperty
     var family by familyProperty

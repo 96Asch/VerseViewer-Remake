@@ -35,7 +35,6 @@ class PassageBox : Fragment() {
     private val frameHeightMargin = 30.0
     private val topLineFactor = 2.0
 
-
     val textFlowMarginProperty = SimpleDoubleProperty(10.0)
     var textflowMargin by textFlowMarginProperty
 
@@ -217,8 +216,6 @@ class PassageBox : Fragment() {
             }
         }
     }
-
-
 
     private fun setFont(property : SimpleObjectProperty<Font>, size : Double) {
         property.value = Font.font(fontModel.family, fontModel.weight, fontModel.posture, size)
