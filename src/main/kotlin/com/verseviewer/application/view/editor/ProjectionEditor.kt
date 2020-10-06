@@ -8,13 +8,16 @@ import com.verseviewer.application.model.ProjectionModel
 import com.verseviewer.application.model.datastructure.VerseGroup
 import com.verseviewer.application.model.event.CloseProjection
 import com.verseviewer.application.model.event.OpenProjection
+import com.verseviewer.application.model.event.SaveProjectionEditorSettings
 import com.verseviewer.application.model.scope.ProjectionEditorScope
 import com.verseviewer.application.view.projection.Projection
 import com.verseviewer.application.view.projection.ScalingPane
+import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.geometry.Orientation
 import javafx.geometry.Pos
+import javafx.scene.control.ToggleButton
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import javafx.scene.text.TextAlignment
@@ -38,18 +41,17 @@ class ProjectionEditor : View() {
     private val displayVersesModel : DisplayVersesModel by inject()
     private var projectionView : Fragment by singleAssign()
     private val controller : ProjectionEditorController by inject(FX.defaultScope)
-    private val fontModel = scope.fontModel
-    private val projectionModel = scope.projectionModel
+    private val fontModel : FontModel by inject()
+    private val projectionModel : ProjectionModel by inject()
 
     private var popOver : PopOver by singleAssign()
 
     private val numTranslationsProperty = SimpleIntegerProperty(0)
     private val numVersesProperty = SimpleIntegerProperty(0)
 
-
     override val root = borderpane {
 
-        projectionModel.screenBoundsProperty.value = Screen.getScreens()[1].visualBounds
+        projectionModel.screenBoundsProperty.value = Screen.getScreens().first().visualBounds
         projectionView = find<Projection>(mapOf("isCloseable" to false))
 
         center = ScalingPane(projectionView.root, projectionModel.screenBounds.width, projectionModel.screenBounds.height)
@@ -120,46 +122,31 @@ class ProjectionEditor : View() {
                     vboxConstraints { vGrow = Priority.ALWAYS }
                     selectedProperty().addListener { _, _, new ->
                         if (new) {
-                            fire(OpenProjection())
+                            fire(OpenProjection(scope))
                         } else {
-                            fire(CloseProjection())
+                            fire(CloseProjection(scope))
                         }
                     }
                 }
-
             }
         }
-
 
         right = scrollpane {
             form {
                 fieldset("1. Text") {
                     field("Alignment") {
                         segmentedbutton {
-
-                            buttons.add(togglebutton {
-                                graphic = Styles.fontAwesome.create(FontAwesome.Glyph.ALIGN_LEFT)
-                                action { projectionModel.textAlignment = TextAlignment.LEFT }
-                            })
-                            buttons.add(togglebutton {
-                                graphic = Styles.fontAwesome.create(FontAwesome.Glyph.ALIGN_CENTER)
-                                action { projectionModel.textAlignment = TextAlignment.CENTER }
-                            })
-                            buttons.add(togglebutton {
-                                graphic = Styles.fontAwesome.create(FontAwesome.Glyph.ALIGN_RIGHT)
-                                action { projectionModel.textAlignment = TextAlignment.RIGHT }
-                            })
-                            buttons.add(togglebutton {
-                                graphic = Styles.fontAwesome.create(FontAwesome.Glyph.ALIGN_JUSTIFY)
-                                action { projectionModel.textAlignment = TextAlignment.JUSTIFY }
-                            })
+                            buttons.add(createAlignmentButton(FontAwesome.Glyph.ALIGN_LEFT, TextAlignment.LEFT))
+                            buttons.add(createAlignmentButton(FontAwesome.Glyph.ALIGN_CENTER, TextAlignment.CENTER))
+                            buttons.add(createAlignmentButton(FontAwesome.Glyph.ALIGN_RIGHT, TextAlignment.RIGHT))
+                            buttons.add(createAlignmentButton(FontAwesome.Glyph.ALIGN_JUSTIFY, TextAlignment.JUSTIFY))
                         }
                     }
                 }
                 fieldset("2. Font") {
                     field("Family") {
                         button {
-                            textProperty().bind(fontModel.stringProperty)
+                            textProperty().bind(fontModel.itemProperty.stringBinding{"${it?.fontFamily}"})
                             popOver = popover {
                                 this.title = "Font Picker"
                                 find<FontPicker>().root
@@ -175,7 +162,7 @@ class ProjectionEditor : View() {
                         segmentedbutton {
                             buttons.add(togglebutton { graphic = Styles.fontAwesome.create(FontAwesome.Glyph.BARS)
                                 action {
-                                    projectionModel.orientation = Orientation.HORIZONTAL
+                                    projectionModel.orientation = Orientation.VERTICAL
                                 }
                             })
                             buttons.add(togglebutton { graphic = Styles.fontAwesome.create(FontAwesome.Glyph.BARS).apply {
@@ -183,7 +170,7 @@ class ProjectionEditor : View() {
                                     rotate = 90.deg
                                 }
                                 action {
-                                    projectionModel.orientation = Orientation.VERTICAL
+                                    projectionModel.orientation = Orientation.HORIZONTAL
                                 }
                             }})
                         }
@@ -193,13 +180,33 @@ class ProjectionEditor : View() {
         }
     }
 
-    override fun onDock() {
+    init {
+        fontModel.item = scope.savedFontModel.item
+        projectionModel.item = scope.savedProjectionModel.item
+    }
 
+    override fun onDock() {
+        println("ondock PE")
         currentStage?.let { it.setOnCloseRequest {
                 popOver.hide(Duration.millis(0.0))
             currentStage!!.widthProperty().onChange { width -> println(width) }
             }
         }
 
+    }
+
+    override fun onUndock() {
+        println("undock PE")
+
+        scope.savedProjectionModel.item = projectionModel.item
+        scope.savedFontModel.item = fontModel.item
+        fire(SaveProjectionEditorSettings())
+    }
+
+    private fun createAlignmentButton(glyph : FontAwesome.Glyph, textAlignment: TextAlignment) : ToggleButton {
+        return ToggleButton().apply {
+            graphic = Styles.fontAwesome.create(glyph)
+            action { projectionModel.textAlignment = textAlignment }
+        }
     }
 }

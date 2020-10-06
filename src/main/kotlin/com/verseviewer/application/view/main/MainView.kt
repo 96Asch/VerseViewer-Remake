@@ -3,6 +3,7 @@ package com.verseviewer.application.view.main
 import com.verseviewer.application.model.FontData
 import com.verseviewer.application.model.FontModel
 import com.verseviewer.application.model.ProjectionModel
+import com.verseviewer.application.model.event.SaveProjectionEditorSettings
 import com.verseviewer.application.model.scope.ProjectionEditorScope
 import com.verseviewer.application.view.dashboard.DashBoard
 import com.verseviewer.application.view.dashboard.DashBoardEditor
@@ -16,9 +17,13 @@ import tornadofx.*
 class MainView : View() {
 
     private val fontModel : FontModel by inject()
-    private val dashboardView : DashBoard by inject()
     private val projectionModel : ProjectionModel by inject()
+
+    private val dashboardView : DashBoard by inject()
+
+    private val projectionEditorScope = ProjectionEditorScope()
     private val projectionEditorView : ProjectionEditor by inject()
+
     private val dashBoardEditorView : DashBoardEditor by inject(Scope())
 
     override val root = borderpane {
@@ -42,14 +47,18 @@ class MainView : View() {
         center = find<DashBoard>().root
     }
 
-    fun setupProjectionEditorView(node : Node) {
-        val scope =  ProjectionEditorScope()
-        scope.fontModel.item = fontModel.item
-        scope.projectionModel.item = projectionModel.item
-        node.replaceWith(find(ProjectionEditor::class, scope).root)
+    private fun setupProjectionEditorView(node : Node) {
+        projectionEditorScope.savedFontModel.item = fontModel.item
+        projectionEditorScope.savedProjectionModel.item = projectionModel.item
+        node.replaceWith(find(ProjectionEditor::class, projectionEditorScope).root)
     }
 
     init {
         fontModel.item = FontData(50)
+        subscribe<SaveProjectionEditorSettings> {
+            println("Saved settings")
+            fontModel.item = projectionEditorScope.savedFontModel.item
+            projectionModel.item = projectionEditorScope.savedProjectionModel.item
+        }
     }
 }

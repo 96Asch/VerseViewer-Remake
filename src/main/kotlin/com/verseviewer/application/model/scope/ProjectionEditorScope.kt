@@ -5,6 +5,6 @@ import com.verseviewer.application.model.ProjectionModel
 import tornadofx.*
 
 class ProjectionEditorScope : Scope() {
-    val fontModel = FontModel()
-    val projectionModel = ProjectionModel()
+    val savedFontModel = FontModel()
+    val savedProjectionModel = ProjectionModel()
 }
