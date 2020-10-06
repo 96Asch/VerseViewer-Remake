@@ -1,12 +1,11 @@
 package com.verseviewer.application.model
 
-import com.verseviewer.application.view.projection.BoxLayout
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
+import javafx.geometry.Orientation
 import javafx.geometry.Rectangle2D
-import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
 import tornadofx.ItemViewModel
 import tornadofx.getValue
@@ -19,7 +18,7 @@ class ProjectionData() {
     val liveProperty = SimpleBooleanProperty(false)
     var isLive by liveProperty
 
-    val boxLayoutProperty = SimpleObjectProperty<BoxLayout>(BoxLayout.HORIZONTAL)
+    val boxLayoutProperty = SimpleObjectProperty<Orientation>(Orientation.HORIZONTAL)
     var boxLayout by boxLayoutProperty
 
     val widthProperty = SimpleDoubleProperty(0.0)
@@ -28,10 +27,10 @@ class ProjectionData() {
     val heightProperty = SimpleDoubleProperty(0.0)
     var height by heightProperty
 
-    val screenBoundsProperty = SimpleObjectProperty<Rectangle2D>()
+    val screenBoundsProperty = SimpleObjectProperty<Rectangle2D>(Rectangle2D(0.0,0.0,0.0,0.0))
     var screenBounds by screenBoundsProperty
 
-    val textAlignmentProperty = SimpleObjectProperty<TextAlignment>()
+    val textAlignmentProperty = SimpleObjectProperty<TextAlignment>(TextAlignment.LEFT)
     var textAlignment by textAlignmentProperty
 
 }
@@ -48,7 +47,7 @@ class ProjectionModel : ItemViewModel<ProjectionData>() {
 
     var displayIndex: Number by displayIndexProperty
     var isLive: Boolean by liveProperty
-    var boxLayout: BoxLayout by boxLayoutProperty
+    var orientation: Orientation by boxLayoutProperty
     var boxWidth: Number by boxWidthProperty
     var boxHeight: Number by boxHeightProperty
     var screenBounds: Rectangle2D by screenBoundsProperty

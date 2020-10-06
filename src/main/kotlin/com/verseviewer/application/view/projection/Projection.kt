@@ -6,9 +6,8 @@ import com.verseviewer.application.model.DisplayVersesModel
 import com.verseviewer.application.model.ProjectionModel
 import com.verseviewer.application.model.event.*
 import javafx.animation.FadeTransition
-import javafx.scene.Node
+import javafx.geometry.Orientation
 import javafx.scene.layout.HBox
-import javafx.scene.layout.Pane
 import javafx.scene.layout.VBox
 import javafx.util.Duration
 import tornadofx.*
@@ -73,11 +72,11 @@ class Projection : Fragment() {
         projectionModel.boxLayoutProperty.onChange {
             if (it != null) {
                 when (it) {
-                    BoxLayout.HORIZONTAL -> {
+                    Orientation.HORIZONTAL -> {
                         this.children.remove(vbox)
                         this.children.add(hbox)
                     }
-                    BoxLayout.VERTICAL -> {
+                    Orientation.VERTICAL -> {
                         this.children.remove(hbox)
                         this.children.add(vbox)
                     }
@@ -94,7 +93,7 @@ class Projection : Fragment() {
 
         displayVersesModel.itemProperty.addListener { _, _, new ->
             if (new != null) {
-                project(projectionModel.boxLayout, lastNumTranslations != displayVersesModel.sorted.value.size)
+                project(projectionModel.orientation, lastNumTranslations != displayVersesModel.sorted.value.size)
             }
         }
     }
@@ -115,7 +114,7 @@ class Projection : Fragment() {
         modalStage?.y = projectionModel.screenBoundsProperty.value.minY
     }
 
-    private fun project(layout : BoxLayout, rebuildBoxes : Boolean) {
+    private fun project(layout : Orientation?, rebuildBoxes : Boolean) {
         if (rebuildBoxes) {
             fire(PlayReverseFrameAnimation())
             initStageSettings()
@@ -127,32 +126,29 @@ class Projection : Fragment() {
         fire(BuildPassageContent())
     }
 
-    private fun buildPassageBoxes(currentSize : Int, layout : BoxLayout) {
-        var calcWidth = projectionModel.screenBoundsProperty.value.width
-        var calcHeight = projectionModel.screenBoundsProperty.value.height
-        when (layout) {
-            BoxLayout.VERTICAL -> calcHeight /= currentSize
-            BoxLayout.HORIZONTAL -> calcWidth /= currentSize
-        }
-        projectionModel.boxWidth = calcWidth
-        projectionModel.boxHeight = calcHeight
-
-        when (layout) {
-            BoxLayout.VERTICAL -> {
-                vbox.children.clear()
-                for (i in 0 until currentSize)
-                    vbox.add(PassageBox::class, mapOf("translationIndex" to i))
+    private fun buildPassageBoxes(currentSize : Int, layout : Orientation?) {
+        if (layout != null) {
+            var calcWidth = projectionModel.screenBoundsProperty.value.width
+            var calcHeight = projectionModel.screenBoundsProperty.value.height
+            when (layout) {
+                Orientation.VERTICAL -> calcHeight /= currentSize
+                Orientation.HORIZONTAL -> calcWidth /= currentSize
             }
-            BoxLayout.HORIZONTAL -> {
-                hbox.children.clear()
-                for (i in 0 until currentSize)
-                    hbox.add(PassageBox::class, mapOf("translationIndex" to i))
+            projectionModel.boxWidth = calcWidth
+            projectionModel.boxHeight = calcHeight
+
+            when (layout) {
+                Orientation.VERTICAL -> {
+                    vbox.children.clear()
+                    for (i in 0 until currentSize)
+                        vbox.add(PassageBox::class, mapOf("translationIndex" to i))
+                }
+                Orientation.HORIZONTAL -> {
+                    hbox.children.clear()
+                    for (i in 0 until currentSize)
+                        hbox.add(PassageBox::class, mapOf("translationIndex" to i))
+                }
             }
         }
     }
-}
-
-enum class BoxLayout {
-    HORIZONTAL,
-    VERTICAL
 }

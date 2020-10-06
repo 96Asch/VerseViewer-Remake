@@ -5,6 +5,7 @@ import javafx.scene.paint.Paint
 import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
+import org.controlsfx.glyphfont.GlyphFontRegistry
 import tornadofx.*
 import kotlin.random.Random
 
@@ -23,6 +24,8 @@ class Styles : Stylesheet() {
         val passageHeader by cssclass()
         val passageBody by cssclass()
         val frame by cssclass()
+
+        val fontAwesome = GlyphFontRegistry.font("FontAwesome")
 
         var fontsize = 10.0
     }
