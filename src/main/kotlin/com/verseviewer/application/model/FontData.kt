@@ -23,8 +23,8 @@ class FontData(size : Number = 20.0, family : String = "Arial", weight : FontWei
 }
 
 class FontModel : ItemViewModel<FontData>() {
-    val sizeProperty = bind(FontData::fontSize)
-    val familyProperty = bind(FontData::fontFamily)
+    val sizeProperty = bind(FontData::fontSize, autocommit = true)
+    val familyProperty = bind(FontData::fontFamily, autocommit = true)
     val weightProperty = bind(FontData::fontWeight)
     val postureProperty = bind(FontData::fontPosture)
 

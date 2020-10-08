@@ -4,6 +4,7 @@ import com.verseviewer.application.app.Styles
 import javafx.animation.*
 import javafx.event.EventHandler
 import javafx.geometry.Rectangle2D
+import javafx.scene.CacheHint
 import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.Scene
@@ -29,6 +30,8 @@ class Frame(val width : Double, val height : Double) : Group() {
 
     fun buildSimpleSequentialAnimation(margin : Double, topMargin : Double, topLineFactor : Double) {
         children.clear()
+        isCache = true
+        cacheHint = CacheHint.SPEED
 
         val tloffset = 20.0
         val xRight = width - margin

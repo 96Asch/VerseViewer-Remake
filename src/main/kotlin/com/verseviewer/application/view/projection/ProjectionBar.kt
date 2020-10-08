@@ -27,7 +27,6 @@ class ProjectionBar : Fragment() {
         projectionModel.isLive = new
     }
 
-    private val list = Screen.getScreens().mapIndexed { index, _ -> index }.asObservable()
 
     override val root = hbox {
         projectionModel.screenBounds = Screen.getScreens().first().visualBounds
@@ -37,14 +36,6 @@ class ProjectionBar : Fragment() {
             disableWhen(displayVersesModel.group.booleanBinding{ list ->
                 list?.isEmpty() ?: true
             })
-        }
-        combobox(property = projectionModel.displayIndexProperty, values = list) {
-            selectionModel.selectedItemProperty().onChange {
-                if (it != null) {
-                    projectionModel.displayIndex = it
-                    projectionModel.screenBounds = Screen.getScreens()[it.toInt()].visualBounds
-                }
-            }
         }
 
         projection.openWindow(StageStyle.TRANSPARENT, escapeClosesWindow = false)?.apply {

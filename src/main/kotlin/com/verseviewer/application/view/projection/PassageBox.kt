@@ -10,6 +10,7 @@ import com.verseviewer.application.model.event.*
 import com.verseviewer.application.util.NodeUtils
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
+import javafx.scene.CacheHint
 import javafx.scene.layout.Priority
 import javafx.scene.text.*
 import tornadofx.*
@@ -57,7 +58,7 @@ class PassageBox : Fragment() {
 
         this += frame
 
-        headerText = text {
+        headerText = Text().apply {
             anchorpaneConstraints {
                 topAnchor = 5.0
                 leftAnchor = textflowMargin + 40.0
@@ -69,13 +70,16 @@ class PassageBox : Fragment() {
             frame.buildHeaderFadeTransition(this)
         }
 
-        bodyTextFlow = textflow {
+        bodyTextFlow = TextFlow().apply {
             anchorpaneConstraints {
                 topAnchor = textflowMargin + heightMargin + frameHeightMargin
                 leftAnchor = textflowMargin
                 rightAnchor = textflowMargin
 
             }
+            isCache = true
+            isCacheShape= true
+            cacheHint = CacheHint.SPEED
             textAlignmentProperty().bind(projectionModel.textAlignmentProperty)
             paddingLeftProperty.bind(textFlowMarginProperty)
             paddingRightProperty.bind(textFlowMarginProperty)
@@ -171,11 +175,11 @@ class PassageBox : Fragment() {
         list.forEachIndexed { i, it ->
             val header = Text(it.first + "\n").apply {
                 fontProperty().bind(bodyFontProperty)
-                addClass(Styles.passageHeader)
+//                addClass(Styles.passageHeader)
             }
             val body = Text(it.second).apply {
                 fontProperty().bind(bodyFontProperty)
-                addClass(Styles.passageBody)
+//                addClass(Styles.passageBody)
             }
             bodyTextFlow.add(header)
             bodyTextFlow.add(body)

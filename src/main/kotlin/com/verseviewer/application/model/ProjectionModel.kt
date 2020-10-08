@@ -18,8 +18,8 @@ class ProjectionData() {
     val liveProperty = SimpleBooleanProperty(false)
     var isLive by liveProperty
 
-    val boxLayoutProperty = SimpleObjectProperty<Orientation>(Orientation.HORIZONTAL)
-    var boxLayout by boxLayoutProperty
+    val orientationProperty = SimpleObjectProperty<Orientation>(Orientation.HORIZONTAL)
+    var orientation: Orientation by orientationProperty
 
     val widthProperty = SimpleDoubleProperty(0.0)
     var width by widthProperty
@@ -39,7 +39,7 @@ class ProjectionData() {
 class ProjectionModel : ItemViewModel<ProjectionData>() {
     val displayIndexProperty = bind(ProjectionData::displayIndexProperty)
     val liveProperty = bind(ProjectionData::liveProperty)
-    val boxLayoutProperty = bind(ProjectionData::boxLayoutProperty)
+    val orientationProperty = bind(ProjectionData::orientationProperty)
     val boxWidthProperty = bind(ProjectionData::widthProperty)
     val boxHeightProperty = bind(ProjectionData::heightProperty)
     val screenBoundsProperty = bind(ProjectionData::screenBoundsProperty)
@@ -47,7 +47,7 @@ class ProjectionModel : ItemViewModel<ProjectionData>() {
 
     var displayIndex: Number by displayIndexProperty
     var isLive: Boolean by liveProperty
-    var orientation: Orientation by boxLayoutProperty
+    var orientation: Orientation by orientationProperty
     var boxWidth: Number by boxWidthProperty
     var boxHeight: Number by boxHeightProperty
     var screenBounds: Rectangle2D by screenBoundsProperty

@@ -69,7 +69,7 @@ class Projection : Fragment() {
             }
         }
 
-        projectionModel.boxLayoutProperty.onChange {
+        projectionModel.orientationProperty.onChange {
             if (it != null) {
                 when (it) {
                     Orientation.HORIZONTAL -> {

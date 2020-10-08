@@ -4,11 +4,16 @@ import com.verseviewer.application.model.Passage
 import javafx.collections.FXCollections
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
+import javafx.stage.Screen
 import tornadofx.Controller
+import tornadofx.asObservable
 
 class ProjectionEditorController : Controller() {
 
+    internal data class IndexedScreen(val index : Int, val screen: Screen)
+
     private val dbController : DBController by inject()
+    internal val screenList = Screen.getScreens().mapIndexed { index, screen ->  IndexedScreen(index, screen)}
 
     private val translationList by lazy { dbController.getTranslations() }
 

@@ -6,32 +6,27 @@ import com.verseviewer.application.model.DisplayVersesModel
 import com.verseviewer.application.model.FontModel
 import com.verseviewer.application.model.ProjectionModel
 import com.verseviewer.application.model.datastructure.VerseGroup
-import com.verseviewer.application.model.event.CloseProjection
-import com.verseviewer.application.model.event.OpenProjection
-import com.verseviewer.application.model.event.SaveProjectionEditorSettings
+import com.verseviewer.application.model.event.*
 import com.verseviewer.application.model.scope.ProjectionEditorScope
 import com.verseviewer.application.view.projection.Projection
 import com.verseviewer.application.view.projection.ScalingPane
-import javafx.beans.binding.Bindings
-import javafx.beans.property.SimpleDoubleProperty
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.geometry.Orientation
 import javafx.geometry.Pos
+import javafx.scene.control.Toggle
 import javafx.scene.control.ToggleButton
 import javafx.scene.layout.Priority
-import javafx.scene.paint.Color
 import javafx.scene.text.TextAlignment
-import javafx.scene.transform.Scale
 import javafx.stage.Screen
 import javafx.util.Duration
 import org.controlsfx.control.PopOver
 import org.controlsfx.glyphfont.FontAwesome
-import org.controlsfx.glyphfont.GlyphFontRegistry
 import tornadofx.*
-import tornadofx.controlsfx.plusminuslider
 import tornadofx.controlsfx.popover
 import tornadofx.controlsfx.segmentedbutton
 import tornadofx.controlsfx.showPopover
+import javax.swing.BoxLayout
 
 
 class ProjectionEditor : View() {
@@ -55,6 +50,76 @@ class ProjectionEditor : View() {
         projectionView = find<Projection>(mapOf("isCloseable" to false))
 
         center = ScalingPane(projectionView.root, projectionModel.screenBounds.width, projectionModel.screenBounds.height)
+
+        val isSelectedProperty = SimpleBooleanProperty(false)
+        
+        right = scrollpane {
+            form {
+                fieldset("1. Secondary Screen") {
+                    combobox(values = controller.screenList) {
+                        selectionModel.selectedItemProperty().onChange {
+                            if (it != null) {
+                                projectionModel.displayIndex = it.index
+                                projectionModel.screenBounds = it.screen.visualBounds
+                            }
+                        }
+                        cellFormat {
+                            text = "Display ${it.index} - [${it.screen.visualBounds.width}x${it.screen.visualBounds.height}]"
+                        }
+                        isSelectedProperty.bind(selectionModel.selectedItemProperty().isNotNull)
+                    }
+                }
+                fieldset("2. Text") {
+                    field("Alignment") {
+                        segmentedbutton {
+                            subscribe<InitTextAlignmentButton> {
+                                buttons.filterIsInstance<ToggleButton>().forEach {
+                                    if (it.properties.containsKey("alignment")) {
+                                        it.isSelected = it.properties["alignment"] as TextAlignment == projectionModel.textAlignment
+                                    }
+                                }
+                            }
+                            buttons.add(createAlignmentButton(FontAwesome.Glyph.ALIGN_LEFT, TextAlignment.LEFT))
+                            buttons.add(createAlignmentButton(FontAwesome.Glyph.ALIGN_CENTER, TextAlignment.CENTER))
+                            buttons.add(createAlignmentButton(FontAwesome.Glyph.ALIGN_RIGHT, TextAlignment.RIGHT))
+                            buttons.add(createAlignmentButton(FontAwesome.Glyph.ALIGN_JUSTIFY, TextAlignment.JUSTIFY))
+                        }
+                    }
+                }
+                fieldset("3. Font") {
+                    field("Family") {
+                        button {
+
+                            textProperty().bind(stringBinding(fontModel.familyProperty, fontModel.sizeProperty, fontModel.weightProperty, fontModel.postureProperty) {
+                                "${fontModel.family}\n ${fontModel.size} [${fontModel.weight}-${fontModel.posture}]"
+                            })
+                            popOver = popover {
+                                this.title = "Font Picker"
+                                find<FontPicker>().root
+                            }
+                            action {
+                                showPopover()
+                            }
+                        }
+                    }
+                }
+                fieldset("4. Multiple Translations") {
+                    field("Orientation") {
+                        segmentedbutton {
+                            subscribe<InitBoxLayoutButton> {
+                                buttons.filterIsInstance<ToggleButton>().forEach {
+                                    if (it.properties.containsKey("orientation")) {
+                                        it.isSelected = it.properties["orientation"] as Orientation == projectionModel.orientation
+                                    }
+                                }
+                            }
+                            buttons.add(createOrientationButton(FontAwesome.Glyph.BARS, Orientation.VERTICAL))
+                            buttons.add(createOrientationButton(FontAwesome.Glyph.BARS, Orientation.HORIZONTAL, true))
+                        }
+                    }
+                }
+            }
+        }
 
         bottom = anchorpane {
             hbox {
@@ -128,54 +193,7 @@ class ProjectionEditor : View() {
                         }
                     }
                 }
-            }
-        }
-
-        right = scrollpane {
-            form {
-                fieldset("1. Text") {
-                    field("Alignment") {
-                        segmentedbutton {
-                            buttons.add(createAlignmentButton(FontAwesome.Glyph.ALIGN_LEFT, TextAlignment.LEFT))
-                            buttons.add(createAlignmentButton(FontAwesome.Glyph.ALIGN_CENTER, TextAlignment.CENTER))
-                            buttons.add(createAlignmentButton(FontAwesome.Glyph.ALIGN_RIGHT, TextAlignment.RIGHT))
-                            buttons.add(createAlignmentButton(FontAwesome.Glyph.ALIGN_JUSTIFY, TextAlignment.JUSTIFY))
-                        }
-                    }
-                }
-                fieldset("2. Font") {
-                    field("Family") {
-                        button {
-                            textProperty().bind(fontModel.itemProperty.stringBinding{"${it?.fontFamily}"})
-                            popOver = popover {
-                                this.title = "Font Picker"
-                                find<FontPicker>().root
-                            }
-                            action {
-                                showPopover()
-                            }
-                        }
-                    }
-                }
-                fieldset("3. Multiple Translations") {
-                    field("Orientation") {
-                        segmentedbutton {
-                            buttons.add(togglebutton { graphic = Styles.fontAwesome.create(FontAwesome.Glyph.BARS)
-                                action {
-                                    projectionModel.orientation = Orientation.VERTICAL
-                                }
-                            })
-                            buttons.add(togglebutton { graphic = Styles.fontAwesome.create(FontAwesome.Glyph.BARS).apply {
-                                style {
-                                    rotate = 90.deg
-                                }
-                                action {
-                                    projectionModel.orientation = Orientation.HORIZONTAL
-                                }
-                            }})
-                        }
-                    }
-                }
+                enableWhen { isSelectedProperty }
             }
         }
     }
@@ -183,16 +201,19 @@ class ProjectionEditor : View() {
     init {
         fontModel.item = scope.savedFontModel.item
         projectionModel.item = scope.savedProjectionModel.item
+
     }
 
     override fun onDock() {
         println("ondock PE")
+        println(projectionModel.textAlignment)
         currentStage?.let { it.setOnCloseRequest {
                 popOver.hide(Duration.millis(0.0))
             currentStage!!.widthProperty().onChange { width -> println(width) }
             }
         }
-
+        fire(InitTextAlignmentButton())
+        fire(InitBoxLayoutButton())
     }
 
     override fun onUndock() {
@@ -207,6 +228,19 @@ class ProjectionEditor : View() {
         return ToggleButton().apply {
             graphic = Styles.fontAwesome.create(glyph)
             action { projectionModel.textAlignment = textAlignment }
+            properties["alignment"] = textAlignment
+        }
+    }
+
+    private fun createOrientationButton(glyph : FontAwesome.Glyph, orientation: Orientation, flipSide : Boolean = false) : ToggleButton{
+        return ToggleButton().apply {
+            graphic = Styles.fontAwesome.create(glyph).apply {
+                if (flipSide) {
+                    style { rotate = 90.deg }
+                }
+            }
+            action { projectionModel.orientation = orientation }
+            properties["orientation"] = orientation
         }
     }
 }
