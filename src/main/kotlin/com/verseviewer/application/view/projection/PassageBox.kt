@@ -2,16 +2,14 @@ package com.verseviewer.application.view.projection
 
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.PassageBoxController
-import com.verseviewer.application.model.DisplayVersesModel
-import com.verseviewer.application.model.FontModel
-import com.verseviewer.application.model.Passage
-import com.verseviewer.application.model.ProjectionModel
+import com.verseviewer.application.model.*
 import com.verseviewer.application.model.event.*
 import com.verseviewer.application.util.NodeUtils
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.CacheHint
 import javafx.scene.layout.Priority
+import javafx.scene.paint.Paint
 import javafx.scene.text.*
 import tornadofx.*
 
@@ -19,9 +17,11 @@ import tornadofx.*
 class PassageBox : Fragment() {
 
     private val controller : PassageBoxController by inject()
+
     private val displayVersesModel : DisplayVersesModel by inject()
     private val projectionModel : ProjectionModel by inject()
     private val fontModel : FontModel by inject()
+    private val textStyleModel : TextStyleModel by inject()
 
     private var bodyTextFlow : TextFlow by singleAssign()
     private var headerText : Text by singleAssign()
@@ -77,6 +77,7 @@ class PassageBox : Fragment() {
                 rightAnchor = textflowMargin
 
             }
+            addClass(Styles.passage)
             isCache = true
             isCacheShape= true
             cacheHint = CacheHint.SPEED
@@ -85,18 +86,6 @@ class PassageBox : Fragment() {
             paddingRightProperty.bind(textFlowMarginProperty)
             maxHeight = boxHeight - textflowMargin - heightMargin - frameHeightMargin - 30.0
             frame.buildBodyFadeTransition(this)
-        }
-
-        subscribe<ScaleUI> {
-            bodyTextFlow.children.forEach { node ->
-                node.scaleX = it.scaleX
-                node.scaleY = it.scaleY
-            }
-
-            headerText.apply {
-                scaleX = it.scaleX
-                scaleY = it.scaleY
-            }
         }
 
         subscribe<InitAfterBoundsSet> {
@@ -175,11 +164,17 @@ class PassageBox : Fragment() {
         list.forEachIndexed { i, it ->
             val header = Text(it.first + "\n").apply {
                 fontProperty().bind(bodyFontProperty)
-//                addClass(Styles.passageHeader)
+                fillProperty().bind(textStyleModel.fillProperty)
+                strokeProperty().bind(textStyleModel.strokeProperty)
+                strokeWidthProperty().bind(textStyleModel.strokeWidthProperty)
+                effectProperty().bind(textStyleModel.effectProperty)
             }
             val body = Text(it.second).apply {
                 fontProperty().bind(bodyFontProperty)
-//                addClass(Styles.passageBody)
+                fillProperty().bind(textStyleModel.fillProperty)
+                strokeProperty().bind(textStyleModel.strokeProperty)
+                strokeWidthProperty().bind(textStyleModel.strokeWidthProperty)
+                effectProperty().bind(textStyleModel.effectProperty)
             }
             bodyTextFlow.add(header)
             bodyTextFlow.add(body)
@@ -195,7 +190,7 @@ class PassageBox : Fragment() {
         var headerFont = Font.font(fontModel.family, fontModel.weight, fontModel.posture, headerFontSize)
 
         var width = NodeUtils.computeTextWidth(headerFont, header, 0.0)
-        while (width > headerWidth) {
+        while (width > headerWidth && headerFontSize >= 10) {
             headerFontSize -= 1.0
             headerFont = Font.font(fontModel.family, fontModel.weight, fontModel.posture, headerFontSize)
             width = NodeUtils.computeTextWidth(headerFont, header, 0.0)
@@ -211,7 +206,7 @@ class PassageBox : Fragment() {
             height += NodeUtils.computeTextHeight(bodyFont, it.second, bodyWidth)
         }
 
-        while (height > bodyTextFlow.maxHeight) {
+        while (height > bodyTextFlow.maxHeight && bodyFontSize >= 10) {
             bodyFontSize -= 0.50
             bodyFont = Font.font(fontModel.family, fontModel.weight, fontModel.posture, bodyFontSize)
             list.forEach {

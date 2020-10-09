@@ -12,7 +12,7 @@ import tornadofx.getValue
 import tornadofx.setValue
 
 class ProjectionData() {
-    val displayIndexProperty = SimpleIntegerProperty(0)
+    val displayIndexProperty = SimpleIntegerProperty(-1)
     var displayIndex by displayIndexProperty
 
     val liveProperty = SimpleBooleanProperty(false)
@@ -27,11 +27,15 @@ class ProjectionData() {
     val heightProperty = SimpleDoubleProperty(0.0)
     var height by heightProperty
 
-    val screenBoundsProperty = SimpleObjectProperty<Rectangle2D>(Rectangle2D(0.0,0.0,0.0,0.0))
+    val screenBoundsProperty = SimpleObjectProperty<Rectangle2D>(Rectangle2D.EMPTY)
     var screenBounds by screenBoundsProperty
 
     val textAlignmentProperty = SimpleObjectProperty<TextAlignment>(TextAlignment.LEFT)
     var textAlignment by textAlignmentProperty
+
+    override fun toString(): String {
+        return "displayIndex: $displayIndex - isLive: $isLive - orientation: $orientation - width: $width - height - $height - screenBounds: $screenBounds - textAlignment - $textAlignment"
+    }
 
 }
 

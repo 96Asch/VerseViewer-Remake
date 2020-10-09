@@ -5,6 +5,7 @@ import com.verseviewer.application.controller.ProjectionEditorController
 import com.verseviewer.application.model.DisplayVersesModel
 import com.verseviewer.application.model.FontModel
 import com.verseviewer.application.model.ProjectionModel
+import com.verseviewer.application.model.TextStyleModel
 import com.verseviewer.application.model.datastructure.VerseGroup
 import com.verseviewer.application.model.event.*
 import com.verseviewer.application.model.scope.ProjectionEditorScope
@@ -14,7 +15,6 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.geometry.Orientation
 import javafx.geometry.Pos
-import javafx.scene.control.Toggle
 import javafx.scene.control.ToggleButton
 import javafx.scene.layout.Priority
 import javafx.scene.text.TextAlignment
@@ -26,27 +26,33 @@ import tornadofx.*
 import tornadofx.controlsfx.popover
 import tornadofx.controlsfx.segmentedbutton
 import tornadofx.controlsfx.showPopover
-import javax.swing.BoxLayout
 
 
 class ProjectionEditor : View() {
 
     override val scope = super.scope as ProjectionEditorScope
 
-    private val displayVersesModel : DisplayVersesModel by inject()
     private var projectionView : Fragment by singleAssign()
+
     private val controller : ProjectionEditorController by inject(FX.defaultScope)
+
+    private val displayVersesModel : DisplayVersesModel by inject()
     private val fontModel : FontModel by inject()
     private val projectionModel : ProjectionModel by inject()
+    private val textStyleModel : TextStyleModel by inject()
 
-    private var popOver : PopOver by singleAssign()
+    private var fontPicker : PopOver by singleAssign()
 
     private val numTranslationsProperty = SimpleIntegerProperty(0)
     private val numVersesProperty = SimpleIntegerProperty(0)
 
     override val root = borderpane {
+        fontModel.item = scope.savedFontModel.item
+        projectionModel.item = scope.savedProjectionModel.item
+        textStyleModel.item = scope.savedTextStyleModel.item
 
         projectionModel.screenBoundsProperty.value = Screen.getScreens().first().visualBounds
+
         projectionView = find<Projection>(mapOf("isCloseable" to false))
 
         center = ScalingPane(projectionView.root, projectionModel.screenBounds.width, projectionModel.screenBounds.height)
@@ -54,6 +60,7 @@ class ProjectionEditor : View() {
         val isSelectedProperty = SimpleBooleanProperty(false)
         
         right = scrollpane {
+
             form {
                 fieldset("1. Secondary Screen") {
                     combobox(values = controller.screenList) {
@@ -87,23 +94,37 @@ class ProjectionEditor : View() {
                     }
                 }
                 fieldset("3. Font") {
-                    field("Family") {
-                        button {
+                    button {
 
-                            textProperty().bind(stringBinding(fontModel.familyProperty, fontModel.sizeProperty, fontModel.weightProperty, fontModel.postureProperty) {
-                                "${fontModel.family}\n ${fontModel.size} [${fontModel.weight}-${fontModel.posture}]"
-                            })
-                            popOver = popover {
-                                this.title = "Font Picker"
-                                find<FontPicker>().root
-                            }
-                            action {
-                                showPopover()
-                            }
+                        textProperty().bind(stringBinding(fontModel.familyProperty, fontModel.sizeProperty, fontModel.weightProperty, fontModel.postureProperty) {
+                            "${fontModel.family}\n ${fontModel.size} [${fontModel.weight}-${fontModel.posture}]"
+                        })
+                        fontPicker = popover {
+                            this.title = "Font Picker"
+                            find<FontPicker>().root
+                        }
+                        action {
+                            showPopover()
                         }
                     }
                 }
-                fieldset("4. Multiple Translations") {
+                fieldset("4. Text Styling") {
+                    field("Fill Color") {
+                        colorpicker { textStyleModel.fillProperty.bind(valueProperty()) }
+                    }
+                    field("Border Color") {
+                        colorpicker { textStyleModel.strokeProperty.bind(valueProperty()) }
+                    }
+                    field("Border Width") {
+                        slider(0,10,1) {
+                            textStyleModel.strokeWidthProperty.bind(valueProperty())
+                        }
+                    }
+                    field("Effect") {
+                        segmentedbutton {}
+                    }
+                }
+                fieldset("5. Multiple Translations") {
                     field("Orientation") {
                         segmentedbutton {
                             subscribe<InitBoxLayoutButton> {
@@ -122,16 +143,13 @@ class ProjectionEditor : View() {
         }
 
         bottom = anchorpane {
+
             hbox {
                 anchorpaneConstraints {
-                    topAnchor = 5.0
-                    leftAnchor = 5.0
-                }
-                paddingAll = 10.0
-                label("Translations") {
                     hboxConstraints { marginRight = 10.0 }
                 }
-
+                label("Translations") {
+                }
                 slider(0, 5, 0) {
                     numTranslationsProperty.bind(valueProperty())
                     isSnapToTicks = true
@@ -198,18 +216,10 @@ class ProjectionEditor : View() {
         }
     }
 
-    init {
-        fontModel.item = scope.savedFontModel.item
-        projectionModel.item = scope.savedProjectionModel.item
-
-    }
-
     override fun onDock() {
         println("ondock PE")
-        println(projectionModel.textAlignment)
         currentStage?.let { it.setOnCloseRequest {
-                popOver.hide(Duration.millis(0.0))
-            currentStage!!.widthProperty().onChange { width -> println(width) }
+                fontPicker.hide(Duration.millis(0.0))
             }
         }
         fire(InitTextAlignmentButton())
@@ -218,9 +228,16 @@ class ProjectionEditor : View() {
 
     override fun onUndock() {
         println("undock PE")
+        println(scope.savedTextStyleModel.item.fillProperty.value)
+        projectionModel.commit()
+        fontModel.commit()
+        textStyleModel.commit()
 
         scope.savedProjectionModel.item = projectionModel.item
         scope.savedFontModel.item = fontModel.item
+        scope.savedTextStyleModel.item = textStyleModel.item
+        println(scope.savedTextStyleModel.fill)
+
         fire(SaveProjectionEditorSettings())
     }
 

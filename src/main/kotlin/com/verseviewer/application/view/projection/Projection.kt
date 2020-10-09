@@ -9,6 +9,7 @@ import javafx.animation.FadeTransition
 import javafx.geometry.Orientation
 import javafx.scene.layout.HBox
 import javafx.scene.layout.VBox
+import javafx.stage.StageStyle
 import javafx.util.Duration
 import tornadofx.*
 
@@ -69,26 +70,33 @@ class Projection : Fragment() {
             }
         }
 
+        when (projectionModel.orientation) {
+            Orientation.HORIZONTAL -> add(hbox)
+            Orientation.VERTICAL -> add(vbox)
+        }
+
         projectionModel.orientationProperty.onChange {
             if (it != null) {
                 when (it) {
                     Orientation.HORIZONTAL -> {
-                        this.children.remove(vbox)
-                        this.children.add(hbox)
+                        children.remove(vbox)
+                        children.add(hbox)
                     }
                     Orientation.VERTICAL -> {
-                        this.children.remove(hbox)
-                        this.children.add(vbox)
+                        children.remove(hbox)
+                        children.add(vbox)
                     }
                 }
                 project(it, true)
             }
         }
 
-        projectionModel.screenBoundsProperty.addListener { _, _, _ ->
-            projectionModel.boxWidthProperty.value = projectionModel.screenBoundsProperty.value.width / displayVersesModel.sorted.value.size
-            projectionModel.boxHeightProperty.value = projectionModel.screenBoundsProperty.value.height
-            fire(InitAfterBoundsSet())
+        projectionModel.screenBoundsProperty.addListener { _, _, new ->
+            if (new != null) {
+                projectionModel.boxWidthProperty.value = new.width / displayVersesModel.sorted.value.size
+                projectionModel.boxHeightProperty.value = new.height
+                fire(InitAfterBoundsSet())
+            }
         }
 
         displayVersesModel.itemProperty.addListener { _, _, new ->
@@ -116,6 +124,7 @@ class Projection : Fragment() {
 
     private fun project(layout : Orientation?, rebuildBoxes : Boolean) {
         if (rebuildBoxes) {
+            println("Rebuild")
             fire(PlayReverseFrameAnimation(scope))
             initStageSettings()
             buildPassageBoxes(displayVersesModel.sorted.value.size, layout)

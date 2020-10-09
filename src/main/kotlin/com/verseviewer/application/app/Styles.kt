@@ -21,13 +21,12 @@ class Styles : Stylesheet() {
         val invisible by cssclass()
 
         val translationHeader by cssclass()
+        val passage by cssclass()
         val passageHeader by cssclass()
         val passageBody by cssclass()
         val frame by cssclass()
 
         val fontAwesome = GlyphFontRegistry.font("FontAwesome")
-
-        var fontsize = 10.0
     }
 
     init {
@@ -48,17 +47,14 @@ class Styles : Stylesheet() {
             strokeWidth = 1.px
         }
 
-        passageHeader {
-            stroke = c(0.0,0.0,0.0)
-            strokeWidth = 3.px
-            fill = c(255, 255, 255)
+        passage {
+            text {
+                this.stroke = c(0.0, 0.0, 0.0)
+                this.strokeWidth = 2.px
+                this.fill = c(255, 255, 255)
+            }
         }
 
-        passageBody {
-            stroke = c(0.0,0.0,0.0)
-            strokeWidth = 2.px
-            fill = c(255, 255, 255)
-        }
 
         frame {
             stroke = c(33, 33, 30)

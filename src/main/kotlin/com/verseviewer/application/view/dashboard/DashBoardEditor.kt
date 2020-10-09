@@ -63,6 +63,7 @@ class DashBoardEditor : View("My View") {
             addEventFilter(MouseEvent.MOUSE_DRAGGED, ::animateDrag)
             addEventFilter(MouseEvent.MOUSE_RELEASED, ::stopDrag)
             addEventFilter(MouseEvent.MOUSE_RELEASED, ::drop)
+//            isPickOnBounds = true
         }
 
         pane {
@@ -88,6 +89,7 @@ class DashBoardEditor : View("My View") {
     }
 
     private fun startDrag(evt: MouseEvent) {
+        println("Drag")
         controller.startDrag(evt)
     }
 

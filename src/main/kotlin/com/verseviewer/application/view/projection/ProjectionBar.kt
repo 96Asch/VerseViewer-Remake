@@ -12,13 +12,12 @@ import tornadofx.*
 class ProjectionBar : Fragment() {
 
     private val projectionModel : ProjectionModel by inject()
-    private val projection = find<Projection>(mapOf("isCloseable" to true))
     private val displayVersesModel : DisplayVersesModel by inject()
     private val fontModel : FontModel by inject()
 
     private val liveChangeListener = ChangeListener<Boolean> { _, _, new ->
         if (new) {
-            projection.openWindow(StageStyle.TRANSPARENT, escapeClosesWindow = false)
+            find<Projection>(mapOf("isCloseable" to true)).openWindow(StageStyle.TRANSPARENT, escapeClosesWindow = false)
             fire(OpenProjection(scope))
         }
         else {
@@ -38,7 +37,7 @@ class ProjectionBar : Fragment() {
             })
         }
 
-        projection.openWindow(StageStyle.TRANSPARENT, escapeClosesWindow = false)?.apply {
+        find<Projection>(mapOf("isCloseable" to true)).openWindow(StageStyle.TRANSPARENT, escapeClosesWindow = false)?.apply {
             this.hide()
         }
 

@@ -28,10 +28,9 @@ class ComponentBuilder : Controller() {
     private val editorScope = EditorScope()
     
     private val components = mapOf(
-            ProjectionBar::class.simpleName to VVComponent(ProjectionBar::class, maxInstances = 1, required = true),
-            VerseBox::class.simpleName to VVComponent(VerseBox::class, maxInstances = 1, required = true),
-            Schedule::class.simpleName to VVComponent(Schedule::class, maxInstances = -1, scope = ScheduleScope::class, required = false),
-            BookList::class.simpleName to VVComponent(BookList::class, maxInstances = 1, required = false)
+        VerseBox::class.simpleName to VVComponent(VerseBox::class, maxInstances = 1, required = true),
+        Schedule::class.simpleName to VVComponent(Schedule::class, maxInstances = -1, scope = ScheduleScope::class, required = false),
+        BookList::class.simpleName to VVComponent(BookList::class, maxInstances = 1, required = false)
     )
 
     fun isInstanceAllowed(tile: Tile) : Boolean {

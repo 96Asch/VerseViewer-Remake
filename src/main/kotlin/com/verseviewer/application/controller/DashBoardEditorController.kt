@@ -33,7 +33,7 @@ class DashBoardEditorController : Controller() {
     private var dropDimension : Dimension? = null
     private var action = EditAction.NONE
     private val minColSpan = 7
-    private val minRowSpan = 2
+    private val minRowSpan = 4
 
     val dirtyProperty = SimpleBooleanProperty(false)
     var dirty by dirtyProperty
@@ -60,7 +60,9 @@ class DashBoardEditorController : Controller() {
                 selectedTile = null
                 action = EditAction.NEW_DRAG_DROP
             } else if (dashboardController.isPointOnDashboard(mousePt) && tile.skin is DndSkin) {
-                action = getAction(evt, tile.skin as DndSkin)
+
+                action = getAction(evt, tile.skin as DndSkin, tile)
+                println(action)
                 when (action) {
                     EditAction.REMOVE -> {
                         dashboardController.removeTile(tile)
@@ -174,17 +176,19 @@ class DashBoardEditorController : Controller() {
         action = EditAction.NONE
     }
 
-    private fun getAction(evt: MouseEvent, skin: DndSkin): EditAction {
+    private fun getAction(evt: MouseEvent, skin: DndSkin, tile : Tile): EditAction {
+        println("${evt.x} - ${evt.y} ${skin.relocateRegion.sceneToLocal(evt.x, evt.y)} ${skin.closeRegion.screenToLocal(evt.screenX, evt.screenY)}")
+        println("Contains "+skin.closeRegion.contains(skin.closeRegion.screenToLocal(evt.screenX, evt.screenY)))
         return when {
-            isMouseInRegion(skin.relocateRegion, evt) -> EditAction.RELOCATE_DRAG_DROP
-            isMouseInRegion(skin.closeRegion, evt) -> EditAction.REMOVE
-            isMouseInRegion(skin.resizeRegion, evt) -> EditAction.RESIZE
+            isMouseInRegion(tile, skin.relocateRegion, evt) -> EditAction.RELOCATE_DRAG_DROP
+            isMouseInRegion(tile, skin.closeRegion, evt) -> EditAction.REMOVE
+            isMouseInRegion(tile, skin.resizeRegion, evt) -> EditAction.RESIZE
             else -> EditAction.NONE
         }
     }
 
-    private fun isMouseInRegion(region : Region, evt: MouseEvent) : Boolean
-            = region.contains(region.sceneToLocal(evt.x, evt.y))
+    private fun isMouseInRegion(tile : Tile, region : Region, evt: MouseEvent) : Boolean
+            = region.contains(region.screenToLocal(evt.screenX, evt.screenY))
 
     private fun refreshComponents() {
         componentList.clear()
