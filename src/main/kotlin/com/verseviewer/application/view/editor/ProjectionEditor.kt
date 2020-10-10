@@ -228,7 +228,6 @@ class ProjectionEditor : View() {
 
     override fun onUndock() {
         println("undock PE")
-        println(scope.savedTextStyleModel.item.fillProperty.value)
         projectionModel.commit()
         fontModel.commit()
         textStyleModel.commit()
@@ -236,9 +235,8 @@ class ProjectionEditor : View() {
         scope.savedProjectionModel.item = projectionModel.item
         scope.savedFontModel.item = fontModel.item
         scope.savedTextStyleModel.item = textStyleModel.item
-        println(scope.savedTextStyleModel.fill)
 
-        fire(SaveProjectionEditorSettings())
+        fire(LoadProjectionEditorSettings())
     }
 
     private fun createAlignmentButton(glyph : FontAwesome.Glyph, textAlignment: TextAlignment) : ToggleButton {

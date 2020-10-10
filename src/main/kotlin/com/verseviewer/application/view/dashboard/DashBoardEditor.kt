@@ -3,13 +3,14 @@ package com.verseviewer.application.view.dashboard
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.DashBoardController
 import com.verseviewer.application.controller.DashBoardEditorController
+import com.verseviewer.application.model.event.LoadDashBoardEditorSettings
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Priority
 import org.controlsfx.glyphfont.FontAwesome
 import org.controlsfx.glyphfont.GlyphFontRegistry
 import tornadofx.*
 
-class DashBoardEditor : View("My View") {
+class DashBoardEditor : View() {
 
     private val controller : DashBoardEditorController by inject()
     private val dashboardController : DashBoardController by inject()
@@ -19,7 +20,6 @@ class DashBoardEditor : View("My View") {
         borderpane {
 
             center = dashboard.root
-
 
             right = vbox {
                 paddingAll = 10.0
@@ -58,12 +58,10 @@ class DashBoardEditor : View("My View") {
                 }
             }
 
-
             addEventFilter(MouseEvent.MOUSE_PRESSED, ::startDrag)
             addEventFilter(MouseEvent.MOUSE_DRAGGED, ::animateDrag)
             addEventFilter(MouseEvent.MOUSE_RELEASED, ::stopDrag)
             addEventFilter(MouseEvent.MOUSE_RELEASED, ::drop)
-//            isPickOnBounds = true
         }
 
         pane {
@@ -89,7 +87,6 @@ class DashBoardEditor : View("My View") {
     }
 
     private fun startDrag(evt: MouseEvent) {
-        println("Drag")
         controller.startDrag(evt)
     }
 

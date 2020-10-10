@@ -202,12 +202,9 @@ class DashBoardController : Controller() {
 
     private val dbController : DBController by inject()
 
-
-    init {
+    fun loadUser() {
         userModel.item = dbController.getUsers().first()
-
     }
-
 
 
 }

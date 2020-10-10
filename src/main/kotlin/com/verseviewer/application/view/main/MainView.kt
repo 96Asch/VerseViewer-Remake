@@ -3,14 +3,14 @@ package com.verseviewer.application.view.main
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.model.*
 import com.verseviewer.application.model.event.CloseProjection
+import com.verseviewer.application.model.event.LoadDashBoardEditorSettings
 import com.verseviewer.application.model.event.OpenProjection
-import com.verseviewer.application.model.event.SaveProjectionEditorSettings
+import com.verseviewer.application.model.event.LoadProjectionEditorSettings
 import com.verseviewer.application.model.scope.ProjectionEditorScope
 import com.verseviewer.application.view.dashboard.DashBoard
 import com.verseviewer.application.view.dashboard.DashBoardEditor
 import com.verseviewer.application.view.editor.ProjectionEditor
 import com.verseviewer.application.view.projection.Projection
-import javafx.beans.binding.Bindings
 import javafx.geometry.Orientation
 import javafx.geometry.Side
 import javafx.scene.Node
@@ -25,6 +25,7 @@ class MainView : View() {
     private val displayModel : DisplayVersesModel by inject()
     private val textStyleModel : TextStyleModel by inject()
 
+    private val dashboardView : DashBoard by inject()
     private var projectionView : Projection by singleAssign()
     private val projectionEditorScope = ProjectionEditorScope()
 
@@ -75,7 +76,7 @@ class MainView : View() {
                     prefHeightProperty().bind(this@anchorpane.heightProperty())
                 }
                 anchorpaneConstraints {
-                    rightAnchor = 0.0
+                    rightAnchor = 1.0
                 }
             }
         }
@@ -94,7 +95,7 @@ class MainView : View() {
         projectionModel.item = ProjectionData()
         textStyleModel.item = TextStyle()
         projectionView = find(mapOf("isCloseable" to true))
-        subscribe<SaveProjectionEditorSettings> {
+        subscribe<LoadProjectionEditorSettings> {
             println("Saved settings")
             fontModel.item = projectionEditorScope.savedFontModel.item
             projectionModel.item = projectionEditorScope.savedProjectionModel.item

@@ -8,7 +8,7 @@ import javafx.geometry.VPos
 import javafx.scene.layout.*
 import tornadofx.*
 
-class DashBoard : View("My View") {
+class DashBoard : View() {
     val heightTiles = 16
     val widthTiles = 32
     val tileSize = 25.0
@@ -16,8 +16,8 @@ class DashBoard : View("My View") {
     private val controller : DashBoardController by inject()
 
     override val root = gridpane {
-        isGridLinesVisible = true
-
+        vgap = 2.0
+        hgap = 2.0
         for (i in 0 until widthTiles) {
             val c = ColumnConstraints().apply {
                 halignment = HPos.CENTER
@@ -51,7 +51,8 @@ class DashBoard : View("My View") {
         }
     }
 
-    init {
+    override fun onDock() {
+        controller.loadUser()
         val inEditor = params["inEditor"] as? Boolean ?: false
         root.isGridLinesVisible = inEditor
         controller.initGrid(inEditor)
@@ -59,8 +60,10 @@ class DashBoard : View("My View") {
     }
 }
 
+
 fun GridPane.addTile(property : TileProperties) {
     add(property.tile, property.x, property.y, property.colspan, property.rowspan)
 }
 
 class GridCell(val x : Int, val y : Int) : Pane()
+
