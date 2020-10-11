@@ -19,9 +19,8 @@ class PassageBox : Fragment() {
     private val controller : PassageBoxController by inject()
 
     private val displayVersesModel : DisplayVersesModel by inject()
+    private val preferenceModel : PreferenceModel by inject()
     private val projectionModel : ProjectionModel by inject()
-    private val fontModel : FontModel by inject()
-    private val textStyleModel : TextStyleModel by inject()
 
     private var bodyTextFlow : TextFlow by singleAssign()
     private var headerText : Text by singleAssign()
@@ -81,7 +80,7 @@ class PassageBox : Fragment() {
             isCache = true
             isCacheShape= true
             cacheHint = CacheHint.SPEED
-            textAlignmentProperty().bind(projectionModel.textAlignmentProperty)
+            textAlignmentProperty().bind(preferenceModel.textAlignmentProperty)
             paddingLeftProperty.bind(textFlowMarginProperty)
             paddingRightProperty.bind(textFlowMarginProperty)
             maxHeight = boxHeight - textflowMargin - heightMargin - frameHeightMargin - 30.0
@@ -100,20 +99,20 @@ class PassageBox : Fragment() {
         vboxConstraints { vGrow = Priority.ALWAYS }
         hboxConstraints { hGrow = Priority.ALWAYS }
 
-        fontModel.familyProperty.onChange {
+        preferenceModel.familyProperty.onChange {
             fire(BuildPassageContent())
         }
-        fontModel.sizeProperty.onChange {
+        preferenceModel.sizeProperty.onChange {
             if (it != null) {
                 headerFontSize = it.toDouble()
                 bodyFontSize = it.toDouble()
             }
             fire(BuildPassageContent())
         }
-        fontModel.weightProperty.onChange {
+        preferenceModel.weightProperty.onChange {
             fire(BuildPassageContent())
         }
-        fontModel.postureProperty.onChange {
+        preferenceModel.postureProperty.onChange {
             fire(BuildPassageContent())
         }
     }
@@ -123,8 +122,8 @@ class PassageBox : Fragment() {
         setFont(headerFontProperty, 50.0)
 
         subscribe<BuildPassageContent> {
-            headerFontSize = fontModel.size.toDouble()
-            bodyFontSize = fontModel.size.toDouble()
+            headerFontSize = preferenceModel.size.toDouble()
+            bodyFontSize = preferenceModel.size.toDouble()
             setFont(bodyFontProperty, bodyFontSize)
             val index = if (translationIndex >= displayVersesModel.sorted.value.size) 0 else translationIndex
             rebuildTexts(displayVersesModel.sorted.value[index])
@@ -164,17 +163,15 @@ class PassageBox : Fragment() {
         list.forEachIndexed { i, it ->
             val header = Text(it.first + "\n").apply {
                 fontProperty().bind(bodyFontProperty)
-                fillProperty().bind(textStyleModel.fillProperty)
-                strokeProperty().bind(textStyleModel.strokeProperty)
-                strokeWidthProperty().bind(textStyleModel.strokeWidthProperty)
-                effectProperty().bind(textStyleModel.effectProperty)
+                fillProperty().bind(preferenceModel.fillProperty)
+                strokeProperty().bind(preferenceModel.strokeProperty)
+                strokeWidthProperty().bind(preferenceModel.strokeWidthProperty)
             }
             val body = Text(it.second).apply {
                 fontProperty().bind(bodyFontProperty)
-                fillProperty().bind(textStyleModel.fillProperty)
-                strokeProperty().bind(textStyleModel.strokeProperty)
-                strokeWidthProperty().bind(textStyleModel.strokeWidthProperty)
-                effectProperty().bind(textStyleModel.effectProperty)
+                fillProperty().bind(preferenceModel.fillProperty)
+                strokeProperty().bind(preferenceModel.strokeProperty)
+                strokeWidthProperty().bind(preferenceModel.strokeWidthProperty)
             }
             bodyTextFlow.add(header)
             bodyTextFlow.add(body)
@@ -187,19 +184,19 @@ class PassageBox : Fragment() {
     }
 
     private fun resizeHeaderTextFlow(header : String = headerText.text) {
-        var headerFont = Font.font(fontModel.family, fontModel.weight, fontModel.posture, headerFontSize)
+        var headerFont = Font.font(preferenceModel.family, preferenceModel.weight, preferenceModel.posture, headerFontSize)
 
         var width = NodeUtils.computeTextWidth(headerFont, header, 0.0)
         while (width > headerWidth && headerFontSize >= 10) {
             headerFontSize -= 1.0
-            headerFont = Font.font(fontModel.family, fontModel.weight, fontModel.posture, headerFontSize)
+            headerFont = Font.font(preferenceModel.family, preferenceModel.weight, preferenceModel.posture, headerFontSize)
             width = NodeUtils.computeTextWidth(headerFont, header, 0.0)
         }
     }
 
     private fun resizeBodyTextFlow(list: List<Pair<String, String>> = controller.passageStrings) {
         var height = 0.0
-        var bodyFont = Font.font(fontModel.family, fontModel.weight, fontModel.posture, bodyFontSize)
+        var bodyFont = Font.font(preferenceModel.family, preferenceModel.weight, preferenceModel.posture, bodyFontSize)
 
         list.forEach {
             height += NodeUtils.computeTextHeight(bodyFont, it.first, bodyWidth)
@@ -208,7 +205,7 @@ class PassageBox : Fragment() {
 
         while (height > bodyTextFlow.maxHeight && bodyFontSize >= 10) {
             bodyFontSize -= 0.50
-            bodyFont = Font.font(fontModel.family, fontModel.weight, fontModel.posture, bodyFontSize)
+            bodyFont = Font.font(preferenceModel.family, preferenceModel.weight, preferenceModel.posture, bodyFontSize)
             list.forEach {
                 height = NodeUtils.computeTextHeight(bodyFont, it.first, bodyWidth)
                 height += NodeUtils.computeTextHeight(bodyFont, it.second, bodyWidth)
@@ -217,6 +214,6 @@ class PassageBox : Fragment() {
     }
 
     private fun setFont(property : SimpleObjectProperty<Font>, size : Double) {
-        property.value = Font.font(fontModel.family, fontModel.weight, fontModel.posture, size)
+        property.value = Font.font(preferenceModel.family, preferenceModel.weight, preferenceModel.posture, size)
     }
 }

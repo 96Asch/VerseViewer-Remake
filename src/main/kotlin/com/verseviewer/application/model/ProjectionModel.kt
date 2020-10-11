@@ -12,14 +12,8 @@ import tornadofx.getValue
 import tornadofx.setValue
 
 class ProjectionData() {
-    val displayIndexProperty = SimpleIntegerProperty(-1)
-    var displayIndex by displayIndexProperty
-
     val liveProperty = SimpleBooleanProperty(false)
     var isLive by liveProperty
-
-    val orientationProperty = SimpleObjectProperty<Orientation>(Orientation.HORIZONTAL)
-    var orientation: Orientation by orientationProperty
 
     val widthProperty = SimpleDoubleProperty(0.0)
     var width by widthProperty
@@ -30,31 +24,23 @@ class ProjectionData() {
     val screenBoundsProperty = SimpleObjectProperty<Rectangle2D>(Rectangle2D.EMPTY)
     var screenBounds by screenBoundsProperty
 
-    val textAlignmentProperty = SimpleObjectProperty<TextAlignment>(TextAlignment.LEFT)
-    var textAlignment by textAlignmentProperty
 
     override fun toString(): String {
-        return "displayIndex: $displayIndex - isLive: $isLive - orientation: $orientation - width: $width - height - $height - screenBounds: $screenBounds - textAlignment - $textAlignment"
+        return "isLive: $isLive - width: $width - height - $height - screenBounds: $screenBounds"
     }
 
 }
 
 
 class ProjectionModel : ItemViewModel<ProjectionData>() {
-    val displayIndexProperty = bind(ProjectionData::displayIndexProperty)
     val liveProperty = bind(ProjectionData::liveProperty)
-    val orientationProperty = bind(ProjectionData::orientationProperty)
     val boxWidthProperty = bind(ProjectionData::widthProperty)
     val boxHeightProperty = bind(ProjectionData::heightProperty)
     val screenBoundsProperty = bind(ProjectionData::screenBoundsProperty)
-    val textAlignmentProperty = bind(ProjectionData::textAlignmentProperty)
 
-    var displayIndex: Number by displayIndexProperty
     var isLive: Boolean by liveProperty
-    var orientation: Orientation by orientationProperty
     var boxWidth: Number by boxWidthProperty
     var boxHeight: Number by boxHeightProperty
     var screenBounds: Rectangle2D by screenBoundsProperty
-    var textAlignment: TextAlignment by textAlignmentProperty
 }
 

@@ -1,24 +1,17 @@
 package com.verseviewer.application.view.editor
 
-import com.verseviewer.application.model.FontData
-import com.verseviewer.application.model.FontModel
+import com.verseviewer.application.model.PreferenceModel
 import com.verseviewer.application.model.event.FontPickerController
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.event.EventHandler
 import javafx.geometry.HPos
 import javafx.geometry.Pos
-import javafx.scene.Parent
-import javafx.scene.text.FontPosture
-import javafx.scene.text.FontWeight
-import org.controlsfx.glyphfont.FontAwesome
-import org.controlsfx.glyphfont.GlyphFontRegistry
 import tornadofx.*
-import tornadofx.controlsfx.segmentedbutton
 
 class FontPicker : Fragment() {
 
     private val controller : FontPickerController by inject()
-    private val fontModel : FontModel by inject()
+    private val preferenceModel : PreferenceModel by inject()
 
     override val root = gridpane {
 
@@ -36,8 +29,8 @@ class FontPicker : Fragment() {
         listview(controller.fontfamilyList) {
             maxWidth = 175.0
             maxHeight = 200.0
-            selectionModel.select(fontModel.family)
-            bindSelected(fontModel.familyProperty)
+            selectionModel.select(preferenceModel.family)
+            bindSelected(preferenceModel.familyProperty)
             gridpaneConstraints {
                 marginTop = 10.0
                 columnRowIndex(0,1)
@@ -53,7 +46,7 @@ class FontPicker : Fragment() {
             }
         }
 
-        slider(10, 80, fontModel.size) {
+        slider(10, 80, preferenceModel.size) {
             isSnapToTicks = true
             isShowTickLabels = true
             isShowTickMarks = true
@@ -61,7 +54,7 @@ class FontPicker : Fragment() {
             majorTickUnit = 10.0
             valueProperty.bind(valueProperty())
             onMouseReleased = EventHandler {
-                fontModel.size = this.value
+                preferenceModel.size = this.value
             }
             gridpaneConstraints {
                 marginTop = 10.0
@@ -86,8 +79,8 @@ class FontPicker : Fragment() {
         }
         form {
             fieldset {
-                field("Weight") { choicebox(fontModel.weightProperty) { items = controller.fontWeightList  } }
-                field("Posture") { choicebox(fontModel.postureProperty) { items = controller.fontPostureList  }  }
+                field("Weight") { choicebox(preferenceModel.weightProperty) { items = controller.fontWeightList  } }
+                field("Posture") { choicebox(preferenceModel.postureProperty) { items = controller.fontPostureList  }  }
             }
             gridpaneConstraints {
                 alignment = Pos.CENTER

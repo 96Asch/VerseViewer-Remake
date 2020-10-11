@@ -52,7 +52,6 @@ class DashBoard : View() {
     }
 
     override fun onDock() {
-        controller.loadUser()
         val inEditor = params["inEditor"] as? Boolean ?: false
         root.isGridLinesVisible = inEditor
         controller.initGrid(inEditor)

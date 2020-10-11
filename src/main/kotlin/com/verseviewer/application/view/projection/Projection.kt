@@ -3,6 +3,7 @@ package com.verseviewer.application.view.projection
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.ProjectionController
 import com.verseviewer.application.model.DisplayVersesModel
+import com.verseviewer.application.model.PreferenceModel
 import com.verseviewer.application.model.ProjectionModel
 import com.verseviewer.application.model.event.*
 import javafx.animation.FadeTransition
@@ -16,8 +17,9 @@ import tornadofx.*
 class Projection : Fragment() {
 
     private val displayVersesModel : DisplayVersesModel by inject()
-    private val controller : ProjectionController by inject();
+    private val controller : ProjectionController by inject()
     private val projectionModel : ProjectionModel by inject()
+    private val preferenceModel : PreferenceModel by inject()
 
     private val fadeDuration = Duration.millis(500.0)
     private var fadeOutTransition by singleAssign<FadeTransition>()
@@ -70,12 +72,12 @@ class Projection : Fragment() {
             }
         }
 
-        when (projectionModel.orientation) {
+        when (preferenceModel.orientation) {
             Orientation.HORIZONTAL -> add(hbox)
             Orientation.VERTICAL -> add(vbox)
         }
 
-        projectionModel.orientationProperty.onChange {
+        preferenceModel.orientationProperty.onChange {
             if (it != null) {
                 when (it) {
                     Orientation.HORIZONTAL -> {
@@ -101,7 +103,7 @@ class Projection : Fragment() {
 
         displayVersesModel.itemProperty.addListener { _, _, new ->
             if (new != null) {
-                project(projectionModel.orientation, lastNumTranslations != displayVersesModel.sorted.value.size)
+                project(preferenceModel.orientation, lastNumTranslations != displayVersesModel.sorted.value.size)
             }
         }
     }
@@ -111,7 +113,9 @@ class Projection : Fragment() {
     }
 
     override fun onDock() {
+        println("onDock Projection")
         initStageSettings()
+        project(preferenceModel.orientation, lastNumTranslations != displayVersesModel.sorted.value.size)
     }
 
     private fun initStageSettings() {
@@ -124,7 +128,7 @@ class Projection : Fragment() {
 
     private fun project(layout : Orientation?, rebuildBoxes : Boolean) {
         if (rebuildBoxes) {
-            println("Rebuild")
+            println("Rebuild $scope")
             fire(PlayReverseFrameAnimation(scope))
             initStageSettings()
             buildPassageBoxes(displayVersesModel.sorted.value.size, layout)
@@ -137,6 +141,7 @@ class Projection : Fragment() {
 
     private fun buildPassageBoxes(currentSize : Int, layout : Orientation?) {
         if (layout != null) {
+            println("Build PassageBoxes")
             var calcWidth = projectionModel.screenBoundsProperty.value.width
             var calcHeight = projectionModel.screenBoundsProperty.value.height
             when (layout) {

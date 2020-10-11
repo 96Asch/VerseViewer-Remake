@@ -3,9 +3,16 @@ package com.verseviewer.application.model
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.verseviewer.application.model.db.UserDAO
+import com.verseviewer.application.model.db.Users
+import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
+import javafx.geometry.Orientation
+import javafx.scene.paint.Color
+import javafx.scene.text.FontPosture
+import javafx.scene.text.FontWeight
+import javafx.scene.text.TextAlignment
 import tornadofx.*
 import java.io.ByteArrayInputStream
 import java.nio.charset.Charset

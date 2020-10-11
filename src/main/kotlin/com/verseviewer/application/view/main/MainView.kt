@@ -1,7 +1,9 @@
 package com.verseviewer.application.view.main
 
 import com.verseviewer.application.app.Styles
+import com.verseviewer.application.controller.MainViewController
 import com.verseviewer.application.model.*
+import com.verseviewer.application.model.datastructure.VerseGroup
 import com.verseviewer.application.model.event.CloseProjection
 import com.verseviewer.application.model.event.LoadDashBoardEditorSettings
 import com.verseviewer.application.model.event.OpenProjection
@@ -14,16 +16,19 @@ import com.verseviewer.application.view.projection.Projection
 import javafx.geometry.Orientation
 import javafx.geometry.Side
 import javafx.scene.Node
+import javafx.stage.Screen
 import javafx.stage.StageStyle
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 
 class MainView : View() {
 
-    private val fontModel : FontModel by inject()
+    private val preferenceModel : PreferenceModel by inject()
     private val projectionModel : ProjectionModel by inject()
     private val displayModel : DisplayVersesModel by inject()
-    private val textStyleModel : TextStyleModel by inject()
+    private val userModel : UserModel by inject()
+
+    private val controller : MainViewController by inject()
 
     private val dashboardView : DashBoard by inject()
     private var projectionView : Projection by singleAssign()
@@ -32,6 +37,11 @@ class MainView : View() {
     private val dashBoardEditorView : DashBoardEditor by inject(Scope())
 
     override val root = borderpane {
+        userModel.item = controller.loadUser()
+
+        preferenceModel.item = Preference(controller.loadPreference(userModel.item))
+        projectionModel.item = ProjectionData()
+        displayModel.item = VerseGroup(listOf())
 
         top = anchorpane {
             listmenu {
@@ -58,7 +68,9 @@ class MainView : View() {
                     prefHeightProperty().bind(this@anchorpane.heightProperty())
                     action {
                         if (isSelected) {
-                            projectionView.openWindow(StageStyle.TRANSPARENT, escapeClosesWindow = false, owner = null)
+                            projectionModel.screenBounds = Screen.getScreens()
+                                    .getOrElse(preferenceModel.displayIndex.toInt()) { Screen.getScreens().first() }.visualBounds
+                            find<Projection>().openWindow(StageStyle.TRANSPARENT, escapeClosesWindow = false, owner = null)
                             fire(OpenProjection(scope))
                         }
                         else {
@@ -66,13 +78,14 @@ class MainView : View() {
                         }
                         projectionModel.isLive = isSelected
                     }
+                    enableWhen {preferenceModel.item.displayIndexProperty.ge(0)}
                 }
                 label {
                     graphic = Styles.fontAwesome.create(FontAwesome.Glyph.ARROW_CIRCLE_O_RIGHT)
                     prefHeightProperty().bind(this@anchorpane.heightProperty())
                 }
                 label {
-                    textProperty().bind(projectionModel.displayIndexProperty.stringBinding {"Display $it"})
+                    textProperty().bind(preferenceModel.displayIndexProperty.stringBinding {"Display $it"})
                     prefHeightProperty().bind(this@anchorpane.heightProperty())
                 }
                 anchorpaneConstraints {
@@ -83,23 +96,23 @@ class MainView : View() {
         center<DashBoard>()
     }
 
+    override fun onDock() {
+        currentStage?.titleProperty()?.unbind()
+        currentStage?.title = "VerseViewer 2.0 - ${userModel.name.value}"
+    }
+
     private fun setupProjectionEditorView(node : Node) {
-        projectionEditorScope.savedTextStyleModel.item = textStyleModel.item
-        projectionEditorScope.savedFontModel.item = fontModel.item
+        projectionEditorScope.savedPreferenceModel.item = preferenceModel.item
         projectionEditorScope.savedProjectionModel.item = projectionModel.item
         node.replaceWith(find<ProjectionEditor>(projectionEditorScope).root)
     }
 
     init {
-        fontModel.item = FontData(50.0, "Arial Black")
-        projectionModel.item = ProjectionData()
-        textStyleModel.item = TextStyle()
-        projectionView = find(mapOf("isCloseable" to true))
         subscribe<LoadProjectionEditorSettings> {
             println("Saved settings")
-            fontModel.item = projectionEditorScope.savedFontModel.item
+            preferenceModel.item = projectionEditorScope.savedPreferenceModel.item
             projectionModel.item = projectionEditorScope.savedProjectionModel.item
-            textStyleModel.item = projectionEditorScope.savedTextStyleModel.item
+
         }
     }
 

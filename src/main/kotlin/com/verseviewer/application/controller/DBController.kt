@@ -1,9 +1,6 @@
 package com.verseviewer.application.controller
 
-import com.verseviewer.application.model.Book
-import com.verseviewer.application.model.Translation
-import com.verseviewer.application.model.User
-import com.verseviewer.application.model.Passage
+import com.verseviewer.application.model.*
 import com.verseviewer.application.model.datastructure.Range
 import com.verseviewer.application.model.db.*
 import org.jetbrains.exposed.sql.*
@@ -91,6 +88,11 @@ class DBController : Controller() {
         UserDAO.all().map { User(it) }
     }
 
+    fun getUser(name : String) : User = transaction(db) {
+        addLogger(StdOutSqlLogger)
+        User(UserDAO.find{Users.name eq name}.first())
+    }
+
     fun addUser(user : User) {
         transaction(db) {
             addLogger(StdOutSqlLogger)
@@ -105,6 +107,29 @@ class DBController : Controller() {
         transaction(db) {
             addLogger(StdOutSqlLogger)
             UserDAO.findById(user.id)?.delete()
+        }
+    }
+
+    fun getUserPreference(user : User) : PreferenceDAO = transaction(db) {
+        addLogger(StdOutSqlLogger)
+        PreferenceDAO.find { Preferences.owner eq user.id }.first()
+    }
+
+    fun updateUserPreference(pref : Preference) {
+        transaction(db) {
+            val prefDAO = PreferenceDAO.findById(pref.idProperty.value)
+            prefDAO?.let {
+                it.display = pref.displayIndexProperty.value
+                it.orientation = pref.orientationProperty.value.toString()
+                it.textAlignment = pref.textAlignmentProperty.value.toString()
+                it.fontSize = pref.fontSizeProperty.value.toDouble()
+                it.fontFamily = pref.fontFamilyProperty.value
+                it.fontWeight = pref.fontWeightProperty.value.toString()
+                it.fontPosture = pref.fontPostureProperty.value.toString()
+                it.textFill = pref.fillProperty.value.toString()
+                it.textStroke = pref.strokeProperty.value.toString()
+                it.textStrokeWidth = pref.strokeWidthProperty.value
+            }
         }
     }
 

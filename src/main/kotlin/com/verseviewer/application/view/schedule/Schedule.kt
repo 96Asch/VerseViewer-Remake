@@ -5,6 +5,7 @@ import tornadofx.*
 import com.verseviewer.application.controller.DragVerseController
 import com.verseviewer.application.model.DisplayVersesModel
 import com.verseviewer.application.model.datastructure.VerseGroup
+import com.verseviewer.application.model.event.DeselectVerses
 import com.verseviewer.application.model.scope.ScheduleScope
 import javafx.beans.Observable
 import javafx.event.ActionEvent
@@ -41,23 +42,33 @@ class Schedule : Fragment("My View") {
                         }
                         remainingWidth()
                     }
-                    bindSelected(displayModel)
 
-                    selectionModel.selectedItemProperty().addListener{_, _, new ->
-                        new?.let { controller.setDetail(new) }
-                    }
-
-                    setOnDragDropped(::dragDrop)
-                    setOnDragOver(::dragOver)
-                    multiSelect(true)
-                    smartResize()
-                    hboxConstraints {
-                        hgrow = Priority.ALWAYS
+                selectionModel.selectedItemProperty().addListener{_, _, new ->
+                    new?.let {
+                        controller.setDetail(new)
+                        displayModel.item = new
+                        fire(DeselectVerses(this.toString()))
                     }
                 }
 
-                masterNode = tv
+                subscribe<DeselectVerses> {
+                    println("${it.id} == ${this@tableview.toString()}")
+                    if (it.id != this@tableview.toString()) {
+                        println("deselect Schedule")
+                        selectionModel.clearSelection()
+                    }
+                }
 
+                setOnDragDropped(::dragDrop)
+                setOnDragOver(::dragOver)
+                multiSelect(true)
+                smartResize()
+                hboxConstraints {
+                    hgrow = Priority.ALWAYS
+                }
+            }
+
+            masterNode = tv
                 detail {
                     listview(controller.detailList) {
                         cellFormat {
@@ -76,7 +87,6 @@ class Schedule : Fragment("My View") {
                 dividerPosition = 0.4
                 showDetailNodeProperty().bind(controller.detailList.sizeProperty.greaterThan(0).and(this@hiddensidepane.hoverProperty()))
                 detailSide = Side.BOTTOM
-
             }
 
         val glyph = GlyphFontRegistry.font("FontAwesome")

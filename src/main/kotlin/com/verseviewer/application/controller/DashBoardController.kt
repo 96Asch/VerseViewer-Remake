@@ -17,7 +17,7 @@ class DashBoardController : Controller() {
     private val tileList = mutableListOf<TileProperties>()
     private val builder : ComponentBuilder by inject()
     private val tileModel : TilePropertiesModel by inject()
-    private val userModel : UserModel by inject()
+    private val userModel : UserModel by inject(FX.defaultScope)
     private val view : DashBoard by inject()
     private val defaultJson = "/layout/default.json"
     val json = resources.json(defaultJson)
@@ -199,12 +199,4 @@ class DashBoardController : Controller() {
     fun initGrid(inEditor : Boolean) {
         tileList.addAll(build(userModel.layout.value, builder, inEditor))
     }
-
-    private val dbController : DBController by inject()
-
-    fun loadUser() {
-        userModel.item = dbController.getUsers().first()
-    }
-
-
 }

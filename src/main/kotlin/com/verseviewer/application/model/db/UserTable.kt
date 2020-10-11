@@ -9,9 +9,6 @@ import org.jetbrains.exposed.sql.Column
 object Users : IntIdTable("users"){
     val name: Column<String> = text("NAME")
     val layout: Column<String> = text("LAYOUT")
-
-    //TODO Add preferences here
-
 }
 
 
@@ -19,8 +16,6 @@ class UserDAO(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<UserDAO>(Users)
     var name by Users.name
     var layout by Users.layout
-
-
 }
 
 

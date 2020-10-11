@@ -2,10 +2,7 @@ package com.verseviewer.application.view.editor
 
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.ProjectionEditorController
-import com.verseviewer.application.model.DisplayVersesModel
-import com.verseviewer.application.model.FontModel
-import com.verseviewer.application.model.ProjectionModel
-import com.verseviewer.application.model.TextStyleModel
+import com.verseviewer.application.model.*
 import com.verseviewer.application.model.datastructure.VerseGroup
 import com.verseviewer.application.model.event.*
 import com.verseviewer.application.model.scope.ProjectionEditorScope
@@ -37,9 +34,8 @@ class ProjectionEditor : View() {
     private val controller : ProjectionEditorController by inject(FX.defaultScope)
 
     private val displayVersesModel : DisplayVersesModel by inject()
-    private val fontModel : FontModel by inject()
     private val projectionModel : ProjectionModel by inject()
-    private val textStyleModel : TextStyleModel by inject()
+    private val preferenceModel : PreferenceModel by inject()
 
     private var fontPicker : PopOver by singleAssign()
 
@@ -47,9 +43,8 @@ class ProjectionEditor : View() {
     private val numVersesProperty = SimpleIntegerProperty(0)
 
     override val root = borderpane {
-        fontModel.item = scope.savedFontModel.item
         projectionModel.item = scope.savedProjectionModel.item
-        textStyleModel.item = scope.savedTextStyleModel.item
+        preferenceModel.item = scope.savedPreferenceModel.item
 
         projectionModel.screenBoundsProperty.value = Screen.getScreens().first().visualBounds
 
@@ -57,8 +52,6 @@ class ProjectionEditor : View() {
 
         center = ScalingPane(projectionView.root, projectionModel.screenBounds.width, projectionModel.screenBounds.height)
 
-        val isSelectedProperty = SimpleBooleanProperty(false)
-        
         right = scrollpane {
 
             form {
@@ -66,14 +59,12 @@ class ProjectionEditor : View() {
                     combobox(values = controller.screenList) {
                         selectionModel.selectedItemProperty().onChange {
                             if (it != null) {
-                                projectionModel.displayIndex = it.index
-                                projectionModel.screenBounds = it.screen.visualBounds
+                                preferenceModel.displayIndex = it.index
                             }
                         }
                         cellFormat {
                             text = "Display ${it.index} - [${it.screen.visualBounds.width}x${it.screen.visualBounds.height}]"
                         }
-                        isSelectedProperty.bind(selectionModel.selectedItemProperty().isNotNull)
                     }
                 }
                 fieldset("2. Text") {
@@ -82,7 +73,7 @@ class ProjectionEditor : View() {
                             subscribe<InitTextAlignmentButton> {
                                 buttons.filterIsInstance<ToggleButton>().forEach {
                                     if (it.properties.containsKey("alignment")) {
-                                        it.isSelected = it.properties["alignment"] as TextAlignment == projectionModel.textAlignment
+                                        it.isSelected = it.properties["alignment"] as TextAlignment == preferenceModel.textAlignment
                                     }
                                 }
                             }
@@ -96,8 +87,8 @@ class ProjectionEditor : View() {
                 fieldset("3. Font") {
                     button {
 
-                        textProperty().bind(stringBinding(fontModel.familyProperty, fontModel.sizeProperty, fontModel.weightProperty, fontModel.postureProperty) {
-                            "${fontModel.family}\n ${fontModel.size} [${fontModel.weight}-${fontModel.posture}]"
+                        textProperty().bind(stringBinding(preferenceModel.familyProperty, preferenceModel.sizeProperty, preferenceModel.weightProperty, preferenceModel.postureProperty) {
+                            "${preferenceModel.family}\n ${preferenceModel.size} [${preferenceModel.weight}-${preferenceModel.posture}]"
                         })
                         fontPicker = popover {
                             this.title = "Font Picker"
@@ -110,14 +101,14 @@ class ProjectionEditor : View() {
                 }
                 fieldset("4. Text Styling") {
                     field("Fill Color") {
-                        colorpicker { textStyleModel.fillProperty.bind(valueProperty()) }
+                        colorpicker { preferenceModel.fillProperty.bind(valueProperty()) }
                     }
                     field("Border Color") {
-                        colorpicker { textStyleModel.strokeProperty.bind(valueProperty()) }
+                        colorpicker { preferenceModel.strokeProperty.bind(valueProperty()) }
                     }
                     field("Border Width") {
                         slider(0,10,1) {
-                            textStyleModel.strokeWidthProperty.bind(valueProperty())
+                            preferenceModel.strokeWidthProperty.bind(valueProperty())
                         }
                     }
                     field("Effect") {
@@ -130,7 +121,7 @@ class ProjectionEditor : View() {
                             subscribe<InitBoxLayoutButton> {
                                 buttons.filterIsInstance<ToggleButton>().forEach {
                                     if (it.properties.containsKey("orientation")) {
-                                        it.isSelected = it.properties["orientation"] as Orientation == projectionModel.orientation
+                                        it.isSelected = it.properties["orientation"] as Orientation == preferenceModel.orientation
                                     }
                                 }
                             }
@@ -143,7 +134,6 @@ class ProjectionEditor : View() {
         }
 
         bottom = anchorpane {
-
             hbox {
                 anchorpaneConstraints {
                     hboxConstraints { marginRight = 10.0 }
@@ -165,6 +155,7 @@ class ProjectionEditor : View() {
                             controller.getTestVerses(numTranslationsProperty.value, numVersesProperty.value)
                         } ui {
                             displayVersesModel.item = VerseGroup(it)
+
                         }
                     }
                 }
@@ -192,15 +183,6 @@ class ProjectionEditor : View() {
                         }
                     }
                 }
-            }
-
-            vbox {
-                alignment = Pos.CENTER
-                paddingAll = 10.0
-                anchorpaneConstraints {
-                    topAnchor = 5.0
-                    rightAnchor = 5.0
-                }
                 togglebutton("Live", selectFirst = false) {
                     vboxConstraints { vGrow = Priority.ALWAYS }
                     selectedProperty().addListener { _, _, new ->
@@ -210,8 +192,20 @@ class ProjectionEditor : View() {
                             fire(CloseProjection(scope))
                         }
                     }
+                    enableWhen { numTranslationsProperty.ge(1).and(numVersesProperty.ge(1)) }
                 }
-                enableWhen { isSelectedProperty }
+            }
+
+            hbox {
+                paddingAll = 10.0
+                anchorpaneConstraints {
+                    topAnchor = 5.0
+                    rightAnchor = 5.0
+                }
+                button("Save Settings") {
+                    action { saveSettings() }
+                }
+
             }
         }
     }
@@ -228,21 +222,24 @@ class ProjectionEditor : View() {
 
     override fun onUndock() {
         println("undock PE")
+        fire(LoadProjectionEditorSettings())
+    }
+
+    private fun saveSettings() {
         projectionModel.commit()
-        fontModel.commit()
-        textStyleModel.commit()
+        preferenceModel.commit()
+        preferenceModel.commit()
 
         scope.savedProjectionModel.item = projectionModel.item
-        scope.savedFontModel.item = fontModel.item
-        scope.savedTextStyleModel.item = textStyleModel.item
+        scope.savedPreferenceModel.item = preferenceModel.item
 
-        fire(LoadProjectionEditorSettings())
+        controller.savePreferencesToDB(preferenceModel.item)
     }
 
     private fun createAlignmentButton(glyph : FontAwesome.Glyph, textAlignment: TextAlignment) : ToggleButton {
         return ToggleButton().apply {
             graphic = Styles.fontAwesome.create(glyph)
-            action { projectionModel.textAlignment = textAlignment }
+            action { preferenceModel.textAlignment = textAlignment }
             properties["alignment"] = textAlignment
         }
     }
@@ -254,7 +251,7 @@ class ProjectionEditor : View() {
                     style { rotate = 90.deg }
                 }
             }
-            action { projectionModel.orientation = orientation }
+            action { preferenceModel.orientation = orientation }
             properties["orientation"] = orientation
         }
     }

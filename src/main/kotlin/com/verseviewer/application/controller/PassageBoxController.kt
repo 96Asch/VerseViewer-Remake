@@ -1,14 +1,6 @@
 package com.verseviewer.application.controller
 
 import com.verseviewer.application.model.Passage
-import com.verseviewer.application.model.ProjectionModel
-import com.verseviewer.application.model.Translation
-import javafx.beans.property.SimpleDoubleProperty
-import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.property.SimpleStringProperty
-import javafx.scene.Node
-import javafx.scene.control.Label
-import javafx.scene.text.Font
 import tornadofx.Controller
 
 class PassageBoxController : Controller() {

@@ -5,10 +5,7 @@ import com.verseviewer.application.controller.VerseBoxController
 import com.verseviewer.application.controller.VerseSearchController
 import com.verseviewer.application.model.*
 import com.verseviewer.application.model.datastructure.VerseGroup
-import com.verseviewer.application.model.event.BroadcastVerses
-import com.verseviewer.application.model.event.NotificationType
-import com.verseviewer.application.model.event.RefreshList
-import com.verseviewer.application.model.event.SendNotification
+import com.verseviewer.application.model.event.*
 import javafx.animation.PauseTransition
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ChangeListener
@@ -49,6 +46,7 @@ class VerseBox : Fragment() {
     private val onSelectionChange : ListChangeListener<Passage> = ListChangeListener { changed ->
         if (changed.list.isEmpty().not() && !inGroupModeProperty.value && changed.list.size == 1) {
             displayModel.item =  VerseGroup(changed.list.toMutableList())
+            fire(DeselectVerses(tv.toString()))
         }
     }
 
@@ -86,10 +84,20 @@ class VerseBox : Fragment() {
 
                 setRowFactory(this@VerseBox::rowFactory)
                 setOnDragDetected(::dragStart)
+
+                subscribe<DeselectVerses> {
+                    println("${it.id} == ${this@apply.toString()}")
+                    if (it.id != this@apply.toString()) {
+                        println("Deselect VerseBox ${it.id} - ${this@apply.toString()}")
+                        selectionModel.clearSelection()
+                    }
+                }
             }
             isShowFromTop = false
             isCloseButtonVisible = false
             vboxConstraints { vGrow = Priority.ALWAYS }
+
+
 
         }
         label(translationModel.name) {
@@ -120,8 +128,11 @@ class VerseBox : Fragment() {
 
         subscribe<RefreshList> {
             displayModel.item = VerseGroup(it.passages.toMutableList())
+            fire(DeselectVerses(tv.toString()))
 //            tv.requestResize()
         }
+
+
 
         subscribe<BroadcastVerses> {
             controller.verseList.setAll(it.passages)
