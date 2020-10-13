@@ -43,7 +43,6 @@ class ScheduleController : Controller() {
         if (evt.gestureSource != this && evt.dragboard.hasString()) {
             evt.acceptTransferModes(TransferMode.MOVE);
         }
-        evt.consume();
     }
 
     fun dragEntered(evt: DragEvent, row : TableRow<VerseGroup>) {
@@ -71,7 +70,6 @@ class ScheduleController : Controller() {
                 success = true
             }
             evt.isDropCompleted = success
-            evt.consume()
         }
     }
 

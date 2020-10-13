@@ -5,16 +5,14 @@ import com.verseviewer.application.model.DisplayVersesModel
 import com.verseviewer.application.model.datastructure.VerseGroup
 import com.verseviewer.application.model.event.DeselectVerses
 import com.verseviewer.application.model.scope.ScheduleScope
-import javafx.animation.Interpolator
-import javafx.animation.KeyFrame
-import javafx.animation.KeyValue
-import javafx.animation.Timeline
+import javafx.animation.*
 import javafx.beans.property.DoubleProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.collections.ObservableList
 import javafx.event.ActionEvent
 import javafx.scene.control.ContextMenu
+import javafx.scene.control.MenuItem
 import javafx.scene.control.TableRow
 import javafx.scene.control.TableView
 import javafx.scene.input.ClipboardContent
@@ -34,9 +32,11 @@ class Schedule : Fragment("My View") {
     private val dragVerseController : DragVerseController by inject(FX.defaultScope)
     private val displayModel : DisplayVersesModel by inject(FX.defaultScope)
 
+    private val contextAnimation = ParallelTransition()
     private val armedProperty = SimpleBooleanProperty()
     private var tv : TableView<VerseGroup> by singleAssign()
 
+    @ExperimentalStdlibApi
     override val root = anchorpane {
         tv = tableview(controller.list) {
             readonlyColumn("Verse", VerseGroup::verses) {
@@ -82,67 +82,94 @@ class Schedule : Fragment("My View") {
             hboxConstraints {
                 hgrow = Priority.ALWAYS
             }
-            val contextMenu = ContextMenu().apply {
-                customitem { content = find<ScheduleMenu>().root }
-            }
-
-
-            setOnContextMenuRequested {
-                if (selectionModel.selectedItems.isNotEmpty()) {
-                    println("Context for ${selectionModel.selectedItems}")
-                    contextMenu.show(this@anchorpane, it.screenX, it.screenY)
-                    val yIni = it.screenX - 100.0
-                    val yEnd: Double = contextMenu.x
-                    contextMenu.x = yIni
-
-                    val yProperty: DoubleProperty = SimpleDoubleProperty(yIni)
-                    yProperty.addListener { _, _, n1: Number -> contextMenu.x = n1.toDouble() }
-
-                    val timeIn = Timeline()
-                    timeIn.keyFrames.add(
-                            KeyFrame(Duration.millis(200.0),
-                                    KeyValue(yProperty, yEnd, Interpolator.EASE_BOTH)))
-                    timeIn.play()
-                }
-            }
         }
 
-        togglebutton(selectFirst = false) {
-            text = "Arm"
-            anchorpaneConstraints { rightAnchor = 1.0 }
-            armedProperty.bind(selectedProperty())
+        hbox {
+            spacing = 5.0
+            button("Save") {
+
+            }
+            button("Load") {
+
+            }
+            togglebutton(selectFirst = false) {
+                text = "Arm"
+                armedProperty.bind(selectedProperty())
+            }
+            anchorpaneConstraints { rightAnchor = 0.0 }
+
         }
+
 
     }
 
+    @ExperimentalStdlibApi
     private fun rowFactory(tv: TableView<VerseGroup>) = TableRow<VerseGroup>().apply {
         setOnDragDetected { controller.dragDetected(it, this)}
-        setOnDragOver {
-            controller.dragOver(it)
-            dragOver(it)
-        }
+        setOnDragOver { controller.dragOver(it) }
         setOnDragEntered { controller.dragEntered(it, this) }
         setOnDragExited { controller.dragExited(it, this) }
         setOnDragDropped { controller.dragDropped(it, this)}
         setOnDragDone { controller.dragDone(it) }
-    }
 
-    private fun groupSelected(evt : ActionEvent) {
-        controller.groupSelected(tv)
-        tv.requestFocus()
-        evt.consume()
-    }
+        val groupItem = MenuItem("Group").apply {
+            setOnAction {
+                controller.groupSelected(tableView)
+                it.consume()
+            }
+        }
 
-    private fun ungroupSelected(evt : ActionEvent) {
-        controller.ungroupSelected(tv)
-        tv.requestFocus()
-        evt.consume()
-    }
+        val ungroupItem = MenuItem("Ungroup").apply {
+            setOnAction {
+                controller.ungroupSelected(tableView)
+                it.consume()
+            }
+        }
 
-    private fun deleteSelected(evt : ActionEvent) {
-        controller.deleteSelected(tv)
-        tv.requestFocus()
-        evt.consume()
+        val deleteItem = MenuItem("Delete").apply {
+            setOnAction {
+                controller.deleteSelected(tableView)
+                it.consume()
+            }
+        }
+
+        val contextMenu = ContextMenu().apply {
+            isAutoHide = true
+
+            val fade = Timeline(
+                    KeyFrame(Duration.millis(175.0),
+                            KeyValue(opacityProperty(), 1.0))
+            )
+            contextAnimation.apply {
+                children.add(fade)
+            }
+        }
+
+        setOnContextMenuRequested {
+            if (this.item != null) {
+                val selected = tableView.selectionModel.selectedItems
+                contextMenu.items.clear()
+                if (selected.size > 1) {
+                    contextMenu.items.add(groupItem)
+                }
+                if (selected.any { vg -> vg.verses.size > 1 }) {
+                    contextMenu.items.add(ungroupItem)
+                }
+                contextMenu.items.add(deleteItem)
+                contextMenu.show(this, it.screenX, it.screenY)
+                contextMenu.opacity = 0.0
+                val translateXProperty = SimpleDoubleProperty(it.screenX - 100.0)
+                val translateX = Timeline(
+                        KeyFrame(Duration.millis(200.0),
+                                KeyValue(translateXProperty, it.screenX))
+                )
+                translateXProperty.onChange { x -> contextMenu.x = x }
+
+                contextAnimation.children.removeLastOrNull()
+                contextAnimation.children.add(translateX)
+                contextAnimation.playFromStart()
+            }
+        }
     }
 
     private fun dragOver(evt: DragEvent) {

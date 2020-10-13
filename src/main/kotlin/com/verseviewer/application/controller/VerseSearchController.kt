@@ -6,10 +6,7 @@ import com.verseviewer.application.model.datastructure.BookTrie
 import com.verseviewer.application.model.datastructure.Range
 import com.verseviewer.application.model.datastructure.TranslationTrie
 import com.verseviewer.application.model.datastructure.inRange
-import com.verseviewer.application.model.event.BroadcastTranslation
-import com.verseviewer.application.model.event.BroadcastVBHelp
-import com.verseviewer.application.model.event.NotificationType
-import com.verseviewer.application.model.event.SendNotification
+import com.verseviewer.application.model.event.*
 import javafx.beans.property.SimpleBooleanProperty
 import tornadofx.*
 import java.lang.NumberFormatException
@@ -153,6 +150,7 @@ class VerseSearchController : Controller() {
             if (bookMap.isEmpty()) {
                 fire(SendNotification("No book found with prefix \"$book\"", NotificationType.WARNING, warningDuration))
             }
+            fire(DeselectBook())
 
             bookMap.forEach{
                 list.addAll(dbController.getBookVerses(translation, it.value))

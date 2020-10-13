@@ -4,6 +4,7 @@ import com.verseviewer.application.controller.BookListController
 import com.verseviewer.application.model.Translation
 import com.verseviewer.application.model.event.BroadcastBook
 import com.verseviewer.application.model.event.BroadcastTranslation
+import com.verseviewer.application.model.event.DeselectBook
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.layout.Priority
 import tornadofx.*
@@ -42,6 +43,10 @@ class BookList : Fragment("BookList") {
                 if (lastIndex >= 0)
                     selectionModel.clearAndSelect(lastIndex)
                 translationProperty.value = it.translation
+            }
+
+            subscribe<DeselectBook> {
+                selectionModel.clearSelection()
             }
         }
     }

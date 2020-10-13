@@ -5,7 +5,6 @@ import com.verseviewer.application.controller.MainViewController
 import com.verseviewer.application.model.*
 import com.verseviewer.application.model.datastructure.VerseGroup
 import com.verseviewer.application.model.event.CloseProjection
-import com.verseviewer.application.model.event.LoadDashBoardEditorSettings
 import com.verseviewer.application.model.event.OpenProjection
 import com.verseviewer.application.model.event.LoadProjectionEditorSettings
 import com.verseviewer.application.model.scope.ProjectionEditorScope
@@ -30,8 +29,6 @@ class MainView : View() {
 
     private val controller : MainViewController by inject()
 
-    private val dashboardView : DashBoard by inject()
-    private var projectionView : Projection by singleAssign()
     private val projectionEditorScope = ProjectionEditorScope()
 
     private val dashBoardEditorView : DashBoardEditor by inject(Scope())
@@ -53,7 +50,7 @@ class MainView : View() {
                     whenSelected { setupProjectionEditorView(center) }
                 }
                 item("Dashboard Editor") {
-                    whenSelected { center.replaceWith(dashBoardEditorView.root) }
+                    whenSelected { setupDashboardEditorView(center) }
                 }
 
                 anchorpaneConstraints {
@@ -105,6 +102,10 @@ class MainView : View() {
         projectionEditorScope.savedPreferenceModel.item = preferenceModel.item
         projectionEditorScope.savedProjectionModel.item = projectionModel.item
         node.replaceWith(find<ProjectionEditor>(projectionEditorScope).root)
+    }
+
+    private fun setupDashboardEditorView(node : Node) {
+        node.replaceWith(find<DashBoardEditor>(Scope()).root)
     }
 
     init {

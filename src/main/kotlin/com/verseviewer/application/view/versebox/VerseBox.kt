@@ -36,7 +36,6 @@ class VerseBox : Fragment() {
     private val dragVerseController : DragVerseController by inject()
     private val verseSearchController : VerseSearchController by inject()
 
-    private val helpPane : HelpPane by inject()
     private val tv = tableview(controller.verseList)
 
     private val onSelectionChange : ListChangeListener<Passage> = ListChangeListener { changed ->
