@@ -128,7 +128,6 @@ class Projection : Fragment() {
 
     private fun project(layout : Orientation?, rebuildBoxes : Boolean) {
         if (rebuildBoxes) {
-            println("Rebuild $scope")
             fire(PlayReverseFrameAnimation(scope))
             initStageSettings()
             buildPassageBoxes(displayVersesModel.sorted.value.size, layout)
@@ -141,7 +140,6 @@ class Projection : Fragment() {
 
     private fun buildPassageBoxes(currentSize : Int, layout : Orientation?) {
         if (layout != null) {
-            println("Build PassageBoxes")
             var calcWidth = projectionModel.screenBoundsProperty.value.width
             var calcHeight = projectionModel.screenBoundsProperty.value.height
             when (layout) {

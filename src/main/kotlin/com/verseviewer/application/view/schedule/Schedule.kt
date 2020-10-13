@@ -1,24 +1,31 @@
 package com.verseviewer.application.view.schedule
 
-import com.verseviewer.application.app.Styles
-import tornadofx.*
 import com.verseviewer.application.controller.DragVerseController
 import com.verseviewer.application.model.DisplayVersesModel
 import com.verseviewer.application.model.datastructure.VerseGroup
 import com.verseviewer.application.model.event.DeselectVerses
 import com.verseviewer.application.model.scope.ScheduleScope
-import javafx.beans.Observable
+import javafx.animation.Interpolator
+import javafx.animation.KeyFrame
+import javafx.animation.KeyValue
+import javafx.animation.Timeline
+import javafx.beans.property.DoubleProperty
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.property.SimpleDoubleProperty
+import javafx.collections.ObservableList
 import javafx.event.ActionEvent
-import javafx.geometry.Side
-import javafx.scene.control.ScrollPane
+import javafx.scene.control.ContextMenu
+import javafx.scene.control.TableRow
 import javafx.scene.control.TableView
+import javafx.scene.input.ClipboardContent
 import javafx.scene.input.DragEvent
+import javafx.scene.input.Dragboard
+import javafx.scene.input.TransferMode
 import javafx.scene.layout.Priority
-import org.controlsfx.glyphfont.FontAwesome
-import org.controlsfx.glyphfont.GlyphFontRegistry
-import tornadofx.controlsfx.detail
-import tornadofx.controlsfx.hiddensidepane
-import tornadofx.controlsfx.masterdetailpane
+import javafx.util.Duration
+import tornadofx.*
+import java.util.*
+
 
 class Schedule : Fragment("My View") {
     override val scope = super.scope as ScheduleScope
@@ -27,89 +34,100 @@ class Schedule : Fragment("My View") {
     private val dragVerseController : DragVerseController by inject(FX.defaultScope)
     private val displayModel : DisplayVersesModel by inject(FX.defaultScope)
 
+    private val armedProperty = SimpleBooleanProperty()
     private var tv : TableView<VerseGroup> by singleAssign()
 
-    override val root = hiddensidepane {
-        content = masterdetailpane {
-            tv = tableview (controller.list) {
-                readonlyColumn("Verse", VerseGroup::verses) {
-                    isSortable = false
-                    cellFormat {
-                        graphic = text {
-                            text = it.joinToString { "${it.translation.abbreviation} ${it.book} ${it.chapter}:${it.verse}" }
-                                wrappingWidthProperty().bind(widthProperty().subtract(20))
-                            }
-                        }
-                        remainingWidth()
-                    }
-
-                selectionModel.selectedItemProperty().addListener{_, _, new ->
-                    new?.let {
-                        controller.setDetail(new)
-                        displayModel.item = new
-                        fire(DeselectVerses(this.toString()))
+    override val root = anchorpane {
+        tv = tableview(controller.list) {
+            readonlyColumn("Verse", VerseGroup::verses) {
+                isSortable = false
+                cellFormat {
+                    graphic = text {
+                        text = it.joinToString { "${it.translation.abbreviation} ${it.book} ${it.chapter}:${it.verse}" }
+                        wrappingWidthProperty().bind(widthProperty().subtract(20))
                     }
                 }
+                setRowFactory { rowFactory(this@tableview) }
+                remainingWidth()
+            }
 
-                subscribe<DeselectVerses> {
-                    println("${it.id} == ${this@tableview.toString()}")
-                    if (it.id != this@tableview.toString()) {
-                        println("deselect Schedule")
-                        selectionModel.clearSelection()
+            anchorpaneConstraints {
+                rightAnchor = 0.0
+                leftAnchor = 0.0
+                topAnchor = 0.0
+                bottomAnchor = 0.0
+            }
+
+
+            selectionModel.selectedItemProperty().onChange {
+                it?.let {
+                    controller.setDetail(it)
+                    if (armedProperty.value) {
+                        displayModel.item = it
                     }
-                }
-
-                setOnDragDropped(::dragDrop)
-                setOnDragOver(::dragOver)
-                multiSelect(true)
-                smartResize()
-                hboxConstraints {
-                    hgrow = Priority.ALWAYS
+                    fire(DeselectVerses(this.toString()))
                 }
             }
 
-            masterNode = tv
-                detail {
-                    listview(controller.detailList) {
-                        cellFormat {
-                            graphic = form {
-                               fieldset("${it.translation.abbreviation} ${it.book} ${it.chapter} : ${it.verse}") {
-                                    text(it.text) {
-                                        wrappingWidthProperty().bind(this@listview.widthProperty().subtract(50))
-                                    }
-                                }
-                            }
-                            isMouseTransparent = true
-                            isFocusTraversable = false
-                        }
-                    }
+            subscribe<DeselectVerses> {
+                if (it.id != this@tableview.toString()) {
+                    selectionModel.clearSelection()
                 }
-                dividerPosition = 0.4
-                showDetailNodeProperty().bind(controller.detailList.sizeProperty.greaterThan(0).and(this@hiddensidepane.hoverProperty()))
-                detailSide = Side.BOTTOM
             }
 
-        val glyph = GlyphFontRegistry.font("FontAwesome")
-            right = scrollpane {
-                this.addClass(Styles.transparent)
-                vbox {
-                    this.addClass(Styles.transparent)
-                    paddingAll = 10
-                    paddingTop = 30
-                    button(graphic = glyph.create(FontAwesome.Glyph.SAVE))
-                    button(graphic = glyph.create(FontAwesome.Glyph.FOLDER_OPEN))
-                    button(graphic = glyph.create(FontAwesome.Glyph.ARROW_UP)).setOnAction(::moveSelectedUp)
-                    button(graphic = glyph.create(FontAwesome.Glyph.ARROW_DOWN)).setOnAction(::moveSelectedDown)
-                    button(graphic = glyph.create(FontAwesome.Glyph.LINK)).setOnAction(::groupSelected)
-                    button(graphic = glyph.create(FontAwesome.Glyph.UNLINK)).setOnAction(::ungroupSelected)
-                    button(graphic = glyph.create(FontAwesome.Glyph.REMOVE)).setOnAction(::deleteSelected)
-                    button(graphic = glyph.create(FontAwesome.Glyph.TRASH)).setOnAction(::clearSchedule)
-                }
-                vbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
+            setOnDragDropped(::dragDrop)
+            setOnDragOver(::dragOver)
+            multiSelect(true)
+            smartResize()
+            hboxConstraints {
+                hgrow = Priority.ALWAYS
             }
-            triggerDistance = 80.toDouble()
+            val contextMenu = ContextMenu().apply {
+                item("1")
+                item("2")
+                item("3")
+            }
 
+            setOnContextMenuRequested {
+                if (selectionModel.selectedItems.isNotEmpty()) {
+                    println("Context for ${selectionModel.selectedItems}")
+                    contextMenu.show(this@anchorpane, it.screenX, it.screenY)
+                    val yIni = it.screenX - 100.0
+                    val yEnd: Double = contextMenu.x
+                    contextMenu.x = yIni
+
+
+                    val yProperty: DoubleProperty = SimpleDoubleProperty(yIni)
+                    yProperty.addListener { _, _, n1: Number -> contextMenu.x = n1.toDouble() }
+
+                    val timeIn = Timeline()
+                    timeIn.keyFrames.add(
+                            KeyFrame(Duration.millis(200.0),
+                                    KeyValue(yProperty, yEnd, Interpolator.EASE_BOTH)))
+                    timeIn.play()
+                }
+            }
+        }
+
+        togglebutton(selectFirst = false) {
+            text = "Arm"
+            anchorpaneConstraints { rightAnchor = 1.0 }
+            armedProperty.bind(selectedProperty())
+        }
     }
+
+    private fun rowFactory(tv: TableView<VerseGroup>) = TableRow<VerseGroup>().apply {
+        setOnDragDetected { controller.dragDetected(it, this)}
+        setOnDragOver {
+            controller.dragOver(it)
+            dragOver(it)
+        }
+        setOnDragEntered { controller.dragEntered(it, this) }
+        setOnDragExited { controller.dragExited(it, this) }
+        setOnDragDropped { controller.dragDropped(it, this)}
+        setOnDragDone { controller.dragDone(it) }
+    }
+
 
     private fun moveSelectedUp(evt : ActionEvent) {
         controller.moveSelectedUp(tv)

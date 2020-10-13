@@ -137,7 +137,7 @@ class DashBoardEditorController : Controller() {
         }
     }
 
-    fun stopDrag(evt: MouseEvent) {
+    fun stopDrag() {
         if (action != EditAction.NONE && inFlightTile != null) {
             inFlightTile!!.isVisible = false
         }
@@ -180,14 +180,14 @@ class DashBoardEditorController : Controller() {
         println("${evt.x} - ${evt.y} ${skin.relocateRegion.sceneToLocal(evt.x, evt.y)} ${skin.closeRegion.screenToLocal(evt.screenX, evt.screenY)}")
         println("Contains "+skin.closeRegion.contains(skin.closeRegion.screenToLocal(evt.screenX, evt.screenY)))
         return when {
-            isMouseInRegion(tile, skin.relocateRegion, evt) -> EditAction.RELOCATE_DRAG_DROP
-            isMouseInRegion(tile, skin.closeRegion, evt) -> EditAction.REMOVE
-            isMouseInRegion(tile, skin.resizeRegion, evt) -> EditAction.RESIZE
+            isMouseInRegion(skin.relocateRegion, evt) -> EditAction.RELOCATE_DRAG_DROP
+            isMouseInRegion(skin.closeRegion, evt) -> EditAction.REMOVE
+            isMouseInRegion(skin.resizeRegion, evt) -> EditAction.RESIZE
             else -> EditAction.NONE
         }
     }
 
-    private fun isMouseInRegion(tile : Tile, region : Region, evt: MouseEvent) : Boolean
+    private fun isMouseInRegion(region : Region, evt: MouseEvent) : Boolean
             = region.contains(region.screenToLocal(evt.screenX, evt.screenY))
 
     private fun refreshComponents() {

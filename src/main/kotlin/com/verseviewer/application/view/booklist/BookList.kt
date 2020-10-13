@@ -1,56 +1,48 @@
 package com.verseviewer.application.view.booklist
 
 import com.verseviewer.application.controller.BookListController
-import com.verseviewer.application.model.Book
 import com.verseviewer.application.model.Translation
-import com.verseviewer.application.model.TranslationModel
-import javafx.beans.property.SimpleIntegerProperty
+import com.verseviewer.application.model.event.BroadcastBook
+import com.verseviewer.application.model.event.BroadcastTranslation
+import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.layout.Priority
 import tornadofx.*
 
-class BookList() : Fragment("BookList") {
+class BookList : Fragment("BookList") {
 
-    private val translationModel : TranslationModel by inject()
     private val controller : BookListController by inject()
-
-    private var lastIndex = 0
-
-    private val listView = listview(values = controller.bookList)
-
-    private val translationListener = ChangeListener<Translation> { _, old, new ->
-        if (old != new) {
-            controller.populateBooks(new)
-            listView.selectionModel.clearAndSelect(lastIndex)
-        }
-    }
-
-    private val selectedBookListener = ChangeListener<Book> { _, old, new : Book? ->
-        if (new != null && translationModel.isNotEmpty) {
-            lastIndex = listView.selectionModel.selectedIndex
-            controller.sendVerses(translationModel.item.name, new.book_id)
-        }
-    }
+    private var lastIndex = -1
 
     override val root = vbox {
-        combobox(property = translationModel.itemProperty, values = controller.translationList)
+        val translationProperty = SimpleObjectProperty<Translation>()
 
-        this += listView.apply {
-            cellFormat {
-                text = it.name
+        combobox(values = controller.translationList) {
+            selectionModel.selectedItemProperty().onChange {
+                if (it != null) {
+                    controller.populateBooks(it)
+                    fire(BroadcastTranslation(it))
+                }
             }
-            selectionModel.selectedItemProperty().addListener(selectedBookListener)
-            vboxConstraints { vGrow = Priority.ALWAYS }
+            valueProperty().bindBidirectional(translationProperty)
         }
-    }
 
-    override fun onUndock() {
-        super.onUndock()
-        subscribedEvents.clear()
-        translationModel.itemProperty.removeListener(translationListener)
-        listView.selectionModel.selectedItemProperty().removeListener(selectedBookListener)
-    }
+        listview(values = controller.bookList) {
+            cellFormat { text = it.name }
+            vboxConstraints { vGrow = Priority.ALWAYS }
 
-    init {
-        translationModel.itemProperty.addListener(translationListener)
+            selectionModel.selectedItemProperty().onChange {
+                if (it != null) {
+                    lastIndex = selectionModel.selectedIndex
+                    fire(BroadcastBook(it))
+                }
+            }
+
+            subscribe<BroadcastTranslation> {
+                controller.populateBooks(it.translation)
+                if (lastIndex >= 0)
+                    selectionModel.clearAndSelect(lastIndex)
+                translationProperty.value = it.translation
+            }
+        }
     }
 }

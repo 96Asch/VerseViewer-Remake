@@ -28,22 +28,22 @@ class PassageBox : Fragment() {
     private val headerFontProperty = SimpleObjectProperty<Font>()
 
     private var lastTranslationName = ""
-
     private var headerFontSize = 0.0
     private var bodyFontSize = 0.0
+
     private val heightMargin = 30.0
     private val frameHeightMargin = 30.0
     private val topLineFactor = 2.0
 
-    val textFlowMarginProperty = SimpleDoubleProperty(10.0)
-    var textflowMargin by textFlowMarginProperty
+    private val textFlowMarginProperty = SimpleDoubleProperty(10.0)
+    private var textflowMargin by textFlowMarginProperty
 
     private val bodyWidth = projectionModel.boxWidth.toDouble() - 50.0
     private val headerWidth = ((projectionModel.boxWidth.toDouble() - textflowMargin*2) / topLineFactor) -  (60.0)
 
     override val root = anchorpane {
 
-        val boxHeight = projectionModel.boxHeight.toDouble()
+        val boxHeight = projectionModel.boxHeight.toDouble() + 50.0
         val boxWidth = projectionModel.boxWidth.toDouble()
 
         val frame = Frame(boxWidth, boxHeight).apply {
@@ -185,7 +185,6 @@ class PassageBox : Fragment() {
 
     private fun resizeHeaderTextFlow(header : String = headerText.text) {
         var headerFont = Font.font(preferenceModel.family, preferenceModel.weight, preferenceModel.posture, headerFontSize)
-
         var width = NodeUtils.computeTextWidth(headerFont, header, 0.0)
         while (width > headerWidth && headerFontSize >= 10) {
             headerFontSize -= 1.0
@@ -206,8 +205,9 @@ class PassageBox : Fragment() {
         while (height > bodyTextFlow.maxHeight && bodyFontSize >= 10) {
             bodyFontSize -= 0.50
             bodyFont = Font.font(preferenceModel.family, preferenceModel.weight, preferenceModel.posture, bodyFontSize)
+            height = 0.0
             list.forEach {
-                height = NodeUtils.computeTextHeight(bodyFont, it.first, bodyWidth)
+                height += NodeUtils.computeTextHeight(bodyFont, it.first, bodyWidth)
                 height += NodeUtils.computeTextHeight(bodyFont, it.second, bodyWidth)
             }
         }

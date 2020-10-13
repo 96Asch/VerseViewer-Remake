@@ -14,9 +14,7 @@ import tornadofx.*
 class DragVerseController : Controller() {
 
     private var dragGroup : VerseGroup? = null
-
-    val isDrag = SimpleBooleanProperty(false)
-
+    private val isDrag = SimpleBooleanProperty(false)
 
     fun dragStart(evt: MouseEvent, tv : TableView<Passage>) {
         if (tv.selectionModel.selectedItems.isNotEmpty()) {
@@ -30,17 +28,6 @@ class DragVerseController : Controller() {
             db.setContent(cc)
 
         }
-        evt.consume()
-    }
-
-    fun dragEntered(evt: DragEvent, node : Node) {
-        if (evt.gestureSource != node && isDrag.value) {
-
-        }
-        evt.consume()
-    }
-
-    fun dragExited(evt : DragEvent) {
         evt.consume()
     }
 

@@ -6,8 +6,7 @@ import tornadofx.*
 enum class NotificationType {
     WARNING,
     ERROR,
-    NOTIFICATION,
-    HELP
+    NOTIFICATION
 }
 
 class SendNotification(val message: String, val type: NotificationType, val duration: Int) : FXEvent()

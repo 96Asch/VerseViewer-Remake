@@ -1,25 +1,60 @@
 package com.verseviewer.application.view.versebox
 
+import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.DBController
+import com.verseviewer.application.controller.HelpPaneController
 import com.verseviewer.application.model.Translation
+import javafx.beans.property.SimpleDoubleProperty
 import javafx.collections.FXCollections
+import javafx.scene.control.ScrollPane
+import javafx.scene.image.Image
+import javafx.scene.text.Font
+import javafx.scene.text.FontPosture
+import javafx.scene.text.FontWeight
+import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 
-class HelpPane : View("HelpPane") {
-    private val dbController : DBController by inject()
-    private val translations = FXCollections.observableArrayList(dbController.getTranslations())
+class HelpPane : View("Help", icon = Styles.fontAwesome.create(FontAwesome.Glyph.QUESTION_CIRCLE)) {
 
-    private val tex = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut convallis sapien. Mauris aliquet efficitur risus, eget maximus nunc ornare eu. Ut ut elit tincidunt, ultrices nunc eget, mollis dolor. Curabitur ut magna mi. Duis mi elit, ullamcorper eget erat id, tincidunt porta eros. Nam laoreet neque interdum tortor feugiat aliquam. Mauris sagittis sapien neque, finibus facilisis mi consequat in. Curabitur at lectus vitae libero sodales ullamcorper a sit amet metus. Aenean imperdiet ligula at sem pellentesque placerat. Aliquam mattis porttitor felis, id rhoncus odio convallis vel. Sed maximus lorem ultrices metus euismod, vitae accumsan nunc vehicula."
+    private val controller : HelpPaneController by inject()
+    private val widthProperty = SimpleDoubleProperty(0.0)
 
     override val root = drawer(multiselect = false) {
         val usage = item("Usage") {
-            label(tex).isWrapText = true
+            widthProperty.bind(widthProperty())
+            scrollpane {
+                form {
+                    fieldset(controller.field1Text.first()) {
+                        controller.field1Text.drop(1).forEach {
+                            add(buildLabel(it))
+                        }
+                    }
+
+                    fieldset(controller.field3Text.first()) {
+                        controller.field2Text.drop(1).forEach {
+                            add(buildLabel(it))
+                        }
+                    }
+
+                    fieldset(controller.field3Text.first()) {
+                        controller.field3Text.drop(1).forEach {
+                            add(buildLabel(it))
+                        }
+                    }
+
+                    fieldset(controller.field4Text.first()) {
+                        controller.field4Text.drop(1).forEach {
+                            add(buildLabel(it))
+                        }
+                    }
+                }
+            hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
+            }
         }
 
-
         val translations = item("Translations") {
-            tableview(translations) {
-                readonlyColumn("Abb", Translation::abbreviation)
+            tableview(controller.translations) {
+                readonlyColumn("Abbreviation", Translation::abbreviation)
                 readonlyColumn("Name", Translation::name).enableTextWrap().remainingWidth()
                 readonlyColumn("Lang", Translation::lang)
                 columnResizePolicy = SmartResize.POLICY
@@ -30,6 +65,14 @@ class HelpPane : View("HelpPane") {
         usage.prefHeightProperty().bind(translations.heightProperty())
         items.addAll(usage, translations)
         useMaxSize = true
+    }
 
+    override fun onDock() {
+        modalStage?.icons?.add(Image("icons/error.png"))
+    }
+
+    private fun buildLabel(text : String) = label(text) {
+        isWrapText = true
+        prefWidthProperty().bind(widthProperty.minus(30))
     }
 }

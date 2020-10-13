@@ -16,8 +16,9 @@ class DashBoard : View() {
     private val controller : DashBoardController by inject()
 
     override val root = gridpane {
-        vgap = 2.0
-        hgap = 2.0
+        paddingAll = 5.0
+        vgap = 5.0
+        hgap = 5.0
         for (i in 0 until widthTiles) {
             val c = ColumnConstraints().apply {
                 halignment = HPos.CENTER

@@ -95,7 +95,7 @@ class DashBoardEditor : View() {
     }
 
     private fun stopDrag (evt : MouseEvent) {
-        controller.stopDrag(evt)
+        controller.stopDrag()
     }
 
     private fun drop(evt: MouseEvent) {
