@@ -66,6 +66,7 @@ class ScheduleController : Controller() {
                 val draggedIdx = list.indexOf(dragVerse)
                 val thisIdx = list.indexOf(row.item)
                 list.moveAt(draggedIdx, thisIdx)
+                row.tableView.selectionModel.clearAndSelect(thisIdx)
                 dragVerse = null
                 success = true
             }
@@ -76,41 +77,6 @@ class ScheduleController : Controller() {
 
     fun dragDone(evt: DragEvent) {
         evt.consume()
-    }
-
-
-    fun moveSelectedUp(tv: TableView<VerseGroup>) {
-        val selectModel = tv.selectionModel
-        val indices = selectModel.selectedIndices.toMutableList()
-
-        selectModel.clearSelection()
-        indices.forEachIndexed { i, selectedIndex ->
-            if (selectedIndex > 0) {
-                if (selectedIndex - 1 !in indices) {
-                    list.swap(selectedIndex, selectedIndex - 1)
-                    indices[i]--
-                }
-            }
-        }
-        indices.forEach { selectModel.select(it) }
-    }
-
-    fun moveSelectedDown(tv: TableView<VerseGroup>) {
-        val selectModel = tv.selectionModel
-        val lastIndex = tv.items.size - 1
-        val indices = selectModel.selectedIndices.reversed().toMutableList()
-
-        selectModel.clearSelection()
-        indices.forEachIndexed { i, selectedIndex ->
-            println("$indices, $selectedIndex")
-            if (selectedIndex < lastIndex) {
-                if (selectedIndex + 1 !in indices) {
-                    list.swap(selectedIndex, selectedIndex + 1)
-                    indices[i]++
-                }
-            }
-        }
-        indices.forEach { selectModel.select(it) }
     }
 
     fun groupSelected(tv: TableView<VerseGroup>) {
@@ -159,11 +125,6 @@ class ScheduleController : Controller() {
         list.removeAll(toRemove)
         if (list.isEmpty())
             detailList.clear()
-    }
-
-    fun clear() {
-        list.clear()
-        detailList.clear()
     }
 
 }

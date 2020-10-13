@@ -83,10 +83,9 @@ class Schedule : Fragment("My View") {
                 hgrow = Priority.ALWAYS
             }
             val contextMenu = ContextMenu().apply {
-                item("1")
-                item("2")
-                item("3")
+                customitem { content = find<ScheduleMenu>().root }
             }
+
 
             setOnContextMenuRequested {
                 if (selectionModel.selectedItems.isNotEmpty()) {
@@ -95,7 +94,6 @@ class Schedule : Fragment("My View") {
                     val yIni = it.screenX - 100.0
                     val yEnd: Double = contextMenu.x
                     contextMenu.x = yIni
-
 
                     val yProperty: DoubleProperty = SimpleDoubleProperty(yIni)
                     yProperty.addListener { _, _, n1: Number -> contextMenu.x = n1.toDouble() }
@@ -114,6 +112,7 @@ class Schedule : Fragment("My View") {
             anchorpaneConstraints { rightAnchor = 1.0 }
             armedProperty.bind(selectedProperty())
         }
+
     }
 
     private fun rowFactory(tv: TableView<VerseGroup>) = TableRow<VerseGroup>().apply {
@@ -126,19 +125,6 @@ class Schedule : Fragment("My View") {
         setOnDragExited { controller.dragExited(it, this) }
         setOnDragDropped { controller.dragDropped(it, this)}
         setOnDragDone { controller.dragDone(it) }
-    }
-
-
-    private fun moveSelectedUp(evt : ActionEvent) {
-        controller.moveSelectedUp(tv)
-        tv.requestFocus()
-        evt.consume()
-    }
-
-    private fun moveSelectedDown(evt : ActionEvent) {
-        controller.moveSelectedDown(tv)
-        tv.requestFocus()
-        evt.consume()
     }
 
     private fun groupSelected(evt : ActionEvent) {
@@ -155,12 +141,6 @@ class Schedule : Fragment("My View") {
 
     private fun deleteSelected(evt : ActionEvent) {
         controller.deleteSelected(tv)
-        tv.requestFocus()
-        evt.consume()
-    }
-
-    private fun clearSchedule(evt : ActionEvent) {
-        controller.clear()
         tv.requestFocus()
         evt.consume()
     }
