@@ -1,10 +1,13 @@
 package com.verseviewer.application.view.schedule
 
+import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.DragVerseController
 import com.verseviewer.application.controller.FileController
+import com.verseviewer.application.model.Passage
 import com.verseviewer.application.model.VerseGroupModel
 import com.verseviewer.application.model.VerseGroup
+import com.verseviewer.application.model.datastructure.Range
 import com.verseviewer.application.model.event.DeselectVerses
 import com.verseviewer.application.model.scope.ScheduleScope
 import javafx.animation.*
@@ -23,6 +26,7 @@ import javafx.stage.FileChooser
 import javafx.util.Duration
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
+import java.io.ByteArrayInputStream
 
 
 class Schedule : Fragment("My View") {
@@ -113,8 +117,11 @@ class Schedule : Fragment("My View") {
             button("Save") {
                 action {
                     val locations = chooseFile("Save Schedule", fileController.scheduleExt, mode = FileChooserMode.Save)
-                    fileController.writeJsonArray(locations.first().absolutePath, controller.list.toJSON())
+                    println(controller.list.first().toJSON())
+                    if (locations.isNotEmpty())
+                        fileController.writeJson(locations.first().absolutePath, controller.list.first().verses.first().verse.toJSON())
                 }
+                enableWhen { controller.list.sizeProperty.ge(1) }
             }
             button("Load") {
                 action {
@@ -123,8 +130,11 @@ class Schedule : Fragment("My View") {
 //                    if (jsonArray != null) {
 //                        println(jsonArray)
 //                    }
-                    val i = loadJsonArray(locations.first().toPath())
-                    println(VerseGroup(listOf()).updateModel(i.first().asJsonObject()))
+//                    val i = fileController.readJson(locations.first().absolutePath)
+//                    if (i != null)
+//                        println(i.toModel<Range>())
+                   val i = ByteArrayInputStream(locations.first().readText().toByteArray())
+                    println(i.toJSON().toModel<Range>())
 
                 }
             }

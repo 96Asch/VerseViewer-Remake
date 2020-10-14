@@ -2,6 +2,7 @@ package com.verseviewer.application.controller
 
 import javafx.stage.FileChooser
 import tornadofx.*
+import java.io.ByteArrayInputStream
 import java.io.File
 import javax.json.JsonArray
 import javax.json.JsonObject
@@ -10,7 +11,7 @@ class FileController : Controller() {
     val scheduleExt = listOf(FileChooser.ExtensionFilter("Schedule File", ".vsched")).toTypedArray()
 
     fun writeJson(path : String, json : JsonObject) {
-        File(path).writeText(json.toPrettyString())
+        File(path).writeText(json.toString())
     }
 
     fun writeJsonArray(path : String, jsonArray : JsonArray) {
@@ -18,7 +19,7 @@ class FileController : Controller() {
     }
 
     fun readJson(path : String) : JsonObject? {
-        return File(path).inputStream().toJSON()
+        return ByteArrayInputStream(File(path).readBytes()).toJSON()
     }
 
     fun readJsonArray(path : String) : JsonArray? {

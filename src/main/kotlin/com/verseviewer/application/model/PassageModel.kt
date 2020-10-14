@@ -49,6 +49,7 @@ class Passage() : JsonModel   {
         with(json) {
             id = int("id") ?: 0
             translation = getJsonObject("translation").toModel()
+            book = string("book") ?: ""
             chapter = int("chapter") ?: 0
             verse = getJsonObject("verse").toModel()
             text = string("text") ?: ""
@@ -59,6 +60,7 @@ class Passage() : JsonModel   {
         with(json) {
             add("id", id)
             add("translation", translation.toJSON())
+            add("book", book)
             add("chapter", chapter)
             add("verse", verse.toJSON())
             add("text", text)

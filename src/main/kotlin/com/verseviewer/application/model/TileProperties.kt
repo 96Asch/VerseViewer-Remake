@@ -32,7 +32,6 @@ class TileProperties(tile : Tile, x : Int, y : Int, colspan : Int, rowspan : Int
 }
 
 class TilePropertiesModel : ItemViewModel<TileProperties>() {
-    val tile = bind(TileProperties::tileProperty, autocommit = true)
     val x : SimpleIntegerProperty  = bind(TileProperties::xProperty, autocommit = true)
     val y : SimpleIntegerProperty  = bind(TileProperties::yProperty, autocommit = true)
     val rowspan : SimpleIntegerProperty = bind(TileProperties::rowspanProperty, autocommit = true)
