@@ -1,14 +1,13 @@
 package com.verseviewer.application.controller
 
 import com.verseviewer.application.model.Passage
-import com.verseviewer.application.model.datastructure.VerseGroup
-import javafx.collections.ObservableList
-import javafx.scene.SnapshotParameters
+import com.verseviewer.application.model.VerseGroup
 import javafx.scene.control.TableRow
 import javafx.scene.control.TableView
 import javafx.scene.image.Image
 import javafx.scene.image.WritableImage
 import javafx.scene.input.*
+import javafx.stage.FileChooser
 import tornadofx.*
 
 
@@ -18,10 +17,6 @@ class ScheduleController : Controller() {
     val detailList = mutableListOf<Passage>().asObservable()
 
     private var dragVerse : VerseGroup? = null
-
-    fun setAll(l: List<VerseGroup>) {
-        list.setAll(l)
-    }
 
     fun setDetail(vg: VerseGroup) {
         detailList.setAll(vg.verses)

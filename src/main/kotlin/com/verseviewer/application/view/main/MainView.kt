@@ -3,7 +3,7 @@ package com.verseviewer.application.view.main
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.MainViewController
 import com.verseviewer.application.model.*
-import com.verseviewer.application.model.datastructure.VerseGroup
+import com.verseviewer.application.model.VerseGroup
 import com.verseviewer.application.model.event.CloseProjection
 import com.verseviewer.application.model.event.OpenProjection
 import com.verseviewer.application.model.event.LoadProjectionEditorSettings
@@ -24,7 +24,7 @@ class MainView : View() {
 
     private val preferenceModel : PreferenceModel by inject()
     private val projectionModel : ProjectionModel by inject()
-    private val displayModel : DisplayVersesModel by inject()
+    private val displayModel : VerseGroupModel by inject()
     private val userModel : UserModel by inject()
 
     private val controller : MainViewController by inject()

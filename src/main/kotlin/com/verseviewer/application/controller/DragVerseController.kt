@@ -1,7 +1,7 @@
 package com.verseviewer.application.controller
 
 import com.verseviewer.application.model.Passage
-import com.verseviewer.application.model.datastructure.VerseGroup
+import com.verseviewer.application.model.VerseGroup
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.scene.Node
 import javafx.scene.control.TableView

@@ -1,7 +1,12 @@
 package com.verseviewer.application.util
 
+import javafx.animation.PauseTransition
+import javafx.event.EventHandler
+import javafx.scene.Node
 import javafx.scene.text.Font
 import javafx.scene.text.Text
+import javafx.util.Duration
+import org.controlsfx.control.NotificationPane
 import kotlin.math.ceil
 
 class NodeUtils {
@@ -27,4 +32,15 @@ class NodeUtils {
             return helper.layoutBounds.height
         }
     }
+}
+
+fun NotificationPane.showForSeconds(message: String, graphic: Node? = null, duration: Int) {
+    if (graphic != null)
+        show(message, graphic)
+    else
+        show(message)
+
+    val pause = PauseTransition(Duration.seconds(duration.toDouble()))
+    pause.onFinished = EventHandler { hide() }
+    pause.play()
 }

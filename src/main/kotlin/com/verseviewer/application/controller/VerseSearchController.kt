@@ -124,9 +124,9 @@ class VerseSearchController : Controller() {
 
     private fun filterVersesPredicate(flag : Int, chapterIndex : Int, verseIndices : List<Int>, passage : Passage): Boolean {
        return when (flag) {
-            0b111, 0b011 -> (passage.chapter == chapterIndex && passage.verse.first() in verseIndices)
+            0b111, 0b011 -> (passage.chapter == chapterIndex && passage.verse.first in verseIndices)
             0b110        -> passage.chapter == chapterIndex
-            0b101, 0b001 -> passage.verse.first() in verseIndices
+            0b101, 0b001 -> passage.verse.first in verseIndices
             0b010        -> chapterIndex inRange passage.verse
             else -> true
         }

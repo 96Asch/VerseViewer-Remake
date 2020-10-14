@@ -2,7 +2,7 @@ package com.verseviewer.application.view.projection
 
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.ProjectionController
-import com.verseviewer.application.model.DisplayVersesModel
+import com.verseviewer.application.model.VerseGroupModel
 import com.verseviewer.application.model.PreferenceModel
 import com.verseviewer.application.model.ProjectionModel
 import com.verseviewer.application.model.event.*
@@ -10,13 +10,12 @@ import javafx.animation.FadeTransition
 import javafx.geometry.Orientation
 import javafx.scene.layout.HBox
 import javafx.scene.layout.VBox
-import javafx.stage.StageStyle
 import javafx.util.Duration
 import tornadofx.*
 
 class Projection : Fragment() {
 
-    private val displayVersesModel : DisplayVersesModel by inject()
+    private val verseGroupModel : VerseGroupModel by inject()
     private val controller : ProjectionController by inject()
     private val projectionModel : ProjectionModel by inject()
     private val preferenceModel : PreferenceModel by inject()
@@ -95,15 +94,15 @@ class Projection : Fragment() {
 
         projectionModel.screenBoundsProperty.addListener { _, _, new ->
             if (new != null) {
-                projectionModel.boxWidthProperty.value = new.width / displayVersesModel.sorted.value.size
+                projectionModel.boxWidthProperty.value = new.width / verseGroupModel.sorted.value.size
                 projectionModel.boxHeightProperty.value = new.height
                 fire(InitAfterBoundsSet())
             }
         }
 
-        displayVersesModel.itemProperty.addListener { _, _, new ->
+        verseGroupModel.itemProperty.addListener { _, _, new ->
             if (new != null) {
-                project(preferenceModel.orientation, lastNumTranslations != displayVersesModel.sorted.value.size)
+                project(preferenceModel.orientation, lastNumTranslations != verseGroupModel.sorted.value.size)
             }
         }
     }
@@ -115,7 +114,7 @@ class Projection : Fragment() {
     override fun onDock() {
         println("onDock Projection")
         initStageSettings()
-        project(preferenceModel.orientation, lastNumTranslations != displayVersesModel.sorted.value.size)
+        project(preferenceModel.orientation, lastNumTranslations != verseGroupModel.sorted.value.size)
     }
 
     private fun initStageSettings() {
@@ -130,9 +129,9 @@ class Projection : Fragment() {
         if (rebuildBoxes) {
             fire(PlayReverseFrameAnimation(scope))
             initStageSettings()
-            buildPassageBoxes(displayVersesModel.sorted.value.size, layout)
+            buildPassageBoxes(verseGroupModel.sorted.value.size, layout)
             fire(InitAfterBoundsSet())
-            lastNumTranslations = displayVersesModel.sorted.value.size
+            lastNumTranslations = verseGroupModel.sorted.value.size
             fire(PlayFrameAnimation(scope))
         }
         fire(BuildPassageContent())

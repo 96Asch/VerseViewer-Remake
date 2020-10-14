@@ -28,9 +28,7 @@ class ProjectionData() {
     override fun toString(): String {
         return "isLive: $isLive - width: $width - height - $height - screenBounds: $screenBounds"
     }
-
 }
-
 
 class ProjectionModel : ItemViewModel<ProjectionData>() {
     val liveProperty = bind(ProjectionData::liveProperty)

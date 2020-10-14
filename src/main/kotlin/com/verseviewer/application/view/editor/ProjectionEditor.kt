@@ -3,15 +3,13 @@ package com.verseviewer.application.view.editor
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.ProjectionEditorController
 import com.verseviewer.application.model.*
-import com.verseviewer.application.model.datastructure.VerseGroup
+import com.verseviewer.application.model.VerseGroup
 import com.verseviewer.application.model.event.*
 import com.verseviewer.application.model.scope.ProjectionEditorScope
 import com.verseviewer.application.view.projection.Projection
 import com.verseviewer.application.view.projection.ScalingPane
-import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.geometry.Orientation
-import javafx.geometry.Pos
 import javafx.scene.control.ToggleButton
 import javafx.scene.layout.Priority
 import javafx.scene.text.TextAlignment
@@ -33,7 +31,7 @@ class ProjectionEditor : View() {
 
     private val controller : ProjectionEditorController by inject(FX.defaultScope)
 
-    private val displayVersesModel : DisplayVersesModel by inject()
+    private val verseGroupModel : VerseGroupModel by inject()
     private val projectionModel : ProjectionModel by inject()
     private val preferenceModel : PreferenceModel by inject()
 
@@ -154,7 +152,7 @@ class ProjectionEditor : View() {
                         runAsync {
                             controller.getTestVerses(numTranslationsProperty.value, numVersesProperty.value)
                         } ui {
-                            displayVersesModel.item = VerseGroup(it)
+                            verseGroupModel.item = VerseGroup(it)
 
                         }
                     }
@@ -179,7 +177,7 @@ class ProjectionEditor : View() {
                         runAsync {
                             controller.getTestVerses(numTranslationsProperty.value, numVersesProperty.value)
                         } ui {
-                            displayVersesModel.item = VerseGroup(it)
+                            verseGroupModel.item = VerseGroup(it)
                         }
                     }
                 }

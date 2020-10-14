@@ -4,39 +4,58 @@ import com.verseviewer.application.model.db.TranslationDAO
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleStringProperty
 import tornadofx.*
+import javax.json.JsonObject
 
-class Translation(name: String = String.notAvailableValue(),
-                  abbreviation: String = String.notAvailableValue(),
-                  lang: String = String.notAvailableValue(),
-                  isDeutercanonic: Boolean = false) {
-    val nameProperty = SimpleStringProperty(name)
+class Translation() : JsonModel {
+    val nameProperty = SimpleStringProperty("")
     var name by nameProperty
 
-    val abbreviationProperty = SimpleStringProperty(abbreviation)
+    val abbreviationProperty = SimpleStringProperty("")
     var abbreviation by abbreviationProperty
 
-    val langProperty = SimpleStringProperty(lang)
+    val langProperty = SimpleStringProperty("")
     var lang by langProperty
 
-    val isDeutercanonicProperty = SimpleBooleanProperty(isDeutercanonic)
+    val isDeutercanonicProperty = SimpleBooleanProperty(false)
     var isDeutercanonic by isDeutercanonicProperty
 
-    constructor(tl : TranslationDAO) : this(tl.id.value, tl.abbreviation, tl.lang, tl.isDeutercanonic)
+    constructor(name : String,
+                abbreviation : String,
+                lang : String,
+                isDeutercanonic : Boolean) : this()
+    {
+        this.name = name
+        this.abbreviation = abbreviation
+        this.lang = lang
+        this.isDeutercanonic = isDeutercanonic
+    }
+
+    constructor(dao : TranslationDAO) : this() {
+        name = dao.id.value
+        abbreviation = dao.abbreviation
+        lang = dao.lang
+        isDeutercanonic = dao.isDeutercanonic
+    }
+
+    override fun updateModel(json: JsonObject) {
+        with(json) {
+            name = string("name") ?: ""
+            abbreviation = string("abbreviation") ?: ""
+            lang = string("language") ?: ""
+            isDeutercanonic = bool("isDeutercanonic") ?: false
+        }
+    }
+
+    override fun toJSON(json: JsonBuilder) {
+        with(json) {
+            add("name", name)
+            add("abbreviation", abbreviation)
+            add("language", lang)
+            add("isDeutercanonic", isDeutercanonic)
+        }
+    }
 
     override fun toString(): String {
         return "$abbreviation - $name ($lang)"
     }
 }
-
-class TranslationModel : ItemViewModel<Translation>() {
-    val name = bind(Translation::nameProperty)
-    val abbreviation = bind(Translation::abbreviationProperty)
-    val lang = bind(Translation::langProperty)
-    val isDeutercanonic = bind(Translation::isDeutercanonicProperty)
-}
-
-fun String.Companion.notAvailableValue() : String = "N.A"
-
-
-
-

@@ -146,10 +146,10 @@ class DBController : Controller() {
         return when {
             trim.contains("-") -> {
                val split = trim.split("-")
-               Range(split.first().toInt().rangeTo(split.last().toInt()))
+               Range(split.first().toInt(), split.last().toInt())
             }
             else -> {
-                Range(trim.toInt().rangeTo(trim.toInt()))
+                Range(trim.toInt(), trim.toInt())
             }
         }
     }

@@ -1,23 +1,32 @@
 package com.verseviewer.application.model.datastructure
 
-class Range (val range: ClosedRange<Int>) {
+import tornadofx.*
+import javax.json.JsonObject
+
+class Range (var first : Int, var last : Int) : JsonModel {
 
     override fun toString(): String {
-        return when (range.start) {
-            range.endInclusive -> range.start.toString()
-            else -> "${range.start}-${range.endInclusive}"
+        return when (first) {
+            last -> "$first"
+            else -> "$first-$last"
         }
     }
 
-    infix fun inRangeFirst(verse: Range): Boolean {
-        return range.contains(verse.range.start)
+    override fun updateModel(json: JsonObject) {
+        with(json) {
+            first = int("first") ?: 0
+            last = int("last") ?: 0
+        }
     }
 
-    fun first() = range.start
-
-    fun last() = range.endInclusive
+    override fun toJSON(json: JsonBuilder) {
+        with(json) {
+            add("first", first)
+            add("last", last)
+        }
+    }
 }
 
 infix fun Int.inRange(range: Range) : Boolean {
-    return this in range.range
+    return range.first <= this && this <= range.last
 }

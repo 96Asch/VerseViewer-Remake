@@ -23,7 +23,7 @@ class ProjectionEditorController : Controller() {
         println(numVerses)
         for (i in 0 until numTranslations) {
             val bookVerses = dbController.getBookVerses(translationList[i].name, 1)
-            resultList.addAll(bookVerses.filter { it.verse.first() <= numVerses && it.chapter == 1 })
+            resultList.addAll(bookVerses.filter { it.verse.first <= numVerses && it.chapter == 1 })
         }
         return resultList
     }

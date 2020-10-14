@@ -9,7 +9,6 @@ import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.CacheHint
 import javafx.scene.layout.Priority
-import javafx.scene.paint.Paint
 import javafx.scene.text.*
 import tornadofx.*
 
@@ -18,7 +17,7 @@ class PassageBox : Fragment() {
 
     private val controller : PassageBoxController by inject()
 
-    private val displayVersesModel : DisplayVersesModel by inject()
+    private val verseGroupModel : VerseGroupModel by inject()
     private val preferenceModel : PreferenceModel by inject()
     private val projectionModel : ProjectionModel by inject()
 
@@ -125,8 +124,8 @@ class PassageBox : Fragment() {
             headerFontSize = preferenceModel.size.toDouble()
             bodyFontSize = preferenceModel.size.toDouble()
             setFont(bodyFontProperty, bodyFontSize)
-            val index = if (translationIndex >= displayVersesModel.sorted.value.size) 0 else translationIndex
-            rebuildTexts(displayVersesModel.sorted.value[index])
+            val index = if (translationIndex >= verseGroupModel.sorted.value.size) 0 else translationIndex
+            rebuildTexts(verseGroupModel.sorted.value[index])
         }
     }
 
@@ -134,7 +133,7 @@ class PassageBox : Fragment() {
         runAsync {
             controller.buildTexts(list)
         } ui {
-            val translationName = if (displayVersesModel.sorted.value.size > 3)
+            val translationName = if (verseGroupModel.sorted.value.size > 3)
                 list.first().translation.abbreviation
             else
                 list.first().translation.name

@@ -43,7 +43,7 @@ class PassageBoxController : Controller() {
                     bodyString += ps.text + ' '
                 }
                 FormatMode.END_ADJACENT -> {
-                    headerString += "-${ps.verse.last()}"
+                    headerString += "-${ps.verse.last}"
                     bodyString += ps.text + ' '
                 }
                 else -> { bodyString += ps.text + ' '}

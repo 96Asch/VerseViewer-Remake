@@ -5,11 +5,11 @@ import com.verseviewer.application.controller.DragVerseController
 import com.verseviewer.application.controller.VerseBoxController
 import com.verseviewer.application.controller.VerseSearchController
 import com.verseviewer.application.model.*
-import com.verseviewer.application.model.datastructure.VerseGroup
+import com.verseviewer.application.model.VerseGroup
 import com.verseviewer.application.model.event.*
+import com.verseviewer.application.util.showForSeconds
 import javafx.animation.PauseTransition
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.value.ChangeListener
 import javafx.collections.ListChangeListener
 import javafx.event.EventHandler
 import javafx.scene.Cursor
@@ -30,7 +30,7 @@ import tornadofx.controlsfx.notificationPane
 
 class VerseBox : Fragment() {
     private val passageModel : PassageModel by inject()
-    private val displayModel : DisplayVersesModel by inject()
+    private val displayModel : VerseGroupModel by inject()
 
     private val controller : VerseBoxController by inject()
     private val dragVerseController : DragVerseController by inject()
@@ -40,7 +40,7 @@ class VerseBox : Fragment() {
 
     private val onSelectionChange : ListChangeListener<Passage> = ListChangeListener { changed ->
         if (changed.list.isEmpty().not() && !inGroupModeProperty.value && changed.list.size == 1) {
-            displayModel.item =  VerseGroup(changed.list.toMutableList())
+            displayModel.item = VerseGroup(changed.list.toMutableList())
             fire(DeselectVerses(tv.toString()))
         }
     }
@@ -191,18 +191,3 @@ class VerseBox : Fragment() {
         dragVerseController.dragStart(evt, tv)
     }
 }
-
-fun NotificationPane.showForSeconds(message: String, graphic: Node? = null, duration: Int) {
-    if (graphic != null)
-        show(message, graphic)
-    else
-        show(message)
-
-    val pause = PauseTransition(Duration.seconds(duration.toDouble()))
-    pause.onFinished = EventHandler { hide() }
-    pause.play()
-}
-
-
-
-    
