@@ -5,7 +5,7 @@ import javafx.collections.FXCollections
 import tornadofx.*
 import javax.json.JsonObject
 
-class VerseGroup (passages: List<Passage>) : JsonModel {
+class VerseGroup (passages: List<Passage> = listOf()) : JsonModel {
     val verses = FXCollections.observableArrayList(passages)
 
     val translationSorted by lazy {

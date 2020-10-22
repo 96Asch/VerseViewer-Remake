@@ -68,7 +68,7 @@ class HelpPane : View("Help", icon = Styles.fontAwesome.create(FontAwesome.Glyph
     }
 
     override fun onDock() {
-        modalStage?.icons?.add(Image("icons/error.png"))
+        modalStage?.icons?.add(Image("icons/warning.png"))
     }
 
     private fun buildLabel(text : String) = label(text) {

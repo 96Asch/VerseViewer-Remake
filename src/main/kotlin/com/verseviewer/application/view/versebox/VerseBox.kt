@@ -8,12 +8,10 @@ import com.verseviewer.application.model.*
 import com.verseviewer.application.model.VerseGroup
 import com.verseviewer.application.model.event.*
 import com.verseviewer.application.util.showForSeconds
-import javafx.animation.PauseTransition
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.ListChangeListener
 import javafx.event.EventHandler
 import javafx.scene.Cursor
-import javafx.scene.Node
 import javafx.scene.control.TableRow
 import javafx.scene.control.TableView
 import javafx.scene.control.TextField
@@ -21,7 +19,6 @@ import javafx.scene.input.*
 import javafx.scene.layout.Priority
 import javafx.scene.text.TextAlignment
 import javafx.stage.StageStyle
-import javafx.util.Duration
 import org.controlsfx.control.NotificationPane
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
@@ -47,9 +44,6 @@ class VerseBox : Fragment() {
 
     private val multiCursor = Cursor.CROSSHAIR
     private var inGroupModeProperty = SimpleBooleanProperty(false)
-
-    private val warningIm = imageview("icons/warning.png")
-    private val errorIm = imageview("icons/error.png")
 
     override val root = vbox {
         notificationPane {
@@ -88,8 +82,8 @@ class VerseBox : Fragment() {
             isCloseButtonVisible = false
             vboxConstraints { vGrow = Priority.ALWAYS }
 
-            subscribe<SendNotification> {
-                showNotification(this@notificationPane, it.message, it.type, it.duration)
+            subscribe<SendVBNotification> {
+                showForSeconds(it.type, it.message, it.duration)
             }
         }
         label {
@@ -141,15 +135,6 @@ class VerseBox : Fragment() {
                 tv.scrollTo(index)
             }
             tf.selectAll()
-        }
-    }
-
-    private fun showNotification(np : NotificationPane, message: String, type: NotificationType, duration : Int) {
-        np.isCloseButtonVisible = false
-        when (type) {
-            NotificationType.NOTIFICATION -> np.showForSeconds(message, duration = duration)
-            NotificationType.WARNING -> np.showForSeconds(message, Styles.fontAwesome.create(FontAwesome.Glyph.WARNING), duration = duration)
-            NotificationType.ERROR -> np.showForSeconds(message, Styles.fontAwesome.create(FontAwesome.Glyph.EXCLAMATION_TRIANGLE), duration = duration)
         }
     }
 

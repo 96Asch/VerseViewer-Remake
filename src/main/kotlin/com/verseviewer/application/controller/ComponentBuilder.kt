@@ -32,16 +32,24 @@ class ComponentBuilder : Controller() {
         BookList::class.simpleName to VVComponent(BookList::class, maxInstances = 1, required = false)
     )
 
+    fun areRequiredComponentsUsed() = components.values.all {
+        println("${it.classType}, ${it.required} ${it.instancesLeft}")
+        if (it.required)
+            it.instancesLeft == 0
+        else
+            true
+    }
+
     fun isInstanceAllowed(tile: Tile) : Boolean {
         val component = getComponent(tile)
-        return if (component.maxInstances > 0 && component.numInstances > 0)
+        return if (component.maxInstances > 0 && component.instancesLeft > 0)
             true
         else component.maxInstances < 0
     }
 
     fun removeInstance(tile: Tile) {
         val component = components[tile.properties[componentIdName] as String]
-        component?.apply { numInstances++ }
+        component?.apply { instancesLeft++ }
     }
 
     fun createListComponents() = components.map {
@@ -66,13 +74,14 @@ class ComponentBuilder : Controller() {
 
         listTile.properties[componentIdName] = id
 
-        val listSkin = ListSkin(listTile, tileSize * 1.2)
+        val listSkin = ListSkin(listTile, tileSize * 2)
         listSkin.counterRegion.backgroundColor = Color.GRAY
+        listSkin.counterRegion.counterText.addClass(Styles.listLabel)
         if (component.maxInstances < 0) {
-            listSkin.counterRegion.counterLabel.text = "∞"
+            listSkin.counterRegion.counterText.text = "∞"
         }
         else {
-            listSkin.counterRegion.counterLabel.textProperty().bind(component.numInstancesProperty.asString())
+            listSkin.counterRegion.counterText.textProperty().bind(component.instancesLeftProperty.asString())
         }
         listTile.skin = listSkin
         tileInstanceHandlers(component, listTile)
@@ -83,14 +92,15 @@ class ComponentBuilder : Controller() {
     private fun tileInstanceHandlers(component: VVComponent, tile: Tile) {
         tile.onMouseEntered = EventHandler { tile.scene.cursor = Cursor.OPEN_HAND }
         tile.onMouseExited = EventHandler { tile.scene.cursor = Cursor.DEFAULT }
+        tile.onMousePressed = EventHandler { tile.scene.cursor = Cursor.CLOSED_HAND }
 
-        if (component.numInstances == 0) {
+        if (component.instancesLeft == 0) {
             tile.onMouseEntered = EventHandler { tile.scene.cursor = Cursor.DEFAULT }
             tile.addClass(Styles.greyedOut)
             tile.removeClass(Styles.highlightTile)
         }
 
-        component.numInstancesProperty.addListener { _, oldValue, newValue ->
+        component.instancesLeftProperty.addListener { _, oldValue, newValue ->
             if (newValue == 0) {
                 tile.onMouseEntered = EventHandler { tile.scene.cursor = Cursor.DEFAULT }
                 tile.addClass(Styles.greyedOut)
@@ -153,7 +163,7 @@ class ComponentBuilder : Controller() {
 
     fun refreshCounters() {
         components.forEach { (_, component) ->
-            component.numInstances = component.maxInstances
+            component.instancesLeft = component.maxInstances
         }
     }
 
@@ -171,12 +181,12 @@ data class VVComponent (val classType : KClass<out Fragment>,
                         val maxInstances : Int,
                         val required : Boolean = false) {
 
-    val numInstancesProperty = SimpleIntegerProperty(maxInstances)
-    var numInstances by numInstancesProperty
+    val instancesLeftProperty = SimpleIntegerProperty(maxInstances)
+    var instancesLeft by instancesLeftProperty
 
     fun getInstance(activeInstance: Boolean = false, editorScope: Scope? = null) : Fragment{
         if (activeInstance)
-            this.numInstances--
+            this.instancesLeft--
 
         return when {
             (scope != null) -> find (classType, scope.createInstance())

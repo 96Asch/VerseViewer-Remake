@@ -31,12 +31,8 @@ class MainView : View() {
 
     private val projectionEditorScope = ProjectionEditorScope()
 
-    private val dashBoardEditorView : DashBoardEditor by inject(Scope())
-
     override val root = borderpane {
-        userModel.item = controller.loadUser()
 
-        preferenceModel.item = Preference(controller.loadPreference(userModel.item))
         projectionModel.item = ProjectionData()
         displayModel.item = VerseGroup(listOf())
 
@@ -105,6 +101,7 @@ class MainView : View() {
     }
 
     private fun setupDashboardEditorView(node : Node) {
+
         node.replaceWith(find<DashBoardEditor>(Scope()).root)
     }
 

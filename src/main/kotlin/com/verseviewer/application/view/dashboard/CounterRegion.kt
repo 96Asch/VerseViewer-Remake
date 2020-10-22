@@ -1,10 +1,10 @@
 package com.verseviewer.application.view.dashboard
 
-import javafx.scene.control.Label
+import javafx.scene.text.Text
 
-class CounterRegion(val counterLabel: Label = Label()) : ResizeRegion(counterLabel) {
+class CounterRegion(val counterText: Text = Text()) : ResizeRegion(counterText) {
 
     override fun drawIcon() {
-        icon.relocate((size*offset*2), (size*offset*1.75))
+        icon.relocate((size*offset*1.9), (size*offset))
     }
 }

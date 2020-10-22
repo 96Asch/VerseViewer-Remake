@@ -89,11 +89,6 @@
             <artifactId>controlsfx</artifactId>
             <version>8.40.17</version>
         </dependency>
-        <dependency>
-            <groupId>com.github.goxr3plus</groupId>
-            <artifactId>FX-BorderlessScene</artifactId>
-            <version>4.4.0</version>
-        </dependency>
     </dependencies>
 
     <build>

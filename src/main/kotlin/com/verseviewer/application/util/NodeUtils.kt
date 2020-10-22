@@ -1,5 +1,7 @@
 package com.verseviewer.application.util
 
+import com.verseviewer.application.app.Styles
+import com.verseviewer.application.model.event.NotificationType
 import javafx.animation.PauseTransition
 import javafx.event.EventHandler
 import javafx.scene.Node
@@ -7,6 +9,7 @@ import javafx.scene.text.Font
 import javafx.scene.text.Text
 import javafx.util.Duration
 import org.controlsfx.control.NotificationPane
+import org.controlsfx.glyphfont.FontAwesome
 import kotlin.math.ceil
 
 class NodeUtils {
@@ -34,7 +37,15 @@ class NodeUtils {
     }
 }
 
-fun NotificationPane.showForSeconds(message: String, graphic: Node? = null, duration: Int) {
+fun NotificationPane.showForSeconds(type : NotificationType, message: String, duration: Int) {
+    isCloseButtonVisible = false
+
+    when (type) {
+        NotificationType.NOTIFICATION -> {}
+        NotificationType.WARNING -> graphic = Styles.fontAwesome.create(FontAwesome.Glyph.WARNING)
+        NotificationType.ERROR -> graphic = Styles.fontAwesome.create(FontAwesome.Glyph.EXCLAMATION_TRIANGLE)
+    }
+
     if (graphic != null)
         show(message, graphic)
     else

@@ -3,6 +3,8 @@ package com.verseviewer.application.controller
 import com.verseviewer.application.model.*
 import com.verseviewer.application.model.datastructure.Range
 import com.verseviewer.application.model.db.*
+import com.verseviewer.application.model.event.SendDBNotification
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -11,16 +13,18 @@ import java.sql.Connection
 
 class DBController : Controller() {
 
-    companion object DBSettings {
-        private const val dbname = "data/bible.db"
-        private const val jdbc = "jdbc:sqlite:file:"
-        private const val driver = "org.sqlite.JDBC"
 
-        val db by lazy {
-            val connection = Database.connect(jdbc + DBSettings.dbname, driver)
-            TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
-            connection
-        }
+    private val dbname = "data/bible.db"
+    private val jdbc = "jdbc:sqlite:file:"
+    private val driver = "org.sqlite.JDBC"
+
+    var db : Database? = null
+
+    fun isConnected() = db != null
+
+    fun connectToDB(path : String) {
+        db = Database.connect(jdbc + path, driver)
+        TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
     }
 
     fun getBooksByTranslation(translation:String) : List<Book> = transaction (db) {
@@ -36,7 +40,6 @@ class DBController : Controller() {
 
     fun getBookVerses(translation: String, book: Int) : List<Passage> = transaction(db) {
         addLogger(StdOutSqlLogger)
-
         val trans = TranslationDAO.find { Translations.name eq translation }.first()
         val table = object : TranslationBible(translation) {}
         val books = object : BooksTable(trans.lang) {}
@@ -85,7 +88,12 @@ class DBController : Controller() {
 
     fun getUsers() : List<User> = transaction(db) {
         addLogger(StdOutSqlLogger)
-        UserDAO.all().map { User(it) }
+        try {
+            UserDAO.all().map { User(it) }
+        } catch (e : ExposedSQLException) {
+            fire(SendDBNotification(e.localizedMessage))
+            listOf()
+        }
     }
 
     fun getUser(name : String) : User = transaction(db) {

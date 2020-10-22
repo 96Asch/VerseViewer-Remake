@@ -1,22 +1,46 @@
 package com.verseviewer.application.controller
 
+import com.google.gson.JsonParseException
 import com.verseviewer.application.model.Passage
 import com.verseviewer.application.model.VerseGroup
+import com.verseviewer.application.model.event.NotificationType
+import com.verseviewer.application.model.event.SendScheduleNotification
 import javafx.scene.control.TableRow
 import javafx.scene.control.TableView
 import javafx.scene.image.Image
 import javafx.scene.image.WritableImage
 import javafx.scene.input.*
 import javafx.stage.FileChooser
+import javafx.util.Duration
 import tornadofx.*
+import java.nio.file.Path
+import javax.json.stream.JsonParsingException
 
 
 class ScheduleController : Controller() {
+
+    val scheduleExt = listOf(FileChooser.ExtensionFilter("Schedule File", ".vsched"),
+                            FileChooser.ExtensionFilter("All Files", ".*")).toTypedArray()
 
     val list = mutableListOf<VerseGroup>().asObservable()
     val detailList = mutableListOf<Passage>().asObservable()
 
     private var dragVerse : VerseGroup? = null
+
+    fun saveSchedule(path : Path) {
+        list.toJSON().save(path)
+        fire(SendScheduleNotification("Successfully saved schedule to $path", NotificationType.NOTIFICATION, 3))
+    }
+
+    fun loadSchedule(path : Path) {
+        try {
+            val i = loadJsonArray(path).toModel<VerseGroup>()
+            list.addAll(i)
+        }
+        catch (e : JsonParsingException) {
+            fire(SendScheduleNotification("${path.toFile().name} is not a valid .vsched file", NotificationType.ERROR, 3))
+        }
+    }
 
     fun setDetail(vg: VerseGroup) {
         detailList.setAll(vg.verses)

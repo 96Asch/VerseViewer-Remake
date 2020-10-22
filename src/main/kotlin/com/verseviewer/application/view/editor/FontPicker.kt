@@ -1,7 +1,7 @@
 package com.verseviewer.application.view.editor
 
 import com.verseviewer.application.model.PreferenceModel
-import com.verseviewer.application.model.event.FontPickerController
+import com.verseviewer.application.controller.FontPickerController
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.event.EventHandler
 import javafx.geometry.HPos

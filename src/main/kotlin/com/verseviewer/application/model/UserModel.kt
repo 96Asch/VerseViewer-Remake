@@ -17,7 +17,7 @@ import tornadofx.*
 import java.io.ByteArrayInputStream
 import java.nio.charset.Charset
 
-class User(id : Int = 0, name : String = "", layout : GridBuilder = GridBuilder()) {
+open class User(id : Int = 0, name : String = "", layout : GridBuilder = GridBuilder()) {
     val idProperty = SimpleIntegerProperty(id)
     var id by idProperty
 
@@ -35,6 +35,8 @@ class User(id : Int = 0, name : String = "", layout : GridBuilder = GridBuilder(
     fun layoutToString() = layout.toJSON().toString()
 
 }
+
+class NewUser() : User(-1, "New User")
 
 
 class UserModel : ItemViewModel<User>() {

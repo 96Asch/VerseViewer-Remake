@@ -26,15 +26,18 @@ class Styles : Stylesheet() {
         val passageBody by cssclass()
         val frame by cssclass()
 
+        val scheduleSaveButton by cssclass()
+        val scheduleLoadButton by cssclass()
+
+        val listLabel by cssclass()
+
         val fontAwesome = GlyphFontRegistry.font("FontAwesome")
     }
 
     init {
 
         transparent {
-//            backgroundColor += c(0,100,0, 0.toDouble())
             backgroundColor += c(0, 100, 100, 0.05)
-//            borderRadius += box(25.px)
         }
 
         invisible {
@@ -54,7 +57,6 @@ class Styles : Stylesheet() {
                 this.fill = c(255, 255, 255)
             }
         }
-
 
         frame {
             stroke = c(33, 33, 30)
@@ -82,6 +84,17 @@ class Styles : Stylesheet() {
 
         greyedOut {
             opacity = 0.1
+        }
+
+        scheduleSaveButton {
+            
+        }
+
+        listLabel {
+            fontSize = 35.px
+            stroke = c(0.0,0.0,0.0)
+            fill = c(255, 255, 255)
+            strokeWidth = 0.5.px
         }
     }
 }

@@ -23,20 +23,22 @@ class DashBoardEditorController : Controller() {
     private val builder : ComponentBuilder by inject()
     private val view : DashBoardEditor by inject()
     private val dashboardController : DashBoardController by inject()
-    private val dbController : DBController by inject()
     private val tileModel : TilePropertiesModel by inject()
-    private val userModel : UserModel by inject()
 
+    private val dbController : DBController by inject(FX.defaultScope)
+    private val userModel : UserModel by inject(FX.defaultScope)
 
     private var inFlightTile: Tile? = null
     private var selectedTile: Tile? = null
     private var dropDimension : Dimension? = null
     private var action = EditAction.NONE
-    private val minColSpan = 7
+    private val minColSpan = 4
     private val minRowSpan = 4
 
     val dirtyProperty = SimpleBooleanProperty(false)
     var dirty by dirtyProperty
+    val requiredComponentsUsedProperty = SimpleBooleanProperty(false)
+    var requiredComponentsUsed by requiredComponentsUsedProperty
 
 
     fun updateGridToDB() {
@@ -66,6 +68,7 @@ class DashBoardEditorController : Controller() {
                 when (action) {
                     EditAction.REMOVE -> {
                         dashboardController.removeTile(tile)
+                        requiredComponentsUsed = builder.areRequiredComponentsUsed()
                         dirty = true
                     }
 
@@ -150,6 +153,8 @@ class DashBoardEditorController : Controller() {
             when (action) {
                 EditAction.NEW_DRAG_DROP -> {
                     if (dashboardController.dropOnGrid(action, dropDimension!!, inFlightTile)) {
+                        requiredComponentsUsed = builder.areRequiredComponentsUsed()
+                        println("Required $requiredComponentsUsed")
                         dirty = true
                         evt.consume()
                     }

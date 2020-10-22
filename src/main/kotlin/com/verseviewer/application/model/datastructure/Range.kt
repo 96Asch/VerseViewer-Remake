@@ -3,7 +3,7 @@ package com.verseviewer.application.model.datastructure
 import tornadofx.*
 import javax.json.JsonObject
 
-class Range (var first : Int, var last : Int) : JsonModel {
+data class Range (var first : Int = 0, var last : Int = 0) : JsonModel {
 
     override fun toString(): String {
         return when (first) {

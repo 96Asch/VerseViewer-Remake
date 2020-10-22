@@ -20,7 +20,7 @@ class HelpPaneController : Controller() {
             ,"If only the book is specified then the table will be populated with all verses of that book. " +
              "If the table is populated then the Chapter:Verse (e.g 3:16) " +
              "format can be used to filter or search for the verse in the table. " +
-             "Multiple verses can be searched for by adding numbers (1,2,3) or with a range (1-3) e.g:"
+             "Multiple verses can be searched for by adding numbers (1,2,3) or with a range (1-3), when filter mode is on e.g:"
             , "1:1-2,3,5-7")
 
     val field3Text = listOf("Multiple Selection"

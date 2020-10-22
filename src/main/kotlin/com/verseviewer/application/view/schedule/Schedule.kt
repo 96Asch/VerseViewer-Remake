@@ -1,32 +1,26 @@
 package com.verseviewer.application.view.schedule
 
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.DragVerseController
-import com.verseviewer.application.controller.FileController
-import com.verseviewer.application.model.Passage
 import com.verseviewer.application.model.VerseGroupModel
 import com.verseviewer.application.model.VerseGroup
-import com.verseviewer.application.model.datastructure.Range
 import com.verseviewer.application.model.event.DeselectVerses
+import com.verseviewer.application.model.event.SendScheduleNotification
 import com.verseviewer.application.model.scope.ScheduleScope
+import com.verseviewer.application.util.showForSeconds
 import javafx.animation.*
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
-import javafx.collections.FXCollections
-import javafx.collections.ObservableArray
-import javafx.collections.ObservableList
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.MenuItem
 import javafx.scene.control.TableRow
 import javafx.scene.control.TableView
 import javafx.scene.input.DragEvent
 import javafx.scene.layout.Priority
-import javafx.stage.FileChooser
 import javafx.util.Duration
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
-import java.io.ByteArrayInputStream
+import tornadofx.controlsfx.notificationPane
 
 
 class Schedule : Fragment("My View") {
@@ -35,7 +29,6 @@ class Schedule : Fragment("My View") {
     private val controller = scope.controller
     private val dragVerseController : DragVerseController by inject(FX.defaultScope)
     private val displayModel : VerseGroupModel by inject(FX.defaultScope)
-    private val fileController : FileController by inject(FX.defaultScope)
 
     private val contextAnimation = ParallelTransition()
     private val armedProperty = SimpleBooleanProperty()
@@ -66,87 +59,81 @@ class Schedule : Fragment("My View") {
     }
 
     @ExperimentalStdlibApi
-    override val root = anchorpane {
-        tv = tableview(controller.list) {
-            readonlyColumn("Verse", VerseGroup::verses) {
-                isSortable = false
-                cellFormat {
-                    graphic = text {
-                        text = it.joinToString { "${it.translation.abbreviation} ${it.book} ${it.chapter}:${it.verse}" }
-                        wrappingWidthProperty().bind(widthProperty().subtract(20))
+    override val root = notificationPane {
+        content = hbox {
+            tv = tableview(controller.list) {
+                readonlyColumn("Verse", VerseGroup::verses) {
+                    isSortable = false
+                    cellFormat {
+                        graphic = text {
+                            text = it.joinToString { "${it.translation.abbreviation} ${it.book} ${it.chapter}:${it.verse}" }
+                            wrappingWidthProperty().bind(widthProperty().subtract(20))
+                        }
+                    }
+                    setRowFactory { buildScheduleRow() }
+                    remainingWidth()
+                }
+
+                anchorpaneConstraints {
+                    rightAnchor = 0.0
+                    leftAnchor = 0.0
+                    topAnchor = 0.0
+                    bottomAnchor = 0.0
+                }
+
+                selectionModel.selectedItemProperty().onChange {
+                    it?.let {
+                        controller.setDetail(it)
+                        if (armedProperty.value) {
+                            displayModel.item = it
+                        }
+                        fire(DeselectVerses(this.toString()))
                     }
                 }
-                setRowFactory { buildScheduleRow() }
-                remainingWidth()
-            }
 
-            anchorpaneConstraints {
-                rightAnchor = 0.0
-                leftAnchor = 0.0
-                topAnchor = 0.0
-                bottomAnchor = 0.0
-            }
-
-            selectionModel.selectedItemProperty().onChange {
-                it?.let {
-                    controller.setDetail(it)
-                    if (armedProperty.value) {
-                        displayModel.item = it
+                subscribe<DeselectVerses> {
+                    if (it.id != this@tableview.toString()) {
+                        selectionModel.clearSelection()
                     }
-                    fire(DeselectVerses(this.toString()))
+                }
+
+                setOnDragDropped(::dragDrop)
+                setOnDragOver(::dragOver)
+                multiSelect(true)
+                smartResize()
+                hboxConstraints {
+                    hgrow = Priority.ALWAYS
                 }
             }
 
-            subscribe<DeselectVerses> {
-                if (it.id != this@tableview.toString()) {
-                    selectionModel.clearSelection()
-                }
-            }
+            vbox {
+                paddingLeft = 5.0
+                spacing = 5.0
 
-            setOnDragDropped(::dragDrop)
-            setOnDragOver(::dragOver)
-            multiSelect(true)
-            smartResize()
-            hboxConstraints {
-                hgrow = Priority.ALWAYS
+                togglebutton(selectFirst = false) {
+                    graphic = Styles.fontAwesome.create(FontAwesome.Glyph.CIRCLE)
+                    armedProperty.bind(selectedProperty())
+                    action {
+                        if (isSelected && tv.selectedItem != null)
+                            displayModel.item = tv.selectedItem
+                    }
+                }
+
+                button {
+                    graphic = Styles.fontAwesome.create(FontAwesome.Glyph.SAVE)
+                    action { saveSchedule() }
+                    enableWhen { controller.list.sizeProperty.ge(1) }
+                }
+                button {
+                    graphic = Styles.fontAwesome.create(FontAwesome.Glyph.FILE_TEXT)
+                    action { loadSchedule() }
+                }
             }
         }
 
-        hbox {
-            spacing = 5.0
-            button("Save") {
-                action {
-                    val locations = chooseFile("Save Schedule", fileController.scheduleExt, mode = FileChooserMode.Save)
-                    println(controller.list.first().toJSON())
-                    if (locations.isNotEmpty())
-                        fileController.writeJson(locations.first().absolutePath, controller.list.first().verses.first().verse.toJSON())
-                }
-                enableWhen { controller.list.sizeProperty.ge(1) }
-            }
-            button("Load") {
-                action {
-                    val locations = chooseFile("Load Schedule", fileController.scheduleExt)
-//                    val jsonArray = fileController.readJsonArray(locations.first().absolutePath)
-//                    if (jsonArray != null) {
-//                        println(jsonArray)
-//                    }
-//                    val i = fileController.readJson(locations.first().absolutePath)
-//                    if (i != null)
-//                        println(i.toModel<Range>())
-                   val i = ByteArrayInputStream(locations.first().readText().toByteArray())
-                    println(i.toJSON().toModel<Range>())
-
-                }
-            }
-            togglebutton(selectFirst = false) {
-                text = "Arm"
-                armedProperty.bind(selectedProperty())
-                action {
-                    if (isSelected && tv.selectedItem != null)
-                        displayModel.item = tv.selectedItem
-                }
-            }
-            anchorpaneConstraints { rightAnchor = 0.0 }
+        isShowFromTop = false
+        subscribe<SendScheduleNotification> {
+            showForSeconds(it.type, it.message, it.duration)
         }
     }
 
@@ -181,6 +168,18 @@ class Schedule : Fragment("My View") {
                 contextAnimation.playFromStart()
             }
         }
+    }
+
+    private fun saveSchedule() {
+        val locations = chooseFile("Save Schedule", controller.scheduleExt, mode = FileChooserMode.Save)
+        if (locations.isNotEmpty())
+            controller.saveSchedule(locations.first().toPath())
+    }
+
+    private fun loadSchedule() {
+        val locations = chooseFile("Load Schedule", controller.scheduleExt)
+        if (locations.isNotEmpty())
+            controller.loadSchedule(locations.first().toPath())
     }
 
     private fun buildMenuItems(cm : ContextMenu, selected : List<VerseGroup>) {

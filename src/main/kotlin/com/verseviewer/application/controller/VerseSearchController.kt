@@ -3,7 +3,6 @@ package com.verseviewer.application.controller
 import com.verseviewer.application.model.Translation
 import com.verseviewer.application.model.Passage
 import com.verseviewer.application.model.datastructure.BookTrie
-import com.verseviewer.application.model.datastructure.Range
 import com.verseviewer.application.model.datastructure.TranslationTrie
 import com.verseviewer.application.model.datastructure.inRange
 import com.verseviewer.application.model.event.*
@@ -51,7 +50,7 @@ class VerseSearchController : Controller() {
         val list = translationTrie.retrieve(token)
 
         if (list.isEmpty())
-            fire(SendNotification("Unknown translation: $token", NotificationType.ERROR, errorDuration))
+            fire(SendVBNotification("Unknown translation: $token", NotificationType.ERROR, errorDuration))
         else
             fire(BroadcastTranslation(list.first()))
     }
@@ -59,11 +58,11 @@ class VerseSearchController : Controller() {
     private fun validate(text: String, translation : Translation?) : Boolean {
         return when {
             text.isEmpty() ->  {
-                fire(SendNotification("Input was empty", NotificationType.ERROR, errorDuration))
+                fire(SendVBNotification("Input was empty", NotificationType.ERROR, errorDuration))
                 false
             }
             translation == null  -> {
-                fire(SendNotification("Translation is not set", NotificationType.ERROR, errorDuration))
+                fire(SendVBNotification("Translation is not set", NotificationType.ERROR, errorDuration))
                 false
             }
             else -> true
@@ -148,7 +147,7 @@ class VerseSearchController : Controller() {
             val list = mutableListOf<Passage>()
 
             if (bookMap.isEmpty()) {
-                fire(SendNotification("No book found with prefix \"$book\"", NotificationType.WARNING, warningDuration))
+                fire(SendVBNotification("No book found with prefix \"$book\"", NotificationType.WARNING, warningDuration))
             }
             fire(DeselectBook())
 

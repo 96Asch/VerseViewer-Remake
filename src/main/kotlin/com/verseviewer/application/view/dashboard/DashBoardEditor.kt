@@ -25,9 +25,9 @@ class DashBoardEditor : View() {
                 paddingAll = 10.0
                 datagrid(controller.componentList) {
                     maxCellsInRow = 1
-                    cellWidth = 75.0
-                    cellHeight = 100.0
-                    maxWidth = 125.0
+                    cellWidth = 100.0
+                    cellHeight = 150.0
+                    maxWidth = 170.0
                     paddingAll = 10.0
                     cellFormat {
                         graphic = it.apply { addClass(Styles.highlightTile) }
@@ -43,7 +43,7 @@ class DashBoardEditor : View() {
                     val bWidth = 10.0
                     button(graphic = glyph.create(FontAwesome.Glyph.SAVE)) {
                         paddingAll = bWidth
-                        enableWhen(controller.dirtyProperty)
+                        enableWhen(controller.dirtyProperty.and(controller.requiredComponentsUsedProperty))
                         action { saveGrid() }
                     }
                     button(graphic = glyph.create(FontAwesome.Glyph.REFRESH)) {
@@ -74,12 +74,14 @@ class DashBoardEditor : View() {
         dashboardController.clearTiles()
         dashboard.refreshTiles()
         controller.dirty = true
+        controller.requiredComponentsUsed = false
     }
 
     private fun refreshGrid() {
         dashboardController.refreshTiles()
         dashboard.refreshTiles()
         controller.dirty = false
+        controller.requiredComponentsUsed = true
     }
 
     private fun saveGrid() {

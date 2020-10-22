@@ -9,4 +9,6 @@ enum class NotificationType {
     NOTIFICATION
 }
 
-class SendNotification(val message: String, val type: NotificationType, val duration: Int) : FXEvent()
+class SendVBNotification(val message: String, val type: NotificationType, val duration: Int) : FXEvent()
+class SendScheduleNotification(val message: String, val type: NotificationType, val duration: Int) : FXEvent()
+class SendDBNotification(val message: String) : FXEvent()
