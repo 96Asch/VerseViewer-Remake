@@ -40,7 +40,6 @@ class DashBoardEditorController : Controller() {
     val requiredComponentsUsedProperty = SimpleBooleanProperty(false)
     var requiredComponentsUsed by requiredComponentsUsedProperty
 
-
     fun updateGridToDB() {
         dashboardController.commitTiles()
         userModel.commit()

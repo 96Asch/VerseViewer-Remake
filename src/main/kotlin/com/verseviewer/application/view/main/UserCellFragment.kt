@@ -27,12 +27,7 @@ class UserCellFragment : DataGridCellFragment<User>() {
         }
         onDoubleClick {
             user.item?.let{
-                if (user.id.value == -1) {
-                    fire(CreateNewUser())
-                }
-                else {
-                    fire(LoginUser(user.item))
-                }
+                fire(LoginUser(user.item))
             }
         }
         paddingAll = 5.0

@@ -5,18 +5,13 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.Table
 
 object Users : IntIdTable("users"){
-    val name: Column<String> = text("NAME")
-    val layout: Column<String> = text("LAYOUT")
+    val name = text("NAME")
+    val layout = text("LAYOUT")
+
+    override val primaryKey = PrimaryKey(id)
 }
-
-
-class UserDAO(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<UserDAO>(Users)
-    var name by Users.name
-    var layout by Users.layout
-}
-
 
 

@@ -19,9 +19,6 @@ class DashBoardController : Controller() {
     private val tileModel : TilePropertiesModel by inject()
     private val userModel : UserModel by inject(FX.defaultScope)
     private val view : DashBoard by inject()
-    private val defaultJson = "/layout/default.json"
-    val json = resources.json(defaultJson)
-
 
     private val allowedStyle = Styles.placementAllowed
     private val notAllowedStyle = Styles.placementNotAllowed

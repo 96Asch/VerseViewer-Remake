@@ -3,9 +3,7 @@ package com.verseviewer.application.controller
 import com.verseviewer.application.model.Preference
 import com.verseviewer.application.model.User
 import javafx.stage.FileChooser
-import org.jetbrains.exposed.exceptions.ExposedSQLException
-import tornadofx.Controller
-import tornadofx.asObservable
+import tornadofx.*
 
 class LoginController : Controller() {
 
@@ -13,6 +11,8 @@ class LoginController : Controller() {
 
     val userList = mutableListOf<User>().asObservable()
     val dbExt = listOf(FileChooser.ExtensionFilter("SQLite Database", ".db")).toTypedArray()
+    private val defaultJson = "/layout/default.json"
+    val json = resources.json(defaultJson)
 
     fun connectDatabase(path : String) {
         dbController.connectToDB(path)
@@ -20,6 +20,12 @@ class LoginController : Controller() {
 
     fun validateDatabase() {
 
+    }
+
+    fun createNewUser(name : String) {
+        val newUser = User(0,name, json.toString())
+        dbController.addUser(newUser)
+        dbController.addPreference(newUser, Preference())
     }
 
     fun loadPreference(user : User): Preference {

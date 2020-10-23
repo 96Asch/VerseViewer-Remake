@@ -8,8 +8,10 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 object Preferences : IntIdTable("preferences") {
     val owner = integer("OWNER")
 
+    val name = text("NAME")
+
     val display = integer("DISPLAY")
-    val textAligmnent = text("TEXTALIGNMENT")
+    val textAlignment = text("TEXTALIGNMENT")
 
     val fontFamily = text("FONT_FAMILY")
     val fontSize = double("FONT_SIZE")
@@ -26,11 +28,13 @@ object Preferences : IntIdTable("preferences") {
 class PreferenceDAO(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<PreferenceDAO>(Preferences)
 
-    val owner by Preferences.owner
+    var owner by Preferences.owner
+
+    var name by Preferences.name
 
     var display by Preferences.display
 
-    var textAlignment by Preferences.textAligmnent
+    var textAlignment by Preferences.textAlignment
     var fontFamily by Preferences.fontFamily
     var fontSize by Preferences.fontSize
     var fontWeight by Preferences.fontWeight

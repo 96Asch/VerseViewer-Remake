@@ -13,11 +13,13 @@ import tornadofx.ItemViewModel
 import tornadofx.getValue
 import tornadofx.setValue
 
-class Preference(id : Int) {
+class Preference(id : Int = 0) {
     private val internalId = ReadOnlyIntegerWrapper(id)
     val idProperty : ReadOnlyIntegerProperty = internalId.readOnlyProperty
 
-    val displayIndexProperty = SimpleIntegerProperty(-1)
+    val nameProperty = SimpleStringProperty("New Preset")
+
+    val displayIndexProperty = SimpleIntegerProperty(0)
     val orientationProperty = SimpleObjectProperty<Orientation>(Orientation.HORIZONTAL)
     val textAlignmentProperty = SimpleObjectProperty<TextAlignment>(TextAlignment.LEFT)
 
@@ -31,6 +33,8 @@ class Preference(id : Int) {
     val strokeWidthProperty = SimpleDoubleProperty(0.0)
 
     constructor(dao: PreferenceDAO) : this(dao.id.value) {
+
+        nameProperty.value = dao.name
 
         displayIndexProperty.value = dao.display
         orientationProperty.value = Orientation.valueOf(dao.orientation)
@@ -49,7 +53,8 @@ class Preference(id : Int) {
 
 
 class PreferenceModel : ItemViewModel<Preference>() {
-    val idProperty = bind(Preference::idProperty)
+
+    val nameProperty = bind(Preference::nameProperty)
 
     val displayIndexProperty = bind(Preference::displayIndexProperty)
     val orientationProperty = bind(Preference::orientationProperty)
@@ -64,15 +69,16 @@ class PreferenceModel : ItemViewModel<Preference>() {
     val strokeProperty = bind(Preference::strokeProperty)
     val strokeWidthProperty = bind(Preference::strokeWidthProperty)
 
+    var name: String by nameProperty
 
     var displayIndex: Number by displayIndexProperty
     var orientation: Orientation by orientationProperty
     var textAlignment: TextAlignment by textAlignmentProperty
 
-    var size by sizeProperty
-    var family by familyProperty
-    var weight by weightProperty
-    var posture by postureProperty
+    var size: Number by sizeProperty
+    var family: String by familyProperty
+    var weight: FontWeight by weightProperty
+    var posture: FontPosture by postureProperty
 
     var fill by fillProperty
     var stroke by strokeProperty

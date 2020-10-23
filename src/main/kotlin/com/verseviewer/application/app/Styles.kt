@@ -29,6 +29,8 @@ class Styles : Stylesheet() {
         val scheduleSaveButton by cssclass()
         val scheduleLoadButton by cssclass()
 
+        val labelTextField by cssclass()
+
         val listLabel by cssclass()
 
         val fontAwesome = GlyphFontRegistry.font("FontAwesome")
@@ -88,6 +90,11 @@ class Styles : Stylesheet() {
 
         scheduleSaveButton {
             
+        }
+
+        labelTextField {
+            backgroundColor += Color.TRANSPARENT
+            backgroundInsets += box(0.px)
         }
 
         listLabel {

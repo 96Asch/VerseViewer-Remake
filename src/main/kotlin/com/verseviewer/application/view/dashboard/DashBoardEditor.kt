@@ -3,6 +3,7 @@ package com.verseviewer.application.view.dashboard
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.DashBoardController
 import com.verseviewer.application.controller.DashBoardEditorController
+import com.verseviewer.application.model.UserModel
 import com.verseviewer.application.model.event.LoadDashBoardEditorSettings
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Priority
@@ -15,6 +16,7 @@ class DashBoardEditor : View() {
     private val controller : DashBoardEditorController by inject()
     private val dashboardController : DashBoardController by inject()
     private val dashboard = find<DashBoard>(mapOf("inEditor" to true))
+    private val userModel : UserModel by inject()
 
     override val root = stackpane {
         borderpane {

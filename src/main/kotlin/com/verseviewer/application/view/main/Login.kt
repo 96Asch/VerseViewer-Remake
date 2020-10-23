@@ -2,7 +2,6 @@ package com.verseviewer.application.view.main
 
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.LoginController
-import com.verseviewer.application.model.NewUser
 import com.verseviewer.application.model.PreferenceModel
 import com.verseviewer.application.model.UserModel
 import com.verseviewer.application.model.event.*
@@ -18,7 +17,6 @@ class Login : View() {
 
     private val controller : LoginController by inject()
     private val databasePathProperty = SimpleStringProperty()
-    private val newUser = NewUser()
     private val userModel : UserModel by inject()
     private val preferenceModel : PreferenceModel by inject()
 
@@ -26,6 +24,11 @@ class Login : View() {
         content = borderpane {
 
             center = vbox {
+                button("Add new profile") {
+                    action {
+                        fire(CreateNewUser())
+                    }
+                }
                 datagrid(controller.userList) {
                     maxCellsInRow = 1
                     cellWidth = 300.0
@@ -38,17 +41,8 @@ class Login : View() {
                             controller.getUsers()
                         } ui {
                             controller.userList.setAll(it)
-                            controller.userList.add(newUser)
                         }
                     }
-                }
-
-                button(graphic = Styles.fontAwesome.create(FontAwesome.Glyph.PLUS_CIRCLE)) {
-                    action {
-
-                    }
-
-
                 }
 
                 hbox {
@@ -100,7 +94,11 @@ class Login : View() {
                 }
                 buttonbar {
                     button("Create").action {
-                        model.commit { println("Commit") }
+                        model.commit {
+                            controller.createNewUser(note.value)
+                            fire(RefreshUsers())
+                            this@dialog.close()
+                        }
                     }
                 }
             }

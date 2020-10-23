@@ -8,6 +8,7 @@ import com.verseviewer.application.model.event.*
 import com.verseviewer.application.model.scope.ProjectionEditorScope
 import com.verseviewer.application.view.projection.Projection
 import com.verseviewer.application.view.projection.ScalingPane
+import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.geometry.Orientation
 import javafx.scene.control.ToggleButton
@@ -51,10 +52,22 @@ class ProjectionEditor : View() {
         center = ScalingPane(projectionView.root, projectionModel.screenBounds.width, projectionModel.screenBounds.height)
 
         right = scrollpane {
-
             form {
+                hbox {
+                    val heightProperty = SimpleDoubleProperty()
+                    textfield {
+                        textProperty().bindBidirectional(preferenceModel.nameProperty)
+                        heightProperty.bind(heightProperty())
+                        addClass(Styles.labelTextField)
+                    }
+                    label {
+                        graphic = Styles.fontAwesome.create(FontAwesome.Glyph.PENCIL_SQUARE)
+                        prefHeightProperty().bind(heightProperty)
+                    }
+                }
                 fieldset("1. Secondary Screen") {
                     combobox(values = controller.screenList) {
+                        selectionModel.select(preferenceModel.displayIndex.toInt())
                         selectionModel.selectedItemProperty().onChange {
                             if (it != null) {
                                 preferenceModel.displayIndex = it.index
@@ -200,6 +213,9 @@ class ProjectionEditor : View() {
                     topAnchor = 5.0
                     rightAnchor = 5.0
                 }
+                button("New Preset") {
+                    action { createNewPreset() }
+                }
                 button("Save Settings") {
                     action { saveSettings() }
                 }
@@ -223,9 +239,12 @@ class ProjectionEditor : View() {
         fire(LoadProjectionEditorSettings())
     }
 
+    private fun createNewPreset() {
+
+    }
+
     private fun saveSettings() {
         projectionModel.commit()
-        preferenceModel.commit()
         preferenceModel.commit()
 
         scope.savedProjectionModel.item = projectionModel.item

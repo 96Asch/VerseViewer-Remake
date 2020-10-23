@@ -2,6 +2,7 @@ package com.verseviewer.application.controller
 
 import com.verseviewer.application.model.Passage
 import com.verseviewer.application.model.Preference
+import com.verseviewer.application.model.User
 import javafx.collections.FXCollections
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
@@ -26,6 +27,10 @@ class ProjectionEditorController : Controller() {
             resultList.addAll(bookVerses.filter { it.verse.first <= numVerses && it.chapter == 1 })
         }
         return resultList
+    }
+
+    fun createNewPreference(user : User) {
+        dbController.addPreference(user, Preference())
     }
 
     fun savePreferencesToDB(pref : Preference) {

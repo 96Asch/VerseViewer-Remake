@@ -89,24 +89,40 @@ class DBController : Controller() {
     fun getUsers() : List<User> = transaction(db) {
         addLogger(StdOutSqlLogger)
         try {
-            UserDAO.all().map { User(it) }
+            Users.selectAll().map { User(it[Users.id].value, it[Users.name], it[Users.layout]) }
         } catch (e : ExposedSQLException) {
             fire(SendDBNotification(e.localizedMessage))
             listOf()
         }
     }
 
-    fun getUser(name : String) : User = transaction(db) {
-        addLogger(StdOutSqlLogger)
-        User(UserDAO.find{Users.name eq name}.first())
-    }
-
     fun addUser(user : User) {
         transaction(db) {
             addLogger(StdOutSqlLogger)
-            UserDAO.new {
-                name = user.name
-                layout = user.layoutToString()
+            val id = Users.insertAndGetId {
+                it[name] = user.name
+                it[layout] = user.layoutToString()
+            }
+            user.id = id.value
+        }
+    }
+
+    fun addPreference(user : User, pref : Preference) {
+        transaction(db) {
+            addLogger(StdOutSqlLogger)
+            Preferences.insert {
+                it[owner] = user.id
+                it[display] = pref.displayIndexProperty.value
+                it[name] = pref.nameProperty.value
+                it[orientation] = pref.orientationProperty.value.toString()
+                it[textAlignment] = pref.textAlignmentProperty.value.toString()
+                it[fontSize] = pref.fontSizeProperty.value.toDouble()
+                it[fontFamily] = pref.fontFamilyProperty.value
+                it[fontWeight] = pref.fontWeightProperty.value.toString()
+                it[fontPosture] = pref.fontPostureProperty.value.toString()
+                it[textFill] = pref.fillProperty.value.toString()
+                it[textStroke] = pref.strokeProperty.value.toString()
+                it[textStrokeWidth] = pref.strokeWidthProperty.value
             }
         }
     }
@@ -114,7 +130,7 @@ class DBController : Controller() {
     fun removeUser(user : User) {
         transaction(db) {
             addLogger(StdOutSqlLogger)
-            UserDAO.findById(user.id)?.delete()
+            Users.deleteWhere { Users.id eq user.id }
         }
     }
 
@@ -128,6 +144,7 @@ class DBController : Controller() {
             val prefDAO = PreferenceDAO.findById(pref.idProperty.value)
             prefDAO?.let {
                 it.display = pref.displayIndexProperty.value
+                it.name = pref.nameProperty.value
                 it.orientation = pref.orientationProperty.value.toString()
                 it.textAlignment = pref.textAlignmentProperty.value.toString()
                 it.fontSize = pref.fontSizeProperty.value.toDouble()
@@ -144,7 +161,9 @@ class DBController : Controller() {
     fun updateLayout(user : User) {
         transaction(db) {
             addLogger(StdOutSqlLogger)
-            UserDAO.findById(user.id)?.let { it.layout = user.layoutToString() }
+            Users.update ( {Users.id eq user.id} ) {
+                it[layout] = user.layoutToString()
+            }
         }
     }
 

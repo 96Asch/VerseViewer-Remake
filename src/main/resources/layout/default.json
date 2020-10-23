@@ -1,11 +1,25 @@
 {
-  "tiles" : [
+  "tiles": [
     {
-      "componentId" : "VerseBox",
-      "x" : 0,
-      "y" : 0,
-      "colspan" : 9,
-      "rowspan" : 9
+      "componentId": "VerseBox",
+      "x": 8,
+      "y": 0,
+      "rowspan": 11,
+      "colspan": 24
+    },
+    {
+      "componentId": "BookList",
+      "x": 0,
+      "y": 0,
+      "rowspan": 16,
+      "colspan": 8
+    },
+    {
+      "componentId": "Schedule",
+      "x": 8,
+      "y": 11,
+      "rowspan": 5,
+      "colspan": 24
     }
   ]
 }

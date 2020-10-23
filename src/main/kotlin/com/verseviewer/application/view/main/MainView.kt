@@ -91,7 +91,7 @@ class MainView : View() {
 
     override fun onDock() {
         currentStage?.titleProperty()?.unbind()
-        currentStage?.title = "VerseViewer 2.0 - ${userModel.name.value}"
+        currentStage?.title = "VerseViewer 2.0 - ${userModel.name.value} - ${preferenceModel.name}"
     }
 
     private fun setupProjectionEditorView(node : Node) {
