@@ -42,6 +42,7 @@ class ProjectionEditor : View() {
     private val numVersesProperty = SimpleIntegerProperty(0)
 
     override val root = borderpane {
+
         projectionModel.item = scope.savedProjectionModel.item
         preferenceModel.item = scope.savedPreferenceModel.item
 
@@ -53,18 +54,6 @@ class ProjectionEditor : View() {
 
         right = scrollpane {
             form {
-                hbox {
-                    val heightProperty = SimpleDoubleProperty()
-                    textfield {
-                        textProperty().bindBidirectional(preferenceModel.nameProperty)
-                        heightProperty.bind(heightProperty())
-                        addClass(Styles.labelTextField)
-                    }
-                    label {
-                        graphic = Styles.fontAwesome.create(FontAwesome.Glyph.PENCIL_SQUARE)
-                        prefHeightProperty().bind(heightProperty)
-                    }
-                }
                 fieldset("1. Secondary Screen") {
                     combobox(values = controller.screenList) {
                         selectionModel.select(preferenceModel.displayIndex.toInt())
@@ -98,7 +87,10 @@ class ProjectionEditor : View() {
                 fieldset("3. Font") {
                     button {
 
-                        textProperty().bind(stringBinding(preferenceModel.familyProperty, preferenceModel.sizeProperty, preferenceModel.weightProperty, preferenceModel.postureProperty) {
+                        textProperty().bind(stringBinding(preferenceModel.familyProperty,
+                                preferenceModel.sizeProperty,
+                                preferenceModel.weightProperty,
+                                preferenceModel.postureProperty) {
                             "${preferenceModel.family}\n ${preferenceModel.size} [${preferenceModel.weight}-${preferenceModel.posture}]"
                         })
                         fontPicker = popover {
@@ -112,18 +104,13 @@ class ProjectionEditor : View() {
                 }
                 fieldset("4. Text Styling") {
                     field("Fill Color") {
-                        colorpicker { preferenceModel.fillProperty.bind(valueProperty()) }
+                        colorpicker { valueProperty().bindBidirectional(preferenceModel.fillProperty) }
                     }
                     field("Border Color") {
-                        colorpicker { preferenceModel.strokeProperty.bind(valueProperty()) }
+                        colorpicker { valueProperty().bindBidirectional(preferenceModel.strokeProperty) }
                     }
                     field("Border Width") {
-                        slider(0,10,1) {
-                            preferenceModel.strokeWidthProperty.bind(valueProperty())
-                        }
-                    }
-                    field("Effect") {
-                        segmentedbutton {}
+                        slider(0, 10, 1) { valueProperty().bindBidirectional(preferenceModel.strokeWidthProperty) }
                     }
                 }
                 fieldset("5. Multiple Translations") {
@@ -213,9 +200,6 @@ class ProjectionEditor : View() {
                     topAnchor = 5.0
                     rightAnchor = 5.0
                 }
-                button("New Preset") {
-                    action { createNewPreset() }
-                }
                 button("Save Settings") {
                     action { saveSettings() }
                 }
@@ -225,7 +209,6 @@ class ProjectionEditor : View() {
     }
 
     override fun onDock() {
-        println("ondock PE")
         currentStage?.let { it.setOnCloseRequest {
                 fontPicker.hide(Duration.millis(0.0))
             }
@@ -235,12 +218,9 @@ class ProjectionEditor : View() {
     }
 
     override fun onUndock() {
-        println("undock PE")
         fire(LoadProjectionEditorSettings())
-    }
-
-    private fun createNewPreset() {
-
+        if (fontPicker.isShowing)
+            fontPicker.hide(Duration.millis(0.0))
     }
 
     private fun saveSettings() {

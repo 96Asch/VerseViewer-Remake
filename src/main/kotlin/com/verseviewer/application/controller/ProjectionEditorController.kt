@@ -29,10 +29,6 @@ class ProjectionEditorController : Controller() {
         return resultList
     }
 
-    fun createNewPreference(user : User) {
-        dbController.addPreference(user, Preference())
-    }
-
     fun savePreferencesToDB(pref : Preference) {
         dbController.updateUserPreference(pref)
     }

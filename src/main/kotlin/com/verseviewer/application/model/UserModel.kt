@@ -7,19 +7,21 @@ import tornadofx.*
 import java.io.ByteArrayInputStream
 import java.nio.charset.Charset
 
-open class User(id : Int = 0, name : String = "", layout : GridBuilder = GridBuilder()) {
-    val idProperty = SimpleIntegerProperty(id)
+open class User() {
+    val idProperty = SimpleIntegerProperty(-1)
     var id by idProperty
 
-    val nameProperty = SimpleStringProperty(name)
+    val nameProperty = SimpleStringProperty("New User")
     var name: String by nameProperty
 
-    val layoutProperty = SimpleObjectProperty(layout)
+    val layoutProperty = SimpleObjectProperty(GridBuilder())
     var layout: GridBuilder by layoutProperty
 
-    constructor(id : Int, name : String, layout : String) : this(id, name) {
-        val i = ByteArrayInputStream(layout.toByteArray(Charset.defaultCharset()))
-        this.layout = i.toJSON().toModel()
+    constructor(id : Int = -1, name : String, layout : String) : this() {
+        this.id = id
+        this.name = name
+        val rawLayout = ByteArrayInputStream(layout.toByteArray(Charset.defaultCharset()))
+        this.layout = rawLayout.toJSON().toModel()
     }
 
     fun layoutToString() = layout.toJSON().toString()

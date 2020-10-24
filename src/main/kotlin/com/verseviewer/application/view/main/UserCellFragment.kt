@@ -1,5 +1,6 @@
 package com.verseviewer.application.view.main
 
+import com.verseviewer.application.app.Styles
 import com.verseviewer.application.model.User
 import com.verseviewer.application.model.UserModel
 import com.verseviewer.application.model.event.CreateNewUser
@@ -15,9 +16,7 @@ class UserCellFragment : DataGridCellFragment<User>() {
 
     override val root = hbox {
         stackpane {
-            circle(radius = 25.0) {
-                fill = Color.BLUE
-            }
+            circle(radius = 25.0).addClass(Styles.loginListSymbol)
             label(user.name.stringBinding {"${it?.first()}"})
         }
         label(user.name) {
@@ -30,6 +29,7 @@ class UserCellFragment : DataGridCellFragment<User>() {
                 fire(LoginUser(user.item))
             }
         }
+        addClass(Styles.loginListRow)
         paddingAll = 5.0
         spacing = 10.0
         alignment = Pos.CENTER_LEFT

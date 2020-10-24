@@ -141,6 +141,7 @@ class Projection : Fragment() {
         if (layout != null) {
             var calcWidth = projectionModel.screenBoundsProperty.value.width
             var calcHeight = projectionModel.screenBoundsProperty.value.height
+            println(calcHeight)
             when (layout) {
                 Orientation.VERTICAL -> calcHeight /= currentSize
                 Orientation.HORIZONTAL -> calcWidth /= currentSize

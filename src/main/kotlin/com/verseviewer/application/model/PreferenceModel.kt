@@ -1,10 +1,7 @@
 package com.verseviewer.application.model
 
-import com.verseviewer.application.model.db.PreferenceDAO
-import javafx.beans.binding.NumberExpression
 import javafx.beans.property.*
 import javafx.geometry.Orientation
-import javafx.scene.effect.Effect
 import javafx.scene.paint.Color
 import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
@@ -13,11 +10,7 @@ import tornadofx.ItemViewModel
 import tornadofx.getValue
 import tornadofx.setValue
 
-class Preference(id : Int = 0) {
-    private val internalId = ReadOnlyIntegerWrapper(id)
-    val idProperty : ReadOnlyIntegerProperty = internalId.readOnlyProperty
-
-    val nameProperty = SimpleStringProperty("New Preset")
+class Preference() {
 
     val displayIndexProperty = SimpleIntegerProperty(0)
     val orientationProperty = SimpleObjectProperty<Orientation>(Orientation.HORIZONTAL)
@@ -32,29 +25,35 @@ class Preference(id : Int = 0) {
     val strokeProperty = SimpleObjectProperty(Color.valueOf("black"))
     val strokeWidthProperty = SimpleDoubleProperty(0.0)
 
-    constructor(dao: PreferenceDAO) : this(dao.id.value) {
+    constructor(displayIndex : Int,
+                orientationStr : String,
+                textAlignmentStr : String,
+                fontSize : Double,
+                fontFamily : String,
+                fontPostureStr : String,
+                fontWeightStr : String,
+                fillStr : String,
+                strokeStr : String,
+                strokeWidth : Double
+    ) : this() {
 
-        nameProperty.value = dao.name
+        displayIndexProperty.value = displayIndex
+        orientationProperty.value = Orientation.valueOf(orientationStr)
+        textAlignmentProperty.value = TextAlignment.valueOf(textAlignmentStr)
 
-        displayIndexProperty.value = dao.display
-        orientationProperty.value = Orientation.valueOf(dao.orientation)
-        textAlignmentProperty.value = TextAlignment.valueOf(dao.textAlignment)
+        fontSizeProperty.value = fontSize
+        fontFamilyProperty.value = fontFamily
+        fontPostureProperty.value = FontPosture.valueOf(fontPostureStr)
+        fontWeightProperty.value = FontWeight.valueOf(fontWeightStr)
 
-        fontSizeProperty.value = dao.fontSize
-        fontFamilyProperty.value = dao.fontFamily
-        fontPostureProperty.value = FontPosture.valueOf(dao.fontPosture)
-        fontWeightProperty.value = FontWeight.valueOf(dao.fontWeight)
-
-        fillProperty.value = Color.valueOf(dao.textFill)
-        strokeProperty.value = Color.valueOf(dao.textStroke)
-        strokeWidthProperty.value = dao.textStrokeWidth
+        fillProperty.value = Color.valueOf(fillStr)
+        strokeProperty.value = Color.valueOf(strokeStr)
+        strokeWidthProperty.value = strokeWidth
     }
 }
 
 
 class PreferenceModel : ItemViewModel<Preference>() {
-
-    val nameProperty = bind(Preference::nameProperty)
 
     val displayIndexProperty = bind(Preference::displayIndexProperty)
     val orientationProperty = bind(Preference::orientationProperty)
@@ -68,8 +67,6 @@ class PreferenceModel : ItemViewModel<Preference>() {
     val fillProperty = bind(Preference::fillProperty)
     val strokeProperty = bind(Preference::strokeProperty)
     val strokeWidthProperty = bind(Preference::strokeWidthProperty)
-
-    var name: String by nameProperty
 
     var displayIndex: Number by displayIndexProperty
     var orientation: Orientation by orientationProperty

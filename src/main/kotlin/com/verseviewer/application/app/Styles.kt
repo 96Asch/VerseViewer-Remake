@@ -1,13 +1,11 @@
 package com.verseviewer.application.app
 
 import javafx.scene.paint.Color
-import javafx.scene.paint.Paint
 import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import org.controlsfx.glyphfont.GlyphFontRegistry
 import tornadofx.*
-import kotlin.random.Random
 
 class Styles : Stylesheet() {
 
@@ -29,7 +27,10 @@ class Styles : Stylesheet() {
         val scheduleSaveButton by cssclass()
         val scheduleLoadButton by cssclass()
 
-        val labelTextField by cssclass()
+        val transparentButton by cssclass()
+
+        val loginListRow by cssclass()
+        val loginListSymbol by cssclass()
 
         val listLabel by cssclass()
 
@@ -88,13 +89,36 @@ class Styles : Stylesheet() {
             opacity = 0.1
         }
 
-        scheduleSaveButton {
-            
-        }
 
-        labelTextField {
+        transparentButton {
             backgroundColor += Color.TRANSPARENT
             backgroundInsets += box(0.px)
+            and(hover) {
+                backgroundColor += Color.LIGHTGREY
+            }
+        }
+
+        loginListRow {
+
+            label {
+                fontSize = 20.px
+                textFill = Color.WHITE
+            }
+
+            text {
+                strokeWidth = 0.5.px
+                stroke = Color.BLACK
+                fill = Color.WHITE
+                font = Font.font("Arial",  FontWeight.NORMAL, FontPosture.ITALIC, 20.0)
+            }
+
+            and(hover) {
+                backgroundColor += Color.LIGHTGREY
+            }
+        }
+
+        loginListSymbol {
+            fill = Color.YELLOW
         }
 
         listLabel {

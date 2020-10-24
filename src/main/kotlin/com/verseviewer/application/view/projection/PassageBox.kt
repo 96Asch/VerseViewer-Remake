@@ -30,7 +30,7 @@ class PassageBox : Fragment() {
     private var headerFontSize = 0.0
     private var bodyFontSize = 0.0
 
-    private val heightMargin = 30.0
+    private val heightMargin = 10.0
     private val frameHeightMargin = 30.0
     private val topLineFactor = 2.0
 
@@ -42,7 +42,7 @@ class PassageBox : Fragment() {
 
     override val root = anchorpane {
 
-        val boxHeight = projectionModel.boxHeight.toDouble() + 50.0
+        val boxHeight = projectionModel.boxHeight.toDouble()
         val boxWidth = projectionModel.boxWidth.toDouble()
 
         val frame = Frame(boxWidth, boxHeight).apply {

@@ -7,8 +7,8 @@ import com.verseviewer.application.model.UserModel
 import com.verseviewer.application.model.event.*
 import com.verseviewer.application.util.showForSeconds
 import javafx.beans.property.SimpleStringProperty
-import javafx.stage.Modality
-import javafx.stage.StageStyle
+import javafx.geometry.Pos
+import javafx.scene.layout.Priority
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 import tornadofx.controlsfx.notificationPane
@@ -21,20 +21,39 @@ class Login : View() {
     private val preferenceModel : PreferenceModel by inject()
 
     override val root = notificationPane {
+        setPrefSize(800.0, 500.0)
         content = borderpane {
 
-            center = vbox {
-                button("Add new profile") {
+            center = label("Verse Viewer")
+
+            right = vbox {
+                button {
+                    graphic = hbox {
+                        stackpane {
+                            rectangle(0,0, 40, 40)
+                            label(graphic = Styles.fontAwesome.create(FontAwesome.Glyph.PLUS_SQUARE))
+                        }
+                        label("Add new profile") {
+                            hboxConstraints {
+                                hGrow = Priority.ALWAYS
+                            }
+                        }
+                        spacing = 10.0
+                        alignment = Pos.CENTER_LEFT
+                    }
                     action {
                         fire(CreateNewUser())
                     }
+                    addClass(Styles.transparentButton)
                 }
+
                 datagrid(controller.userList) {
                     maxCellsInRow = 1
                     cellWidth = 300.0
                     cellHeight = 75.0
                     prefWidth = 325.0
                     cellFragment<UserCellFragment>()
+
 
                     subscribe<RefreshUsers> {
                         runAsyncWithOverlay {
@@ -45,22 +64,31 @@ class Login : View() {
                     }
                 }
 
-                hbox {
-                    label {
-                        textProperty().bind(databasePathProperty)
-                    }
-                    button(graphic = Styles.fontAwesome.create(FontAwesome.Glyph.EXCHANGE)) {
-                        action {
-                            val locations = chooseFile("Choose database", controller.dbExt)
-                            if (locations.isNotEmpty()) {
-                                println("ooo")
-                                controller.connectDatabase(locations.first().absolutePath)
-                                preferences("VerseViewer") {
-                                    put("db_location", locations.first().absolutePath)
-                                    databasePathProperty.value = locations.first().absolutePath
-                                }
-                                fire(RefreshUsers())
+                button {
+                    addClass(Styles.transparentButton)
+                    graphic = hbox {
+                        stackpane {
+                            rectangle(0,0, 40, 40)
+                            label(graphic = Styles.fontAwesome.create(FontAwesome.Glyph.RECYCLE))
+                        }
+                        label {
+                            textProperty().bind(databasePathProperty)
+                            hboxConstraints {
+                                hGrow = Priority.ALWAYS
                             }
+                        }
+                        spacing = 10.0
+                        alignment = Pos.CENTER_LEFT
+                    }
+                    action {
+                        val locations = chooseFile("Choose database", controller.dbExt)
+                        if (locations.isNotEmpty()) {
+                            controller.connectDatabase(locations.first().absolutePath)
+                            preferences("VerseViewer") {
+                                put("db_location", locations.first().absolutePath)
+                                databasePathProperty.value = locations.first().absolutePath
+                            }
+                            fire(RefreshUsers())
                         }
                     }
                 }
@@ -84,6 +112,8 @@ class Login : View() {
             dialog("Create new profile") {
                 val model = ViewModel()
                 val note = model.bind { SimpleStringProperty() }
+                prefHeight = 125.0
+                prefWidth = 250.0
 
                 field("Name") {
                     textfield(note) {
@@ -95,7 +125,7 @@ class Login : View() {
                 buttonbar {
                     button("Create").action {
                         model.commit {
-                            controller.createNewUser(note.value)
+                            controller.createNewUser(note.value.toString())
                             fire(RefreshUsers())
                             this@dialog.close()
                         }

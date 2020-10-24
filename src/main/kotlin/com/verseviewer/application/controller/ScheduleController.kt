@@ -19,8 +19,7 @@ import javax.json.stream.JsonParsingException
 
 class ScheduleController : Controller() {
 
-    val scheduleExt = listOf(FileChooser.ExtensionFilter("Schedule File", ".vsched"),
-                            FileChooser.ExtensionFilter("All Files", ".*")).toTypedArray()
+    val scheduleExt = listOf(FileChooser.ExtensionFilter("Schedule File", "*.vsched")).toTypedArray()
 
     val list = mutableListOf<VerseGroup>().asObservable()
     val detailList = mutableListOf<Passage>().asObservable()

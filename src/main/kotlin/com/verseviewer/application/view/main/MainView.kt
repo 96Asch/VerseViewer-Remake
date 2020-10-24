@@ -63,6 +63,7 @@ class MainView : View() {
                         if (isSelected) {
                             projectionModel.screenBounds = Screen.getScreens()
                                     .getOrElse(preferenceModel.displayIndex.toInt()) { Screen.getScreens().first() }.visualBounds
+                            println(projectionModel.screenBounds)
                             find<Projection>().openWindow(StageStyle.TRANSPARENT, escapeClosesWindow = false, owner = null)
                             fire(OpenProjection(scope))
                         }
@@ -91,7 +92,14 @@ class MainView : View() {
 
     override fun onDock() {
         currentStage?.titleProperty()?.unbind()
-        currentStage?.title = "VerseViewer 2.0 - ${userModel.name.value} - ${preferenceModel.name}"
+        currentStage?.title = "VerseViewer 2.0 - ${userModel.name.value}"
+        currentStage?.setOnCloseRequest {
+            fire(CloseProjection(scope))
+        }
+    }
+
+    override fun onUndock() {
+        fire(CloseProjection(scope))
     }
 
     private fun setupProjectionEditorView(node : Node) {
@@ -110,7 +118,6 @@ class MainView : View() {
             println("Saved settings")
             preferenceModel.item = projectionEditorScope.savedPreferenceModel.item
             projectionModel.item = projectionEditorScope.savedProjectionModel.item
-
         }
     }
 

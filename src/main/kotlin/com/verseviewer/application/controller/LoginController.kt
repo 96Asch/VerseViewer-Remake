@@ -12,24 +12,18 @@ class LoginController : Controller() {
     val userList = mutableListOf<User>().asObservable()
     val dbExt = listOf(FileChooser.ExtensionFilter("SQLite Database", ".db")).toTypedArray()
     private val defaultJson = "/layout/default.json"
-    val json = resources.json(defaultJson)
+    val jsonLayout = resources.json(defaultJson)
 
     fun connectDatabase(path : String) {
         dbController.connectToDB(path)
     }
 
-    fun validateDatabase() {
-
-    }
-
     fun createNewUser(name : String) {
-        val newUser = User(0,name, json.toString())
-        dbController.addUser(newUser)
-        dbController.addPreference(newUser, Preference())
+        dbController.addUser(User(-1, name, jsonLayout.toPrettyString()), Preference())
     }
 
     fun loadPreference(user : User): Preference {
-        return Preference(dbController.getUserPreference(user))
+        return dbController.getPreference(user)
     }
 
     fun getUsers() : List<User> {

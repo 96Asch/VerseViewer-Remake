@@ -89,41 +89,35 @@ class DBController : Controller() {
     fun getUsers() : List<User> = transaction(db) {
         addLogger(StdOutSqlLogger)
         try {
-            Users.selectAll().map { User(it[Users.id].value, it[Users.name], it[Users.layout]) }
+            Users.slice(Users.id, Users.name, Users.layout).selectAll().map {
+                User(it[Users.id].value,
+                        "${it[Users.name]}",
+                        it[Users.layout])
+            }
         } catch (e : ExposedSQLException) {
             fire(SendDBNotification(e.localizedMessage))
             listOf()
         }
     }
 
-    fun addUser(user : User) {
+    fun addUser(user : User, userPref : Preference) {
         transaction(db) {
             addLogger(StdOutSqlLogger)
             val id = Users.insertAndGetId {
                 it[name] = user.name
                 it[layout] = user.layoutToString()
+                it[display] = userPref.displayIndexProperty.value
+                it[orientation] = userPref.orientationProperty.value.toString()
+                it[textAlignment] = userPref.textAlignmentProperty.value.toString()
+                it[fontSize] = userPref.fontSizeProperty.value.toDouble()
+                it[fontFamily] = userPref.fontFamilyProperty.value
+                it[fontWeight] = userPref.fontWeightProperty.value.toString()
+                it[fontPosture] = userPref.fontPostureProperty.value.toString()
+                it[textFill] = userPref.fillProperty.value.toString()
+                it[textStroke] = userPref.strokeProperty.value.toString()
+                it[textStrokeWidth] = userPref.strokeWidthProperty.value
             }
             user.id = id.value
-        }
-    }
-
-    fun addPreference(user : User, pref : Preference) {
-        transaction(db) {
-            addLogger(StdOutSqlLogger)
-            Preferences.insert {
-                it[owner] = user.id
-                it[display] = pref.displayIndexProperty.value
-                it[name] = pref.nameProperty.value
-                it[orientation] = pref.orientationProperty.value.toString()
-                it[textAlignment] = pref.textAlignmentProperty.value.toString()
-                it[fontSize] = pref.fontSizeProperty.value.toDouble()
-                it[fontFamily] = pref.fontFamilyProperty.value
-                it[fontWeight] = pref.fontWeightProperty.value.toString()
-                it[fontPosture] = pref.fontPostureProperty.value.toString()
-                it[textFill] = pref.fillProperty.value.toString()
-                it[textStroke] = pref.strokeProperty.value.toString()
-                it[textStrokeWidth] = pref.strokeWidthProperty.value
-            }
         }
     }
 
@@ -134,26 +128,35 @@ class DBController : Controller() {
         }
     }
 
-    fun getUserPreference(user : User) : PreferenceDAO = transaction(db) {
-        addLogger(StdOutSqlLogger)
-        PreferenceDAO.find { Preferences.owner eq user.id }.first()
-    }
+    fun getPreference(user : User) = transaction(db) {
+        Users.select { Users.id eq user.id }.map {
+            Preference(it[Users.display],
+                    it[Users.orientation],
+                    it[Users.textAlignment],
+                    it[Users.fontSize],
+                    it[Users.fontFamily],
+                    it[Users.fontPosture],
+                    it[Users.fontWeight],
+                    it[Users.textFill],
+                    it[Users.textStroke],
+                    it[Users.textStrokeWidth])
+        }
+    }.first()
 
     fun updateUserPreference(pref : Preference) {
         transaction(db) {
-            val prefDAO = PreferenceDAO.findById(pref.idProperty.value)
-            prefDAO?.let {
-                it.display = pref.displayIndexProperty.value
-                it.name = pref.nameProperty.value
-                it.orientation = pref.orientationProperty.value.toString()
-                it.textAlignment = pref.textAlignmentProperty.value.toString()
-                it.fontSize = pref.fontSizeProperty.value.toDouble()
-                it.fontFamily = pref.fontFamilyProperty.value
-                it.fontWeight = pref.fontWeightProperty.value.toString()
-                it.fontPosture = pref.fontPostureProperty.value.toString()
-                it.textFill = pref.fillProperty.value.toString()
-                it.textStroke = pref.strokeProperty.value.toString()
-                it.textStrokeWidth = pref.strokeWidthProperty.value
+            addLogger(StdOutSqlLogger)
+            Users.update {
+                it[display] = pref.displayIndexProperty.value
+                it[orientation] = pref.orientationProperty.value.toString()
+                it[textAlignment] = pref.textAlignmentProperty.value.toString()
+                it[fontSize] = pref.fontSizeProperty.value.toDouble()
+                it[fontFamily] = pref.fontFamilyProperty.value
+                it[fontWeight] = pref.fontWeightProperty.value.toString()
+                it[fontPosture] = pref.fontPostureProperty.value.toString()
+                it[textFill] = pref.fillProperty.value.toString()
+                it[textStroke] = pref.strokeProperty.value.toString()
+                it[textStrokeWidth] = pref.strokeWidthProperty.value
             }
         }
     }
