@@ -3,6 +3,7 @@ package com.verseviewer.application.view.main
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.LoginController
 import com.verseviewer.application.model.PreferenceModel
+import com.verseviewer.application.model.UiPreferenceModel
 import com.verseviewer.application.model.UserModel
 import com.verseviewer.application.model.event.*
 import com.verseviewer.application.util.showForSeconds
@@ -19,6 +20,7 @@ class Login : View() {
     private val databasePathProperty = SimpleStringProperty()
     private val userModel : UserModel by inject()
     private val preferenceModel : PreferenceModel by inject()
+    private val uiPreferenceModel : UiPreferenceModel by inject()
 
     override val root = notificationPane {
         setPrefSize(800.0, 500.0)
@@ -44,6 +46,7 @@ class Login : View() {
                     action {
                         fire(CreateNewUser())
                     }
+                    useMaxWidth = true
                     addClass(Styles.transparentButton)
                 }
 
@@ -73,6 +76,9 @@ class Login : View() {
                         }
                         label {
                             textProperty().bind(databasePathProperty)
+                            maxWidth = 300.0
+                            maxHeight = 50.0
+                            isWrapText = true
                             hboxConstraints {
                                 hGrow = Priority.ALWAYS
                             }
@@ -103,6 +109,7 @@ class Login : View() {
             runAsync {
                 userModel.item = it.user
                 preferenceModel.item = controller.loadPreference(it.user)
+                uiPreferenceModel.item = controller.loadUiPreference(it.user)
             } ui {
                 replaceWith<MainView>()
             }

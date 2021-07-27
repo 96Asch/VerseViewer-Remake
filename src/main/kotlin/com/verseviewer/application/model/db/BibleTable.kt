@@ -5,6 +5,7 @@ import org.jetbrains.exposed.sql.Table
 abstract class TranslationBible(name: String) : Table("") {
     private val internalTableName = name
 
+
     val verseId = integer("ID")
     val bookId  = integer("BOOK_ID")
     val chapter = integer("CHAPTER")

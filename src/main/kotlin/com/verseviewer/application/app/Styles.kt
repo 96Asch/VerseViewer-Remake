@@ -29,6 +29,8 @@ class Styles : Stylesheet() {
 
         val transparentButton by cssclass()
 
+        val liveButton by cssclass()
+
         val loginListRow by cssclass()
         val loginListSymbol by cssclass()
 
@@ -114,6 +116,23 @@ class Styles : Stylesheet() {
 
             and(hover) {
                 backgroundColor += Color.LIGHTGREY
+            }
+        }
+
+        liveButton {
+            fontWeight = FontWeight.EXTRA_BOLD
+            textFill = c(173, 24, 21)
+
+            borderWidth += box(2.px)
+            borderColor += box(c(0,0,0))
+
+            and(selected) {
+                textFill = Color.WHITE
+                backgroundColor += c(173, 24, 21)
+            }
+
+            and(hover) {
+                backgroundColor += c(251, 236, 241)
             }
         }
 

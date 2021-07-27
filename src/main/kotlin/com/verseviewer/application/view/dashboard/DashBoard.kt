@@ -12,6 +12,7 @@ class DashBoard : View() {
     val heightTiles = 16
     val widthTiles = 32
     val tileSize = 25.0
+    private var inEditor = false
 
     private val controller : DashBoardController by inject()
 
@@ -46,14 +47,17 @@ class DashBoard : View() {
     }
 
     fun refreshTiles() {
-        root.children.removeIf { it is Tile }
+        if (inEditor)
+            root.children.removeIf { it is Tile }
+        else
+            root.children.clear()
         controller.getTiles().forEach {
             root.addTile(it)
         }
     }
 
     override fun onDock() {
-        val inEditor = params["inEditor"] as? Boolean ?: false
+        inEditor = params["inEditor"] as? Boolean ?: false
         root.isGridLinesVisible = inEditor
         controller.initGrid(inEditor)
         refreshTiles()

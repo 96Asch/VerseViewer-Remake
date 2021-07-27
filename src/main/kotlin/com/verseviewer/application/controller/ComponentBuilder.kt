@@ -3,12 +3,12 @@ package com.verseviewer.application.controller
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.model.scope.EditorScope
 import com.verseviewer.application.model.scope.ScheduleScope
-import com.verseviewer.application.view.dummy.Dummy
-import com.verseviewer.application.view.booklist.BookList
+import com.verseviewer.application.view.components.dummy.Dummy
+import com.verseviewer.application.view.components.booklist.BookList
 import com.verseviewer.application.view.dashboard.DndSkin
 import com.verseviewer.application.view.dashboard.ListSkin
-import com.verseviewer.application.view.schedule.Schedule
-import com.verseviewer.application.view.versebox.VerseBox
+import com.verseviewer.application.view.components.schedule.Schedule
+import com.verseviewer.application.view.components.versebox.VerseBox
 import eu.hansolo.tilesfx.Tile
 import eu.hansolo.tilesfx.TileBuilder
 import javafx.beans.property.SimpleIntegerProperty

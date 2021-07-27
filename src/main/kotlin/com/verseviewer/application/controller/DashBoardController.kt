@@ -17,7 +17,7 @@ class DashBoardController : Controller() {
     private val tileList = mutableListOf<TileProperties>()
     private val builder : ComponentBuilder by inject()
     private val tileModel : TilePropertiesModel by inject()
-    private val userModel : UserModel by inject(FX.defaultScope)
+    private val uiPreferenceModel : UiPreferenceModel by inject()
     private val view : DashBoard by inject()
 
     private val allowedStyle = Styles.placementAllowed
@@ -168,7 +168,7 @@ class DashBoardController : Controller() {
 
     fun commitTiles() {
         val tileBuilders = tileList.map { TileBuilder(builder.getId(it.tile), it.x, it.y, it.colspan, it.rowspan) }
-        userModel.layout.value.tiles.setAll(tileBuilders)
+        uiPreferenceModel.layout.value.tiles.setAll(tileBuilders)
     }
 
     fun clearTiles() {
@@ -185,7 +185,7 @@ class DashBoardController : Controller() {
     }
 
     fun refreshTiles() {
-        val tiles = userModel.layout.value.tiles
+        val tiles = uiPreferenceModel.layout.value.tiles
         if (tiles.isNotEmpty()) {
             builder.refreshCounters()
             tileList.clear()
@@ -194,6 +194,7 @@ class DashBoardController : Controller() {
     }
 
     fun initGrid(inEditor : Boolean) {
-        tileList.addAll(build(userModel.layout.value, builder, inEditor))
+        tileList.clear()
+        tileList.addAll(build(uiPreferenceModel.layout.value, builder, inEditor))
     }
 }

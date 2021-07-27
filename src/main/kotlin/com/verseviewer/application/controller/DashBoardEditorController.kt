@@ -63,7 +63,6 @@ class DashBoardEditorController : Controller() {
             } else if (dashboardController.isPointOnDashboard(mousePt) && tile.skin is DndSkin) {
 
                 action = getAction(evt, tile.skin as DndSkin, tile)
-                println(action)
                 when (action) {
                     EditAction.REMOVE -> {
                         dashboardController.removeTile(tile)
@@ -153,7 +152,6 @@ class DashBoardEditorController : Controller() {
                 EditAction.NEW_DRAG_DROP -> {
                     if (dashboardController.dropOnGrid(action, dropDimension!!, inFlightTile)) {
                         requiredComponentsUsed = builder.areRequiredComponentsUsed()
-                        println("Required $requiredComponentsUsed")
                         dirty = true
                         evt.consume()
                     }
@@ -181,8 +179,6 @@ class DashBoardEditorController : Controller() {
     }
 
     private fun getAction(evt: MouseEvent, skin: DndSkin, tile : Tile): EditAction {
-        println("${evt.x} - ${evt.y} ${skin.relocateRegion.sceneToLocal(evt.x, evt.y)} ${skin.closeRegion.screenToLocal(evt.screenX, evt.screenY)}")
-        println("Contains "+skin.closeRegion.contains(skin.closeRegion.screenToLocal(evt.screenX, evt.screenY)))
         return when {
             isMouseInRegion(skin.relocateRegion, evt) -> EditAction.RELOCATE_DRAG_DROP
             isMouseInRegion(skin.closeRegion, evt) -> EditAction.REMOVE
@@ -197,6 +193,7 @@ class DashBoardEditorController : Controller() {
     private fun refreshComponents() {
         componentList.clear()
         componentList.addAll(builder.createListComponents())
+        requiredComponentsUsed = builder.areRequiredComponentsUsed()
     }
 
     init {

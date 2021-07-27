@@ -7,7 +7,7 @@ import tornadofx.*
 import java.io.ByteArrayInputStream
 import java.nio.charset.Charset
 
-open class User() {
+class User() {
     val idProperty = SimpleIntegerProperty(-1)
     var id by idProperty
 

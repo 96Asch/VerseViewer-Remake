@@ -13,6 +13,7 @@ import tornadofx.*
 
 class DragVerseController : Controller() {
 
+    var isShiftDown: Boolean = false
     private var dragGroup : VerseGroup? = null
     private val isDrag = SimpleBooleanProperty(false)
 

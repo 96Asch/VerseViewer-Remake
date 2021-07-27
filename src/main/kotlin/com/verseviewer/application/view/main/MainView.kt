@@ -10,14 +10,13 @@ import com.verseviewer.application.model.event.LoadProjectionEditorSettings
 import com.verseviewer.application.model.scope.ProjectionEditorScope
 import com.verseviewer.application.view.dashboard.DashBoard
 import com.verseviewer.application.view.dashboard.DashBoardEditor
-import com.verseviewer.application.view.editor.ProjectionEditor
+import com.verseviewer.application.view.editor.ProjectionPreferenceEditor
 import com.verseviewer.application.view.projection.Projection
 import javafx.geometry.Orientation
 import javafx.geometry.Side
 import javafx.scene.Node
 import javafx.stage.Screen
 import javafx.stage.StageStyle
-import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 
 class MainView : View() {
@@ -28,6 +27,8 @@ class MainView : View() {
     private val userModel : UserModel by inject()
 
     private val controller : MainViewController by inject()
+
+    private val dashboard : DashBoard by inject()
 
     private val projectionEditorScope = ProjectionEditorScope()
 
@@ -40,13 +41,16 @@ class MainView : View() {
             listmenu {
                 item("Dashboard") {
                     activeItem = this
-                    whenSelected { center.replaceWith(find<DashBoard>().root) }
+                    whenSelected { setupDashboardView(center) }
                 }
                 item("Projection Settings") {
                     whenSelected { setupProjectionEditorView(center) }
                 }
                 item("Dashboard Editor") {
                     whenSelected { setupDashboardEditorView(center) }
+                }
+                item("Snapshots") {
+
                 }
 
                 anchorpaneConstraints {
@@ -57,30 +61,12 @@ class MainView : View() {
             }
 
             hbox {
-                togglebutton("Live", selectFirst = false) {
+                togglebutton( selectFirst = false) {
                     prefHeightProperty().bind(this@anchorpane.heightProperty())
-                    action {
-                        if (isSelected) {
-                            projectionModel.screenBounds = Screen.getScreens()
-                                    .getOrElse(preferenceModel.displayIndex.toInt()) { Screen.getScreens().first() }.visualBounds
-                            println(projectionModel.screenBounds)
-                            find<Projection>().openWindow(StageStyle.TRANSPARENT, escapeClosesWindow = false, owner = null)
-                            fire(OpenProjection(scope))
-                        }
-                        else {
-                            fire(CloseProjection(scope))
-                        }
-                        projectionModel.isLive = isSelected
-                    }
-                    enableWhen {preferenceModel.item.displayIndexProperty.ge(0)}
-                }
-                label {
-                    graphic = Styles.fontAwesome.create(FontAwesome.Glyph.ARROW_CIRCLE_O_RIGHT)
-                    prefHeightProperty().bind(this@anchorpane.heightProperty())
-                }
-                label {
-                    textProperty().bind(preferenceModel.displayIndexProperty.stringBinding {"Display $it"})
-                    prefHeightProperty().bind(this@anchorpane.heightProperty())
+                    action { openProjection(isSelected) }
+                    enableWhen { displayModel.itemProperty.selectBoolean { it.verses.sizeProperty.ge(0) }}
+                    textProperty().bind(preferenceModel.displayIndexProperty.stringBinding { "Display $it" })
+                    addClass(Styles.liveButton)
                 }
                 anchorpaneConstraints {
                     rightAnchor = 1.0
@@ -102,20 +88,38 @@ class MainView : View() {
         fire(CloseProjection(scope))
     }
 
+    private fun openProjection(isSelected : Boolean) {
+        if (isSelected) {
+            projectionModel.screenBounds = Screen.getScreens()
+                    .getOrElse(preferenceModel.displayIndex.toInt()) { Screen.getScreens().first() }.visualBounds
+            println(projectionModel.screenBounds)
+            find<Projection>().openWindow(StageStyle.TRANSPARENT, escapeClosesWindow = false, owner = null)
+            fire(OpenProjection(scope))
+        }
+        else {
+            fire(CloseProjection(scope))
+        }
+        projectionModel.isLive = isSelected
+    }
+
+    private fun setupDashboardView(node : Node) {
+        dashboard.root.children.clear()
+        node.replaceWith(dashboard.root)
+    }
+
     private fun setupProjectionEditorView(node : Node) {
         projectionEditorScope.savedPreferenceModel.item = preferenceModel.item
+
         projectionEditorScope.savedProjectionModel.item = projectionModel.item
-        node.replaceWith(find<ProjectionEditor>(projectionEditorScope).root)
+        node.replaceWith(find<ProjectionPreferenceEditor>(projectionEditorScope).root)
     }
 
     private fun setupDashboardEditorView(node : Node) {
-
         node.replaceWith(find<DashBoardEditor>(Scope()).root)
     }
 
     init {
         subscribe<LoadProjectionEditorSettings> {
-            println("Saved settings")
             preferenceModel.item = projectionEditorScope.savedPreferenceModel.item
             projectionModel.item = projectionEditorScope.savedProjectionModel.item
         }

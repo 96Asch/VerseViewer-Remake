@@ -21,7 +21,6 @@ class ProjectionEditorController : Controller() {
 
     fun getTestVerses(numTranslations : Int, numVerses : Int) : List<Passage> {
         val resultList = mutableListOf<Passage>()
-        println(numVerses)
         for (i in 0 until numTranslations) {
             val bookVerses = dbController.getBookVerses(translationList[i].name, 1)
             resultList.addAll(bookVerses.filter { it.verse.first <= numVerses && it.chapter == 1 })
@@ -29,7 +28,7 @@ class ProjectionEditorController : Controller() {
         return resultList
     }
 
-    fun savePreferencesToDB(pref : Preference) {
-        dbController.updateUserPreference(pref)
+    fun savePreferencesToDB(user : User, pref : Preference) {
+        dbController.updateUserPreference(user, pref)
     }
 }

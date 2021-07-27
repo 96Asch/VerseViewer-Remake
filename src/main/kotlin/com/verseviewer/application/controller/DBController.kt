@@ -45,6 +45,7 @@ class DBController : Controller() {
         val books = object : BooksTable(trans.lang) {}
         table.join(books, JoinType.INNER, additionalConstraint = {table.bookId eq books.bookId})
                 .select { table.bookId eq book }
+                .orderBy(table.verseId to SortOrder.ASC)
                 .map { Passage(id = it[table.verseId],
                               translation = Translation(trans.id.value, trans.abbreviation, trans.lang, trans.isDeutercanonic),
                               book = it[books.name],
@@ -62,6 +63,7 @@ class DBController : Controller() {
         val books = object : BooksTable(trans.lang) {}
         table.join(books, JoinType.INNER, additionalConstraint = {table.bookId eq books.bookId})
                 .select { table.verseId inList ids }
+                .orderBy(table.verseId to SortOrder.ASC)
                 .map { Passage(id = it[table.verseId],
                             translation = Translation(trans.id.value, trans.abbreviation, trans.lang, trans.isDeutercanonic),
                             book = it[books.name],
@@ -143,10 +145,10 @@ class DBController : Controller() {
         }
     }.first()
 
-    fun updateUserPreference(pref : Preference) {
+    fun updateUserPreference(user : User, pref : Preference) {
         transaction(db) {
             addLogger(StdOutSqlLogger)
-            Users.update {
+            Users.update({Users.id eq user.id}) {
                 it[display] = pref.displayIndexProperty.value
                 it[orientation] = pref.orientationProperty.value.toString()
                 it[textAlignment] = pref.textAlignmentProperty.value.toString()
@@ -157,6 +159,51 @@ class DBController : Controller() {
                 it[textFill] = pref.fillProperty.value.toString()
                 it[textStroke] = pref.strokeProperty.value.toString()
                 it[textStrokeWidth] = pref.strokeWidthProperty.value
+            }
+        }
+    }
+
+    fun addUiPreference(user : User, pref : UiPreference) {
+        transaction(db) {
+            addLogger(StdOutSqlLogger)
+            UiPreferences.insert {
+                it[userId] = user.id
+                it[layout] = pref.layoutToString()
+                it[tileColor] = pref.tileColorProperty.value.toString()
+                it[roundedCorner] = pref.roundedCornerProperty.value
+                it[fontSize] = pref.fontSizeProperty.value.toDouble()
+                it[fontFamily] = pref.fontFamilyProperty.value
+                it[fontWeight] = pref.fontWeightProperty.value.toString()
+                it[fontPosture] = pref.fontPostureProperty.value.toString()
+            }
+        }
+    }
+
+    fun getUiPreference(user: User) = transaction(db) {
+        UiPreferences.select { UiPreferences.userId eq user.id }.map {
+            UiPreference(
+                    it[UiPreferences.layout],
+                    it[UiPreferences.tileColor],
+                    it[UiPreferences.roundedCorner],
+                    it[UiPreferences.fontSize],
+                    it[UiPreferences.fontFamily],
+                    it[UiPreferences.fontWeight],
+                    it[UiPreferences.fontPosture]
+            )
+        }
+    }.first()
+
+    fun updateUiPreference(user : User, pref : UiPreference) {
+        transaction(db) {
+            addLogger(StdOutSqlLogger)
+            UiPreferences.update({UiPreferences.userId eq user.id}) {
+                it[layout] = pref.layoutToString()
+                it[tileColor] = pref.tileColorProperty.value.toString()
+                it[fontSize] = pref.fontSizeProperty.value.toDouble()
+                it[roundedCorner] = pref.roundedCornerProperty.value
+                it[fontFamily] = pref.fontFamilyProperty.value
+                it[fontWeight] = pref.fontWeightProperty.value.toString()
+                it[fontPosture] = pref.fontPostureProperty.value.toString()
             }
         }
     }
