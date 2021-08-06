@@ -1,10 +1,9 @@
 package com.verseviewer.application.controller
 
 import com.verseviewer.application.model.*
+import com.verseviewer.application.model.Snapshot
 import com.verseviewer.application.model.datastructure.Range
 import com.verseviewer.application.model.db.*
-import com.verseviewer.application.model.event.SendDBNotification
-import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -13,24 +12,26 @@ import java.sql.Connection
 
 class DBController : Controller() {
 
+    private
 
-    private val dbname = "data/bible.db"
-    private val jdbc = "jdbc:sqlite:file:"
-    private val driver = "org.sqlite.JDBC"
-
-    var db : Database? = null
-
-    fun isConnected() = db != null
-
-    fun connectToDB(path : String) {
-        db = Database.connect(jdbc + path, driver)
-        TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
+    object DbSettings {
+        var dbPath = ""
+        val db by lazy {
+            Database.connect("jdbc:sqlite:file:$dbPath", "org.sqlite.JDBC")
+        }
     }
 
-    fun getBooksByTranslation(translation:String) : List<Book> = transaction (db) {
+    fun initDB(path : String) {
+        TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
+        DbSettings.dbPath = path
+    }
+
+    fun getBooksByTranslation(translation:String) : List<Book> = transaction (DbSettings.db) {
         addLogger(StdOutSqlLogger)
+
         val lang = TranslationDAO.find { Translations.name eq translation }.first().lang
         val books = object : BooksTable(lang) {}
+
         books.selectAll().map {
             Book(book_id = it[books.bookId],
                     name = it[books.name],
@@ -38,11 +39,13 @@ class DBController : Controller() {
         }
     }
 
-    fun getBookVerses(translation: String, book: Int) : List<Passage> = transaction(db) {
+    fun getBookVerses(translation: String, book: Int) : List<Passage> = transaction(DbSettings.db) {
         addLogger(StdOutSqlLogger)
+
         val trans = TranslationDAO.find { Translations.name eq translation }.first()
         val table = object : TranslationBible(translation) {}
         val books = object : BooksTable(trans.lang) {}
+
         table.join(books, JoinType.INNER, additionalConstraint = {table.bookId eq books.bookId})
                 .select { table.bookId eq book }
                 .orderBy(table.verseId to SortOrder.ASC)
@@ -55,12 +58,14 @@ class DBController : Controller() {
                 }
     }
 
-    fun exchangeVersesByTranslation(passages: List<Passage>, translation: String) : List<Passage> = transaction(db) {
+    fun exchangeVersesByTranslation(passages: List<Passage>, translation: String) : List<Passage> = transaction(DbSettings.db) {
         addLogger(StdOutSqlLogger)
+
         val trans = TranslationDAO.find { Translations.name eq translation }.first()
         val ids = passages.map { it.id }
         val table = object : TranslationBible(translation) {}
         val books = object : BooksTable(trans.lang) {}
+
         table.join(books, JoinType.INNER, additionalConstraint = {table.bookId eq books.bookId})
                 .select { table.verseId inList ids }
                 .orderBy(table.verseId to SortOrder.ASC)
@@ -73,14 +78,16 @@ class DBController : Controller() {
                 }
     }
 
-    fun getTranslations() : List<Translation> = transaction(db) {
+    fun getTranslations() : List<Translation> = transaction(DbSettings.db) {
         addLogger(StdOutSqlLogger)
+
         TranslationDAO.all().map { Translation(it) }
     }
 
     fun updateVerseText(passage: Passage) {
-        transaction(db) {
+        transaction(DbSettings.db) {
             addLogger(StdOutSqlLogger)
+
             val table = object : TranslationBible(passage.translation.name) {}
             table.update ({ table.verseId eq passage.id} ) {
                 it[table.text] = passage.text
@@ -88,138 +95,59 @@ class DBController : Controller() {
         }
     }
 
-    fun getUsers() : List<User> = transaction(db) {
+    fun getSnapshot(id : Int) = transaction(DbSettings.db) {
         addLogger(StdOutSqlLogger)
-        try {
-            Users.slice(Users.id, Users.name, Users.layout).selectAll().map {
-                User(it[Users.id].value,
-                        "${it[Users.name]}",
-                        it[Users.layout])
-            }
-        } catch (e : ExposedSQLException) {
-            fire(SendDBNotification(e.localizedMessage))
-            listOf()
-        }
-    }
-
-    fun addUser(user : User, userPref : Preference) {
-        transaction(db) {
-            addLogger(StdOutSqlLogger)
-            val id = Users.insertAndGetId {
-                it[name] = user.name
-                it[layout] = user.layoutToString()
-                it[display] = userPref.displayIndexProperty.value
-                it[orientation] = userPref.orientationProperty.value.toString()
-                it[textAlignment] = userPref.textAlignmentProperty.value.toString()
-                it[fontSize] = userPref.fontSizeProperty.value.toDouble()
-                it[fontFamily] = userPref.fontFamilyProperty.value
-                it[fontWeight] = userPref.fontWeightProperty.value.toString()
-                it[fontPosture] = userPref.fontPostureProperty.value.toString()
-                it[textFill] = userPref.fillProperty.value.toString()
-                it[textStroke] = userPref.strokeProperty.value.toString()
-                it[textStrokeWidth] = userPref.strokeWidthProperty.value
-            }
-            user.id = id.value
-        }
-    }
-
-    fun removeUser(user : User) {
-        transaction(db) {
-            addLogger(StdOutSqlLogger)
-            Users.deleteWhere { Users.id eq user.id }
-        }
-    }
-
-    fun getPreference(user : User) = transaction(db) {
-        Users.select { Users.id eq user.id }.map {
-            Preference(it[Users.display],
-                    it[Users.orientation],
-                    it[Users.textAlignment],
-                    it[Users.fontSize],
-                    it[Users.fontFamily],
-                    it[Users.fontPosture],
-                    it[Users.fontWeight],
-                    it[Users.textFill],
-                    it[Users.textStroke],
-                    it[Users.textStrokeWidth])
+        print("DD")
+        SnapshotTable
+            .select { SnapshotTable.id eq id }
+            .map {
+                Snapshot(it[SnapshotTable.id].value,
+                    it[SnapshotTable.layout],
+                    it[SnapshotTable.display],
+                    it[SnapshotTable.orientation],
+                    it[SnapshotTable.textAlignment],
+                    it[SnapshotTable.fontSize],
+                    it[SnapshotTable.fontFamily],
+                    it[SnapshotTable.fontPosture],
+                    it[SnapshotTable.fontWeight],
+                    it[SnapshotTable.textFill],
+                    it[SnapshotTable.textStroke],
+                    it[SnapshotTable.textStrokeWidth])
         }
     }.first()
 
-    fun updateUserPreference(user : User, pref : Preference) {
-        transaction(db) {
+    fun updateUserPreference(snapshot : Snapshot) {
+        transaction(DbSettings.db) {
             addLogger(StdOutSqlLogger)
-            Users.update({Users.id eq user.id}) {
-                it[display] = pref.displayIndexProperty.value
-                it[orientation] = pref.orientationProperty.value.toString()
-                it[textAlignment] = pref.textAlignmentProperty.value.toString()
-                it[fontSize] = pref.fontSizeProperty.value.toDouble()
-                it[fontFamily] = pref.fontFamilyProperty.value
-                it[fontWeight] = pref.fontWeightProperty.value.toString()
-                it[fontPosture] = pref.fontPostureProperty.value.toString()
-                it[textFill] = pref.fillProperty.value.toString()
-                it[textStroke] = pref.strokeProperty.value.toString()
-                it[textStrokeWidth] = pref.strokeWidthProperty.value
+
+            SnapshotTable.update({SnapshotTable.id eq snapshot.id}) {
+                it[display] = snapshot.displayIndexProperty.value
+                it[orientation] = snapshot.orientationProperty.value.toString()
+                it[textAlignment] = snapshot.textAlignmentProperty.value.toString()
+                it[fontSize] = snapshot.fontSizeProperty.value.toDouble()
+                it[fontFamily] = snapshot.fontFamilyProperty.value
+                it[fontWeight] = snapshot.fontWeightProperty.value.toString()
+                it[fontPosture] = snapshot.fontPostureProperty.value.toString()
+                it[textFill] = snapshot.fillProperty.value.toString()
+                it[textStroke] = snapshot.strokeProperty.value.toString()
+                it[textStrokeWidth] = snapshot.strokeWidthProperty.value
             }
         }
     }
 
-    fun addUiPreference(user : User, pref : UiPreference) {
-        transaction(db) {
+    fun updateLayout(snapshot : Snapshot) {
+        transaction(DbSettings.db) {
             addLogger(StdOutSqlLogger)
-            UiPreferences.insert {
-                it[userId] = user.id
-                it[layout] = pref.layoutToString()
-                it[tileColor] = pref.tileColorProperty.value.toString()
-                it[roundedCorner] = pref.roundedCornerProperty.value
-                it[fontSize] = pref.fontSizeProperty.value.toDouble()
-                it[fontFamily] = pref.fontFamilyProperty.value
-                it[fontWeight] = pref.fontWeightProperty.value.toString()
-                it[fontPosture] = pref.fontPostureProperty.value.toString()
+
+            SnapshotTable.update ( {SnapshotTable.id eq snapshot.id} ) {
+                it[layout] = snapshot.layoutToString()
             }
         }
     }
-
-    fun getUiPreference(user: User) = transaction(db) {
-        UiPreferences.select { UiPreferences.userId eq user.id }.map {
-            UiPreference(
-                    it[UiPreferences.layout],
-                    it[UiPreferences.tileColor],
-                    it[UiPreferences.roundedCorner],
-                    it[UiPreferences.fontSize],
-                    it[UiPreferences.fontFamily],
-                    it[UiPreferences.fontWeight],
-                    it[UiPreferences.fontPosture]
-            )
-        }
-    }.first()
-
-    fun updateUiPreference(user : User, pref : UiPreference) {
-        transaction(db) {
-            addLogger(StdOutSqlLogger)
-            UiPreferences.update({UiPreferences.userId eq user.id}) {
-                it[layout] = pref.layoutToString()
-                it[tileColor] = pref.tileColorProperty.value.toString()
-                it[fontSize] = pref.fontSizeProperty.value.toDouble()
-                it[roundedCorner] = pref.roundedCornerProperty.value
-                it[fontFamily] = pref.fontFamilyProperty.value
-                it[fontWeight] = pref.fontWeightProperty.value.toString()
-                it[fontPosture] = pref.fontPostureProperty.value.toString()
-            }
-        }
-    }
-
-    fun updateLayout(user : User) {
-        transaction(db) {
-            addLogger(StdOutSqlLogger)
-            Users.update ( {Users.id eq user.id} ) {
-                it[layout] = user.layoutToString()
-            }
-        }
-    }
-
 
     private fun toRange(verse : String) : Range {
         val trim = verse.replace("\\s".toRegex(), "")
+
         return when {
             trim.contains("-") -> {
                val split = trim.split("-")

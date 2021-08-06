@@ -3,7 +3,7 @@ package com.verseviewer.application.view.projection
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.ProjectionController
 import com.verseviewer.application.model.VerseGroupModel
-import com.verseviewer.application.model.PreferenceModel
+import com.verseviewer.application.model.SnapshotModel
 import com.verseviewer.application.model.ProjectionModel
 import com.verseviewer.application.model.event.*
 import javafx.animation.FadeTransition
@@ -18,7 +18,7 @@ class Projection : Fragment() {
     private val verseGroupModel : VerseGroupModel by inject()
     private val controller : ProjectionController by inject()
     private val projectionModel : ProjectionModel by inject()
-    private val preferenceModel : PreferenceModel by inject()
+    private val preferenceModel : SnapshotModel by inject()
 
     private val fadeDuration = Duration.millis(500.0)
     private var fadeOutTransition by singleAssign<FadeTransition>()

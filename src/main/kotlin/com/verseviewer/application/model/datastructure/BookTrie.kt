@@ -19,7 +19,7 @@ class BookTrie() {
     private fun insert (word: String, id: Int) {
         var currentNode = root
 
-        word.toUpperCase().forEach {
+        word.uppercase().forEach {
             currentNode.children[it] = currentNode.children[it] ?: Node()
             currentNode = currentNode.children[it]!!
         }
@@ -31,7 +31,7 @@ class BookTrie() {
         var currentNode = root
         var str = String()
 
-        for (char in word.toUpperCase().replace("\\s".toRegex(), "")) {
+        for (char in word.uppercase().replace("\\s".toRegex(), "")) {
             if (currentNode.children[char] == null) {
                 break
             }

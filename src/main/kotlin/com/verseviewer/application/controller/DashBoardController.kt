@@ -2,11 +2,11 @@ package com.verseviewer.application.controller
 
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.model.*
+import com.verseviewer.application.model.event.PlaceTile
 import com.verseviewer.application.view.dashboard.DashBoard
 import com.verseviewer.application.view.dashboard.GridCell
-import com.verseviewer.application.view.dashboard.addTile
 import eu.hansolo.tilesfx.Tile
-import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.Point2D
 import javafx.scene.Node
 import javafx.scene.input.MouseEvent
@@ -17,8 +17,11 @@ class DashBoardController : Controller() {
     private val tileList = mutableListOf<TileProperties>()
     private val builder : ComponentBuilder by inject()
     private val tileModel : TilePropertiesModel by inject()
-    private val uiPreferenceModel : UiPreferenceModel by inject()
+    private val snapshotModel : SnapshotModel by inject(FX.defaultScope)
     private val view : DashBoard by inject()
+
+    val inEditorProperty = SimpleBooleanProperty(false)
+    var inEditor by inEditorProperty
 
     private val allowedStyle = Styles.placementAllowed
     private val notAllowedStyle = Styles.placementNotAllowed
@@ -113,7 +116,7 @@ class DashBoardController : Controller() {
             else -> null
         }?.apply {
             tile.isVisible = true
-            view.root.addTile(this)
+            fire(PlaceTile(this))
             success = true
         }
         return success
@@ -155,20 +158,20 @@ class DashBoardController : Controller() {
         }
     }
 
-    private fun build(gridBuilder: GridBuilder, builder: ComponentBuilder, isEditable: Boolean) : List<TileProperties> {
+    private fun build(gridBuilder: GridBuilder, builder: ComponentBuilder) : List<TileProperties> {
         return gridBuilder.tiles.map {
-            buildTileProperties(it, builder, isEditable)
+            buildTileProperties(it, builder)
         }
     }
 
-    private fun buildTileProperties (tileBuilder : TileBuilder, builder: ComponentBuilder, isEditable: Boolean) : TileProperties {
-        val tile = builder.createTile(tileBuilder.componentId, isEditable, true)
+    private fun buildTileProperties (tileBuilder : TileBuilder, builder: ComponentBuilder) : TileProperties {
+        val tile = builder.createTile(tileBuilder.componentId, inEditor)
         return TileProperties(tile, tileBuilder.x, tileBuilder.y, tileBuilder.colspan, tileBuilder.rowspan)
     }
 
     fun commitTiles() {
         val tileBuilders = tileList.map { TileBuilder(builder.getId(it.tile), it.x, it.y, it.colspan, it.rowspan) }
-        uiPreferenceModel.layout.value.tiles.setAll(tileBuilders)
+        snapshotModel.layout.tiles.setAll(tileBuilders)
     }
 
     fun clearTiles() {
@@ -180,21 +183,22 @@ class DashBoardController : Controller() {
 
     fun removeTile(tile: Tile) {
         println(view.root.children.remove(tile))
-        builder.removeInstance(tile)
+        builder.increaseInstances(tile)
         removeProperty(tile)
     }
 
     fun refreshTiles() {
-        val tiles = uiPreferenceModel.layout.value.tiles
+        val tiles = snapshotModel.layout.tiles
         if (tiles.isNotEmpty()) {
             builder.refreshCounters()
             tileList.clear()
-            tiles.forEach { tileList.add(buildTileProperties(it, builder, true)) }
+            tiles.forEach { tileList.add(buildTileProperties(it, builder)) }
         }
     }
 
-    fun initGrid(inEditor : Boolean) {
+    fun initGrid() {
         tileList.clear()
-        tileList.addAll(build(uiPreferenceModel.layout.value, builder, inEditor))
+        println("SNapshot: ${snapshotModel.layoutProperty}")
+        tileList.addAll(build(snapshotModel.layout, builder))
     }
 }

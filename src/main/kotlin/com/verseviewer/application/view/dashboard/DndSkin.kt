@@ -53,7 +53,7 @@ open class DndSkin(tile: Tile, private val regionSize : Double) : CustomTileSkin
 
         resizeRegion.setPrefSize(regionSize, regionSize)
         resizeRegion.relocate(width - regionSize, height - regionSize)
-        resizeRegion.icon?.rotate = 45.0
+        resizeRegion.icon.rotate = 45.0
 
         closeRegion.setPrefSize(regionSize, regionSize)
         closeRegion.relocate(width - regionSize, 0.0)

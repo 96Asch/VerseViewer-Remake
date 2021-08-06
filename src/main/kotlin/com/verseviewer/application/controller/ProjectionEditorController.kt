@@ -1,14 +1,9 @@
 package com.verseviewer.application.controller
 
 import com.verseviewer.application.model.Passage
-import com.verseviewer.application.model.Preference
-import com.verseviewer.application.model.User
-import javafx.collections.FXCollections
-import javafx.scene.text.Font
-import javafx.scene.text.TextAlignment
+import com.verseviewer.application.model.Snapshot
 import javafx.stage.Screen
 import tornadofx.Controller
-import tornadofx.asObservable
 
 class ProjectionEditorController : Controller() {
 
@@ -28,7 +23,7 @@ class ProjectionEditorController : Controller() {
         return resultList
     }
 
-    fun savePreferencesToDB(user : User, pref : Preference) {
-        dbController.updateUserPreference(user, pref)
+    fun savePreferencesToDB(pref : Snapshot) {
+        dbController.updateUserPreference(pref)
     }
 }

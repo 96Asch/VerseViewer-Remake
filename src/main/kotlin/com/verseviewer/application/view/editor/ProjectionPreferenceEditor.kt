@@ -32,9 +32,8 @@ class ProjectionPreferenceEditor : View() {
     private val controller : ProjectionEditorController by inject(FX.defaultScope)
 
     private val verseGroupModel : VerseGroupModel by inject()
-    private val userModel : UserModel by inject(FX.defaultScope)
     private val projectionModel : ProjectionModel by inject()
-    private val preferenceModel : PreferenceModel by inject()
+    private val preferenceModel : SnapshotModel by inject()
 
     private var fontPicker : PopOver by singleAssign()
 
@@ -44,7 +43,7 @@ class ProjectionPreferenceEditor : View() {
     override val root = borderpane {
 
         projectionModel.item = scope.savedProjectionModel.item
-        preferenceModel.item = scope.savedPreferenceModel.item
+        preferenceModel.item = scope.savedSnapshotModel.item
 
         projectionModel.screenBoundsProperty.value = Screen.getScreens().first().visualBounds
 
@@ -228,9 +227,9 @@ class ProjectionPreferenceEditor : View() {
         preferenceModel.commit()
 
         scope.savedProjectionModel.item = projectionModel.item
-        scope.savedPreferenceModel.item = preferenceModel.item
+        scope.savedSnapshotModel.item = preferenceModel.item
 
-        controller.savePreferencesToDB(userModel.item, preferenceModel.item)
+        controller.savePreferencesToDB(preferenceModel.item)
     }
 
     private fun createAlignmentButton(glyph : FontAwesome.Glyph, textAlignment: TextAlignment) : ToggleButton {

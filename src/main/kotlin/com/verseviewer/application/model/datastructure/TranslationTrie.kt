@@ -14,7 +14,7 @@ class TranslationTrie {
     private fun insert (word: String, translation: Translation) {
         var currentNode = root
 
-        word.toUpperCase().forEach {
+        word.uppercase().forEach {
             currentNode.children[it] = currentNode.children[it] ?: Node()
             currentNode = currentNode.children[it]!!
         }
@@ -26,7 +26,7 @@ class TranslationTrie {
         var currentNode = root
         var str = String()
 
-        for (char in word.toUpperCase()) {
+        for (char in word.uppercase()) {
             if (currentNode.children[char] == null) {
                 break
             }

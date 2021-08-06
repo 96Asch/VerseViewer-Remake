@@ -1,6 +1,6 @@
 package com.verseviewer.application.view.editor
 
-import com.verseviewer.application.model.PreferenceModel
+import com.verseviewer.application.model.SnapshotModel
 import com.verseviewer.application.controller.FontPickerController
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.event.EventHandler
@@ -11,7 +11,7 @@ import tornadofx.*
 class FontPicker : Fragment() {
 
     private val controller : FontPickerController by inject()
-    private val preferenceModel : PreferenceModel by inject()
+    private val preferenceModel : SnapshotModel by inject()
 
     override val root = gridpane {
 

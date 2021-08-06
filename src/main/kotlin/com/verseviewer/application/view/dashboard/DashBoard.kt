@@ -2,24 +2,28 @@ package com.verseviewer.application.view.dashboard
 
 import com.verseviewer.application.controller.DashBoardController
 import com.verseviewer.application.model.TileProperties
+import com.verseviewer.application.model.event.PlaceTile
 import eu.hansolo.tilesfx.Tile
 import javafx.geometry.HPos
 import javafx.geometry.VPos
 import javafx.scene.layout.*
 import tornadofx.*
 
+class GridCell(val x : Int, val y : Int) : Pane()
+
+fun GridPane.addTiles(tiles : List<TileProperties>) {
+    tiles.forEach { add(it.tile, it.x, it.y, it.colspan, it.rowspan) }
+}
+
 class DashBoard : View() {
     val heightTiles = 16
     val widthTiles = 32
     val tileSize = 25.0
-    private var inEditor = false
 
     private val controller : DashBoardController by inject()
 
     override val root = gridpane {
-        paddingAll = 5.0
-        vgap = 5.0
-        hgap = 5.0
+
         for (i in 0 until widthTiles) {
             val c = ColumnConstraints().apply {
                 halignment = HPos.CENTER
@@ -40,34 +44,37 @@ class DashBoard : View() {
 
         for (y in 0 until heightTiles) {
             for (x in 0 until widthTiles) {
-                val pane = GridCell(x,y)
-                add(pane, x, y)
+                add(GridCell(x, y), x, y)
             }
         }
+
+        paddingAll = 2.5
+        gridLinesVisibleProperty().bind(controller.inEditorProperty)
     }
 
     fun refreshTiles() {
-        if (inEditor)
+        if (controller.inEditor)
             root.children.removeIf { it is Tile }
         else
             root.children.clear()
-        controller.getTiles().forEach {
-            root.addTile(it)
-        }
+
+        root.addTiles(controller.getTiles())
     }
 
     override fun onDock() {
-        inEditor = params["inEditor"] as? Boolean ?: false
-        root.isGridLinesVisible = inEditor
-        controller.initGrid(inEditor)
+        controller.inEditor = params["inEditor"] as? Boolean ?: false
+        controller.initGrid()
         refreshTiles()
     }
+
+    init {
+        subscribe<PlaceTile> {
+            root.add(it.tileProperty.tile,
+                    it.tileProperty.x,
+                    it.tileProperty.y,
+                    it.tileProperty.colspan,
+                    it.tileProperty.rowspan)
+        }
+    }
 }
-
-
-fun GridPane.addTile(property : TileProperties) {
-    add(property.tile, property.x, property.y, property.colspan, property.rowspan)
-}
-
-class GridCell(val x : Int, val y : Int) : Pane()
 

@@ -18,7 +18,7 @@ class PassageBox : Fragment() {
     private val controller : PassageBoxController by inject()
 
     private val verseGroupModel : VerseGroupModel by inject()
-    private val preferenceModel : PreferenceModel by inject()
+    private val preferenceModel : SnapshotModel by inject()
     private val projectionModel : ProjectionModel by inject()
 
     private var bodyTextFlow : TextFlow by singleAssign()

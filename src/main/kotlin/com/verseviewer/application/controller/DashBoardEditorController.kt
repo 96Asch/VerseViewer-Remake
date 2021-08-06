@@ -1,17 +1,13 @@
 package com.verseviewer.application.controller
 
 import com.verseviewer.application.app.Styles
+import com.verseviewer.application.model.SnapshotModel
 import com.verseviewer.application.model.TilePropertiesModel
-import com.verseviewer.application.model.UserModel
 import com.verseviewer.application.view.dashboard.DashBoardEditor
 import com.verseviewer.application.view.dashboard.DndSkin
 import eu.hansolo.tilesfx.Tile
-import eu.hansolo.tilesfx.TileBuilder
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.scene.Node
-import javafx.scene.image.Image
-import javafx.scene.image.ImageView
-import javafx.scene.image.WritableImage
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Region
 import tornadofx.*
@@ -26,7 +22,7 @@ class DashBoardEditorController : Controller() {
     private val tileModel : TilePropertiesModel by inject()
 
     private val dbController : DBController by inject(FX.defaultScope)
-    private val userModel : UserModel by inject(FX.defaultScope)
+    private val snapshotModel : SnapshotModel by inject(FX.defaultScope)
 
     private var inFlightTile: Tile? = null
     private var selectedTile: Tile? = null
@@ -42,8 +38,7 @@ class DashBoardEditorController : Controller() {
 
     fun updateGridToDB() {
         dashboardController.commitTiles()
-        userModel.commit()
-        dbController.updateLayout(userModel.item)
+        dbController.updateLayout(snapshotModel.item)
         dirty = false
     }
 
@@ -198,6 +193,9 @@ class DashBoardEditorController : Controller() {
 
     init {
         refreshComponents()
+        dashboardController.getTiles().forEach {
+            builder.decreaseInstances(it.tile)
+        }
     }
 }
 

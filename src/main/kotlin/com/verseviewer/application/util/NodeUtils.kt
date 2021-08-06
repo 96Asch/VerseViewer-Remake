@@ -43,7 +43,7 @@ fun NotificationPane.showForSeconds(type : NotificationType, message: String, du
     when (type) {
         NotificationType.NOTIFICATION -> {}
         NotificationType.WARNING -> graphic = Styles.fontAwesome.create(FontAwesome.Glyph.WARNING)
-        NotificationType.ERROR -> graphic = Styles.fontAwesome.create(FontAwesome.Glyph.EXCLAMATION_TRIANGLE)
+        NotificationType.ERROR -> graphic = Styles.fontAwesome.create(FontAwesome.Glyph.EXCLAMATION_CIRCLE)
     }
 
     if (graphic != null)

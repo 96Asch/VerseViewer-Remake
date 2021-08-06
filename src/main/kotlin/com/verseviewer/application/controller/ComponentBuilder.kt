@@ -23,6 +23,7 @@ class ComponentBuilder : Controller() {
 
     private val componentIdName = "componentId"
     private val tileSize = 25.0
+    private val tilePadding = 2.5
     private val dummyComponent = VVComponent(Dummy::class, maxInstances = -1)
     private val editorScope = EditorScope()
     
@@ -47,9 +48,12 @@ class ComponentBuilder : Controller() {
         else component.maxInstances < 0
     }
 
-    fun removeInstance(tile: Tile) {
-        val component = components[tile.properties[componentIdName] as String]
-        component?.apply { instancesLeft++ }
+    fun decreaseInstances(tile: Tile) {
+        components[tile.properties[componentIdName] as String]?.apply { instancesLeft-- }
+    }
+
+    fun increaseInstances(tile: Tile) {
+        components[tile.properties[componentIdName] as String]?.apply { instancesLeft++ }
     }
 
     fun createListComponents() = components.map {
@@ -132,6 +136,7 @@ class ComponentBuilder : Controller() {
                 .graphic(fragment.root)
                 .build()
 
+        tile.paddingAll = tilePadding
         tile.properties[componentIdName] = component.classType.simpleName!!
         if (isEditable) {
             val dndSkin = DndSkin(tile, tileSize)

@@ -11,7 +11,7 @@ import javafx.scene.control.TextArea
 import org.controlsfx.glyphfont.FontAwesome
 import org.controlsfx.glyphfont.GlyphFontRegistry
 import tornadofx.*
-import tornadofx.controlsfx.*
+import tornadofx.controlsfx.masterdetailpane
 
 class VerseEditor : Fragment() {
     private val passageModel : PassageModel by inject()
@@ -20,29 +20,6 @@ class VerseEditor : Fragment() {
     private val stView : SpecialSymbolTable by inject()
 
     override val root = borderpane {
-        val master = masterdetailpane {
-            val ta = textarea(passageModel.text) {
-                isWrapText = true
-                focusedProperty().addListener { _, _, new ->
-                    if (new.not()) {
-                        symbolModel.caretPos = caretPosition
-                    }
-                }
-            }
-
-            masterNode = ta
-
-            detailNode =  scrollpane {
-                this += stView
-                isFitToWidth = true
-            }
-
-            isShowDetailNode = true
-            detailSide = Side.BOTTOM
-            symbolModel.symbol.addListener(insertCharListener(ta))
-        }
-
-        center = master
 
         val glyph = GlyphFontRegistry.font("FontAwesome")
         left = vbox {
@@ -57,7 +34,7 @@ class VerseEditor : Fragment() {
             }
             togglebutton {
                 graphic = glyph.create(FontAwesome.Glyph.ASTERISK)
-                master.showDetailNodeProperty().bind(selectedProperty())
+//                master.showDetailNodeProperty().bind(selectedProperty())
                 isSelected = false
                 shortcut("Ctrl+Y") {
                     this.isSelected = !this.isSelected
