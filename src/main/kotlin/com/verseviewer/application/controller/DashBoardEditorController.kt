@@ -4,6 +4,7 @@ import com.verseviewer.application.app.Styles
 import com.verseviewer.application.model.SnapshotModel
 import com.verseviewer.application.model.TilePropertiesModel
 import com.verseviewer.application.model.datastructure.Dimension
+import com.verseviewer.application.model.event.ClearHighlights
 import com.verseviewer.application.model.event.HighlightCells
 import com.verseviewer.application.model.event.PlaceInFlightTile
 import com.verseviewer.application.view.dashboard.DashBoardEditor
@@ -40,8 +41,8 @@ class DashBoardEditorController : Controller() {
     private var selectedTile: Tile? = null
     private var dropDimension : Dimension? = null
     private var action = EditAction.NONE
-    private val minColSpan = 4
-    private val minRowSpan = 4
+    private val minColSpan = 6
+    private val minRowSpan = 6
 
     val dirtyProperty = SimpleBooleanProperty(false)
     var dirty by dirtyProperty
@@ -176,7 +177,7 @@ class DashBoardEditorController : Controller() {
         }
         else {
             selectedTile?.apply { isVisible = true }
-            dashboardController.clearHighlighted()
+            fire(ClearHighlights())
         }
         inFlightTile?.graphic?.removeFromParent()
         inFlightTile = null
@@ -208,3 +209,4 @@ class DashBoardEditorController : Controller() {
         }
     }
 }
+

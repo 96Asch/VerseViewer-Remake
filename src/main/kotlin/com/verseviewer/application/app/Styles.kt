@@ -88,7 +88,7 @@ class Styles : Stylesheet() {
         }
 
         greyedOut {
-            opacity = 0.1
+            opacity = 0.3
         }
 
 

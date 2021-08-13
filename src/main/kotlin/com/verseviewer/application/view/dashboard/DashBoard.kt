@@ -4,6 +4,7 @@ import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.DashBoardController
 import com.verseviewer.application.model.TileProperties
 import com.verseviewer.application.model.datastructure.Dimension
+import com.verseviewer.application.model.event.ClearHighlights
 import com.verseviewer.application.model.event.HighlightCells
 import com.verseviewer.application.model.event.PlaceTile
 import eu.hansolo.tilesfx.Tile
@@ -77,7 +78,7 @@ class DashBoard : View() {
     }
 
     private fun highlightCells(style : CssRule, cells : List<Node>) {
-        clearHighlighted()
+        clearHighlights()
         cells.forEach {
             if (!it.hasClass(style)) {
                 it.addClass(style)
@@ -85,7 +86,7 @@ class DashBoard : View() {
         }
     }
 
-    private fun clearHighlighted() {
+    private fun clearHighlights() {
         root.children
             .forEach {
                 if (it.hasClass(allowedStyle))
@@ -114,6 +115,10 @@ class DashBoard : View() {
         subscribe<HighlightCells> {
             val style = if (it.allowed) allowedStyle else notAllowedStyle
             highlightCells(style, it.dimension)
+        }
+
+        subscribe<ClearHighlights> {
+            clearHighlights()
         }
     }
 }

@@ -6,11 +6,11 @@ import com.verseviewer.application.model.event.PlaceTile
 import com.verseviewer.application.view.dashboard.DashBoard
 import com.verseviewer.application.view.dashboard.GridCell
 import com.verseviewer.application.model.datastructure.Dimension
+import com.verseviewer.application.model.event.ClearHighlights
 import com.verseviewer.application.model.event.HighlightCells
 import eu.hansolo.tilesfx.Tile
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.Point2D
-import javafx.scene.Node
 import javafx.scene.input.MouseEvent
 import tornadofx.*
 
@@ -46,54 +46,21 @@ class DashBoardController : Controller() {
     }
 
     fun validateDrop(x : Int, y : Int, colspan: Int, rowspan: Int) : Dimension? {
-//        val (boundsX, boundsY) = Pair(x + colspan, y + rowspan)
-//        val placementCells = view.root.children
-//                .filterIsInstance<GridCell>()
-//                .filter { it.x in x until boundsX
-//                        && it.y in y until boundsY  }
         val dimension = Dimension(x, y, colspan, rowspan)
+
         return if (!dimensionIntersects(dimension)) {
-//            highlightCells(allowedStyle, placementCells)
             fire(HighlightCells(true, dimension))
             dimension
         }
         else {
             fire(HighlightCells(false, dimension))
-//            highlightCells(notAllowedStyle, placementCells)
             null
         }
     }
 
-    fun highlightCells(style : CssRule, x : Int, y : Int, width: Int, height: Int) {
-        val (boundsX, boundsY) = Pair(x + width, y + height)
-        val placementCells = view.root.children
-                .filter { cell -> cell is GridCell
-                        && x <= cell.x && cell.x < boundsX
-                        && y <= cell.y && cell.y < boundsY  }
-        highlightCells(style, placementCells)
-    }
-
-    private fun highlightCells(style : CssRule, cells : List<Node>) {
-        clearHighlighted()
-        cells.forEach {
-            if (!it.hasClass(style)) {
-                it.addClass(style)
-            }
-        }
-    }
-
-    fun clearHighlighted() {
-        view.root.children
-                .forEach {
-                    if (it.hasClass(allowedStyle))
-                        it.removeClass(allowedStyle)
-                    if (it.hasClass(notAllowedStyle))
-                        it.removeClass(notAllowedStyle)
-                }
-    }
-
     fun dropOnGrid(action: EditAction, dropDimension: Dimension, selectedTile: Tile?) : Boolean{
-        clearHighlighted()
+        fire(ClearHighlights())
+
         var success = false
         when (action) {
             EditAction.NEW_DRAG_DROP -> {
