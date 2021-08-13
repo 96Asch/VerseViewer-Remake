@@ -2,6 +2,9 @@ package com.verseviewer.application.view.projection
 
 import com.verseviewer.application.app.Styles
 import javafx.animation.*
+import javafx.beans.property.ReadOnlyBooleanProperty
+import javafx.beans.property.ReadOnlyBooleanWrapper
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.EventHandler
 import javafx.geometry.Rectangle2D
 import javafx.scene.CacheHint
@@ -22,11 +25,8 @@ class Frame(val width : Double, val height : Double) : Group() {
     private val fadeDelayTime = 800.0
     private var isReverse = false
     private var frameAnimation: Animation? = null
-    private var headerAnimation: Animation? = null
-    private var bodyAnimation: Animation? = null
     private val animation = ParallelTransition()
     private val list = mutableListOf<Node>()
-
 
     fun buildSimpleSequentialAnimation(margin : Double, topMargin : Double, topLineFactor : Double) {
         children.clear()
@@ -61,10 +61,21 @@ class Frame(val width : Double, val height : Double) : Group() {
         list.addAll(children.toList())
     }
 
-    fun initAnimation() {
+    fun initAnimation(header : Node, body : Node) {
         animation.children.clear()
 
-        animation.children.addAll(frameAnimation, headerAnimation, bodyAnimation)
+        val headerFadeAnimation = buildFadeTransition(header)
+        val bodyFadeAnimation = buildFadeTransition(body).apply {
+            onFinished = EventHandler {
+                if (!isReverse) {
+                    println("Paused")
+                    println(animation.children.size)
+                    animation.pause()
+                }
+            }
+        }
+
+        animation.children.addAll(frameAnimation, headerFadeAnimation, bodyFadeAnimation)
         animation.cycleCount = 2
         animation.isAutoReverse = true
     }
@@ -73,41 +84,30 @@ class Frame(val width : Double, val height : Double) : Group() {
         isReverse = false
         children.forEach { it.isVisible = false }
         animation.rate = rate
+        println("From Start")
         animation.playFromStart()
-        
     }
 
     fun reversePlay() {
         if (!isReverse && animation.status == Animation.Status.PAUSED) {
             isReverse = true
+            println("Reverse")
             animation.play()
         }
     }
 
-    fun buildHeaderFadeTransition(header: Node) {
-        headerAnimation = FadeTransition(Duration.millis(fadeTime), header).apply {
-            fromValue = 0.0
-            toValue = 1.0
-            delay = Duration.millis(fadeDelayTime)
-        }
-    }
-
-    fun buildBodyFadeTransition(body : Node) {
-        bodyAnimation = FadeTransition(Duration.millis(fadeTime), body).apply {
-            fromValue = 0.0
-            toValue = 1.0
-            delay = Duration.millis(fadeDelayTime)
-            onFinished = EventHandler {
-                if (!isReverse)
-                    animation.pause()
-            }
-        }
+    private fun buildFadeTransition(header: Node) = FadeTransition(Duration.millis(fadeTime), header).apply {
+        fromValue = 0.0
+        toValue = 1.0
+        delay = Duration.millis(fadeDelayTime)
     }
 
     private fun buildLineAnimation(line: Line, endX: Double, endY: Double, segmentTime : Double = frameSegmentTime): Animation {
         return Timeline(
                 KeyFrame(Duration.millis(1.0),
                         KeyValue(line.visibleProperty(), true)),  // show
+
+                // Build a growing animation for a line
                 KeyFrame(Duration.millis(segmentTime),
                         KeyValue(line.endXProperty(), endX),
                         KeyValue(line.endYProperty(), endY)

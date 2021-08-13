@@ -32,11 +32,51 @@ class MainView : View() {
     private val pEditorScope = ProjectionEditorScope()
     private val controller : MainViewController by inject()
 
-    private val exts = listOf(FileChooser.ExtensionFilter("sqlite database (.db)", "*.db"))
-    private val prefName = "VerseViewer"
+    private val projectionView : Projection by lazy { find() }
 
     override val root = notificationPane {
+
         content = hiddensidepane {
+
+            left = hbox {
+                vbox {
+                    listmenu {
+                        item(text = "Dashboard") {
+                            whenSelected {
+                                fire(ChangeScene(find<DashBoard>().root))
+                            }
+                        }
+                        item("Projection Settings") {
+                            whenSelected {
+                                pEditorScope.savedSnapshotModel.item = snapshotModel.item
+                                pEditorScope.savedProjectionModel.item = projectionModel.item
+                                fire(ChangeScene(find<ProjectionPreferenceEditor>(pEditorScope).root))
+                            }
+                        }
+                        item("Dashboard Editor") {
+                            whenSelected {
+                                fire(ChangeScene(find<DashBoardEditor>(Scope()).root))
+                            }
+                        }
+                        item("Snapshots") {
+                            whenSelected {
+
+                            }
+                        }
+                        orientation = Orientation.VERTICAL
+                        iconPosition = Side.LEFT
+                    }
+                    paddingAll = 4
+                    addClass(Styles.slideMenu)
+                }
+
+                button {
+                    graphic = Styles.fontAwesome.create(FontAwesome.Glyph.ARROW_LEFT)
+                    action { pinnedSide = null }
+                    addClass(Styles.transparentButton)
+                }
+            }
+
             content = borderpane {
 
                 projectionModel.item = ProjectionData()
@@ -50,7 +90,9 @@ class MainView : View() {
                         anchorpaneConstraints {
                             leftAnchor = 1.0
                         }
+                        enableWhen(controller.snapshotLoadedProperty)
                     }
+
                     hbox {
                         togglebutton(selectFirst = false) {
                             prefHeightProperty().bind(this@anchorpane.heightProperty())
@@ -74,13 +116,13 @@ class MainView : View() {
                         action {
                             val files = chooseFile(
                                 "Select the database",
-                                exts.toTypedArray(),
+                                controller.exts.toTypedArray(),
                                 null,
                                 FileChooserMode.Single
                             )
                             if (files.isNotEmpty()) {
                                 controller.setDBPath(files.first().absolutePath)
-                                preferences(prefName) {
+                                preferences(controller.prefName) {
                                     put("db_location", controller.databasePath)
                                 }
                             }
@@ -98,50 +140,9 @@ class MainView : View() {
                     alignment = Pos.CENTER
                 }
 
-
                 subscribe<ChangeScene> {
                     center.replaceWith(it.node)
                     pinnedSide = null
-                }
-            }
-
-            left = vbox {
-                hbox {
-                    listmenu {
-                        item(text = "Dashboard") {
-                            whenSelected {
-                                fire(ChangeScene(find<DashBoard>().root))
-                            }
-                            enableWhen(controller.snapshotLoadedProperty)
-                        }
-                        item("Projection Settings") {
-                            whenSelected {
-                                pEditorScope.savedSnapshotModel.item = snapshotModel.item
-                                pEditorScope.savedProjectionModel.item = projectionModel.item
-                                fire(ChangeScene(find<ProjectionPreferenceEditor>(pEditorScope).root))
-                            }
-                            enableWhen(controller.snapshotLoadedProperty)
-                        }
-                        item("Dashboard Editor") {
-                            whenSelected {
-                                fire(ChangeScene(find<DashBoardEditor>(Scope()).root))
-                            }
-                            enableWhen(controller.snapshotLoadedProperty)
-                        }
-                        item("Snapshots") {
-                            whenSelected {
-
-                            }
-                            enableWhen(controller.snapshotLoadedProperty)
-                        }
-                        orientation = Orientation.VERTICAL
-                        iconPosition = Side.LEFT
-                    }
-                    button {
-                        graphic = Styles.fontAwesome.create(FontAwesome.Glyph.ARROW_LEFT)
-                        action { pinnedSide = null }
-                        addClass(Styles.transparentButton)
-                    }
                 }
             }
             triggerDistance = 0.0
@@ -150,6 +151,7 @@ class MainView : View() {
                 it.consume()
             }
         }
+
         subscribe<SendGlobalNotification> {
             showForSeconds(it.type, it.message, it.duration)
         }
@@ -161,6 +163,7 @@ class MainView : View() {
         currentStage?.setOnCloseRequest {
             fire(CloseProjection(scope))
         }
+        currentStage?.isAlwaysOnTop = true
     }
 
     override fun onUndock() {
@@ -169,11 +172,12 @@ class MainView : View() {
 
     private fun openProjection(isSelected : Boolean) {
         if (isSelected) {
+            // Sets the current screen to the saved screen, else sets it to the current monitor.
             projectionModel.screenBounds = Screen.getScreens()
                     .getOrElse(snapshotModel.displayIndex.toInt()) { Screen.getScreens().first() }
                     .visualBounds
 
-            find<Projection>().openWindow(StageStyle.TRANSPARENT, escapeClosesWindow = false, owner = null)
+            projectionView.openWindow(StageStyle.TRANSPARENT, escapeClosesWindow = false, owner = null)
             fire(OpenProjection(scope))
         }
         else {
@@ -187,7 +191,7 @@ class MainView : View() {
             snapshotModel.item = pEditorScope.savedSnapshotModel.item
             projectionModel.item = pEditorScope.savedProjectionModel.item
         }
-        preferences(prefName) {
+        preferences(controller.prefName) {
             controller.setDBPath(get("db_location", "NONE"))
             controller.snapshotIndex = getInt("snap_index", 0)
         }

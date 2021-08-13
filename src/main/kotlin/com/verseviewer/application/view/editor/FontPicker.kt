@@ -38,7 +38,7 @@ class FontPicker : Fragment() {
             }
         }
 
-        label("Size") {
+        label("Maximum Size") {
             alignment = Pos.CENTER
             useMaxWidth = true
             gridpaneConstraints {

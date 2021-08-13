@@ -6,6 +6,7 @@ import com.verseviewer.application.model.event.SendGlobalNotification
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleStringProperty
+import javafx.stage.FileChooser
 import tornadofx.*
 import java.sql.SQLException
 
@@ -21,6 +22,9 @@ class MainViewController : Controller() {
     var snapshotLoaded by snapshotLoadedProperty
     
     private val dbController : DBController by inject()
+
+    val exts = listOf(FileChooser.ExtensionFilter("sqlite database (.db)", "*.db"))
+    val prefName = "VerseViewer"
 
     fun setDBPath(path : String) {
         databasePath = path

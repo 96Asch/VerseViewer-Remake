@@ -16,16 +16,11 @@ class Styles : Stylesheet() {
         val placementNotAllowed by cssclass()
         val partialTransparant by cssclass()
         val greyedOut by cssclass()
-        val invisible by cssclass()
+        val projector by cssclass()
 
         val translationHeader by cssclass()
         val passage by cssclass()
-        val passageHeader by cssclass()
-        val passageBody by cssclass()
         val frame by cssclass()
-
-        val scheduleSaveButton by cssclass()
-        val scheduleLoadButton by cssclass()
 
         val transparentButton by cssclass()
 
@@ -36,7 +31,12 @@ class Styles : Stylesheet() {
 
         val listLabel by cssclass()
 
+        val slideMenu by cssclass()
+
+        val thinScrollPane by cssclass()
+
         val fontAwesome = GlyphFontRegistry.font("FontAwesome")
+
     }
 
     init {
@@ -45,7 +45,7 @@ class Styles : Stylesheet() {
             backgroundColor += c(0, 100, 100, 0.05)
         }
 
-        invisible {
+        projector {
             backgroundColor += c(0, 0, 0, 0.5)
         }
 
@@ -145,6 +145,21 @@ class Styles : Stylesheet() {
             stroke = c(0.0,0.0,0.0)
             fill = c(255, 255, 255)
             strokeWidth = 0.5.px
+        }
+
+        slideMenu {
+            backgroundColor += c(0.0, 0.0, 0.0, 0.3)
+        }
+
+        thinScrollPane {
+            scrollBar {
+                vertical {
+                    backgroundColor += c(0.0,0.0,0.0, 0.0)
+                }
+                track {
+                    backgroundColor += c(0.0,0.0,0.0, 0.0)
+                }
+            }
         }
     }
 }

@@ -7,11 +7,13 @@ import com.verseviewer.application.model.VerseGroup
 import com.verseviewer.application.model.event.*
 import com.verseviewer.application.model.scope.ProjectionEditorScope
 import com.verseviewer.application.view.projection.Projection
-import com.verseviewer.application.view.projection.ScalingPane
+import com.verseviewer.application.view.projection.scalingpane
+import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.geometry.Orientation
+import javafx.geometry.Pos
+import javafx.scene.control.ScrollPane
 import javafx.scene.control.ToggleButton
-import javafx.scene.layout.Priority
 import javafx.scene.text.TextAlignment
 import javafx.stage.Screen
 import javafx.util.Duration
@@ -33,36 +35,33 @@ class ProjectionPreferenceEditor : View() {
 
     private val verseGroupModel : VerseGroupModel by inject()
     private val projectionModel : ProjectionModel by inject()
-    private val preferenceModel : SnapshotModel by inject()
+    private val snapshotModel : SnapshotModel by inject()
 
     private var fontPicker : PopOver by singleAssign()
 
-    private val numTranslationsProperty = SimpleIntegerProperty(0)
-    private val numVersesProperty = SimpleIntegerProperty(0)
 
     override val root = borderpane {
 
         projectionModel.item = scope.savedProjectionModel.item
-        preferenceModel.item = scope.savedSnapshotModel.item
+        snapshotModel.item = scope.savedSnapshotModel.item
 
         projectionModel.screenBoundsProperty.value = Screen.getScreens().first().visualBounds
 
         projectionView = find<Projection>(mapOf("isCloseable" to false))
 
-        center = ScalingPane(projectionView.root, projectionModel.screenBounds.width, projectionModel.screenBounds.height)
+        center = scalingpane(projectionView.root, projectionModel.screenBounds.width, projectionModel.screenBounds.height)
 
         right = scrollpane {
             form {
                 fieldset("1. Secondary Screen") {
                     combobox(values = controller.screenList) {
-                        selectionModel.select(preferenceModel.displayIndex.toInt())
+                        selectionModel.select(snapshotModel.displayIndex.toInt())
                         selectionModel.selectedItemProperty().onChange {
-                            if (it != null) {
-                                preferenceModel.displayIndex = it.index
-                            }
+                            it?.let { snapshotModel.displayIndex = it.index }
                         }
                         cellFormat {
-                            text = "Display ${it.index} - [${it.screen.visualBounds.width}x${it.screen.visualBounds.height}]"
+                            text =
+                                "Display ${it.index} - [${it.screen.visualBounds.width}x${it.screen.visualBounds.height}]"
                         }
                     }
                 }
@@ -72,7 +71,8 @@ class ProjectionPreferenceEditor : View() {
                             subscribe<InitTextAlignmentButton> {
                                 buttons.filterIsInstance<ToggleButton>().forEach {
                                     if (it.properties.containsKey("alignment")) {
-                                        it.isSelected = it.properties["alignment"] as TextAlignment == preferenceModel.textAlignment
+                                        it.isSelected =
+                                            it.properties["alignment"] as TextAlignment == snapshotModel.textAlignment
                                     }
                                 }
                             }
@@ -85,12 +85,13 @@ class ProjectionPreferenceEditor : View() {
                 }
                 fieldset("3. Font") {
                     button {
-
-                        textProperty().bind(stringBinding(preferenceModel.familyProperty,
-                                preferenceModel.sizeProperty,
-                                preferenceModel.weightProperty,
-                                preferenceModel.postureProperty) {
-                            "${preferenceModel.family}\n ${preferenceModel.size} [${preferenceModel.weight}-${preferenceModel.posture}]"
+                        textProperty().bind(stringBinding(
+                            snapshotModel.familyProperty,
+                            snapshotModel.sizeProperty,
+                            snapshotModel.weightProperty,
+                            snapshotModel.postureProperty
+                        ) {
+                            "${snapshotModel.family}\n ${snapshotModel.size} [${snapshotModel.weight}-${snapshotModel.posture}]"
                         })
                         fontPicker = popover {
                             this.title = "Font Picker"
@@ -101,15 +102,34 @@ class ProjectionPreferenceEditor : View() {
                         }
                     }
                 }
+
                 fieldset("4. Text Styling") {
                     field("Fill Color") {
-                        colorpicker { valueProperty().bindBidirectional(preferenceModel.fillProperty) }
+                        colorpicker { valueProperty().bindBidirectional(snapshotModel.fillProperty) }
                     }
                     field("Border Color") {
-                        colorpicker { valueProperty().bindBidirectional(preferenceModel.strokeProperty) }
+                        colorpicker { valueProperty().bindBidirectional(snapshotModel.strokeProperty) }
                     }
                     field("Border Width") {
-                        slider(0, 10, 1) { valueProperty().bindBidirectional(preferenceModel.strokeWidthProperty) }
+                        vbox {
+                            val bwProperty = SimpleDoubleProperty()
+                            slider(0, 5, 1) {
+                                isSnapToTicks = true
+                                isShowTickLabels = true
+                                isShowTickMarks = true
+                                blockIncrement = 1.0
+                                majorTickUnit = 5.0
+
+                                valueProperty().bindBidirectional(snapshotModel.strokeWidthProperty)
+                                bwProperty.bind(valueProperty())
+                            }
+                            label {
+                                textProperty().bind(stringBinding(bwProperty) {
+                                    "${bwProperty.value.format(3)}"
+                                })
+                            }
+                            alignment = Pos.CENTER
+                        }
                     }
                 }
                 fieldset("5. Multiple Translations") {
@@ -118,7 +138,8 @@ class ProjectionPreferenceEditor : View() {
                             subscribe<InitBoxLayoutButton> {
                                 buttons.filterIsInstance<ToggleButton>().forEach {
                                     if (it.properties.containsKey("orientation")) {
-                                        it.isSelected = it.properties["orientation"] as Orientation == preferenceModel.orientation
+                                        it.isSelected =
+                                            it.properties["orientation"] as Orientation == snapshotModel.orientation
                                     }
                                 }
                             }
@@ -128,60 +149,61 @@ class ProjectionPreferenceEditor : View() {
                     }
                 }
             }
+            hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
+            addClass(Styles.thinScrollPane)
+            isFitToWidth = true
         }
 
         bottom = anchorpane {
             hbox {
-                anchorpaneConstraints {
-                    hboxConstraints { marginRight = 10.0 }
-                }
-                label("Translations") {
-                }
-                slider(0, 5, 0) {
-                    numTranslationsProperty.bind(valueProperty())
-                    isSnapToTicks = true
-                    isShowTickLabels = true
-                    isShowTickMarks = true
-                    blockIncrement = 1.0
-                    majorTickUnit = 1.0
-                    minorTickCount = 0
-                    hboxConstraints { marginRight = 30.0 }
-                    valueProperty().addListener { _, _, new -> value = new.toInt().toDouble() }
-                    setOnMouseReleased {
-                        runAsync {
-                            controller.getTestVerses(numTranslationsProperty.value, numVersesProperty.value)
-                        } ui {
-                            verseGroupModel.item = VerseGroup(it)
 
+                form {
+                    fieldset {
+                        field("Translations") {
+                            slider(0, 5, 0) {
+                                isSnapToTicks = true
+                                isShowTickLabels = true
+                                isShowTickMarks = true
+                                blockIncrement = 1.0
+                                majorTickUnit = 1.0
+                                minorTickCount = 0
+                                valueProperty().addListener { _, _, new -> value = new.toInt().toDouble() }
+                                controller.numTranslationsProperty.bind(valueProperty())
+                                setOnMouseReleased {
+                                    runAsync {
+                                        controller.loadTestVerses()
+                                    } ui {
+                                        verseGroupModel.item = VerseGroup(it)
+                                    }
+                                }
+                            }
+                        }
+                        field("Verses") {
+                            slider(0, 15, 0) {
+                                isSnapToTicks = true
+                                isShowTickLabels = true
+                                isShowTickMarks = true
+                                blockIncrement = 1.0
+                                majorTickUnit = 5.0
+                                minorTickCount = 4
+                                prefWidth = 200.0
+                                valueProperty().addListener { _, _, new -> value = new.toInt().toDouble() }
+                                controller.numVersesProperty.bind(valueProperty())
+                                setOnMouseReleased {
+                                    runAsync {
+                                        controller.loadTestVerses()
+                                    } ui {
+                                        verseGroupModel.item = VerseGroup(it)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
+            }
 
-                label("Verses") {
-                    hboxConstraints { marginRight = 10.0 }
-                }
-
-                slider(0, 15, 0) {
-                    numVersesProperty.bind(valueProperty())
-                    isSnapToTicks = true
-                    isShowTickLabels = true
-                    isShowTickMarks = true
-                    blockIncrement = 1.0
-                    majorTickUnit = 5.0
-                    minorTickCount = 4
-                    prefWidth = 250.0
-                    hboxConstraints { marginRight = 30.0 }
-                    valueProperty().addListener { _, _, new -> value = new.toInt().toDouble() }
-                    setOnMouseReleased {
-                        runAsync {
-                            controller.getTestVerses(numTranslationsProperty.value, numVersesProperty.value)
-                        } ui {
-                            verseGroupModel.item = VerseGroup(it)
-                        }
-                    }
-                }
-                togglebutton("Live", selectFirst = false) {
-                    vboxConstraints { vGrow = Priority.ALWAYS }
+            hbox {
+                togglebutton("Test", selectFirst = false) {
                     selectedProperty().addListener { _, _, new ->
                         if (new) {
                             fire(OpenProjection(scope))
@@ -189,20 +211,24 @@ class ProjectionPreferenceEditor : View() {
                             fire(CloseProjection(scope))
                         }
                     }
-                    enableWhen { numTranslationsProperty.ge(1).and(numVersesProperty.ge(1)) }
+                    alignment = Pos.CENTER
+                    enableWhen {
+                        controller.numTranslationsProperty.ge(1)
+                            .and(controller.numVersesProperty.ge(1))
+                    }
+                    paddingAll = 10
                 }
-            }
 
-            hbox {
-                paddingAll = 10.0
+                button(graphic = Styles.fontAwesome.create(FontAwesome.Glyph.SAVE)) {
+                    action { saveSettings() }
+                    paddingAll = 10
+                }
+
                 anchorpaneConstraints {
                     topAnchor = 5.0
                     rightAnchor = 5.0
                 }
-                button("Save Settings") {
-                    action { saveSettings() }
-                }
-
+                spacing = 5.0
             }
         }
     }
@@ -224,31 +250,31 @@ class ProjectionPreferenceEditor : View() {
 
     private fun saveSettings() {
         projectionModel.commit()
-        preferenceModel.commit()
+        snapshotModel.commit()
 
         scope.savedProjectionModel.item = projectionModel.item
-        scope.savedSnapshotModel.item = preferenceModel.item
+        scope.savedSnapshotModel.item = snapshotModel.item
 
-        controller.savePreferencesToDB(preferenceModel.item)
+        controller.savePreferencesToDB(snapshotModel.item)
     }
 
-    private fun createAlignmentButton(glyph : FontAwesome.Glyph, textAlignment: TextAlignment) : ToggleButton {
-        return ToggleButton().apply {
+    private fun createAlignmentButton(glyph : FontAwesome.Glyph, textAlignment: TextAlignment)
+        = ToggleButton().apply {
             graphic = Styles.fontAwesome.create(glyph)
-            action { preferenceModel.textAlignment = textAlignment }
+            action { snapshotModel.textAlignment = textAlignment }
             properties["alignment"] = textAlignment
         }
-    }
 
-    private fun createOrientationButton(glyph : FontAwesome.Glyph, orientation: Orientation, flipSide : Boolean = false) : ToggleButton{
-        return ToggleButton().apply {
+    private fun createOrientationButton(glyph : FontAwesome.Glyph, orientation: Orientation, flipSide : Boolean = false)
+        = ToggleButton().apply {
             graphic = Styles.fontAwesome.create(glyph).apply {
                 if (flipSide) {
                     style { rotate = 90.deg }
                 }
             }
-            action { preferenceModel.orientation = orientation }
+            action { snapshotModel.orientation = orientation }
             properties["orientation"] = orientation
         }
-    }
 }
+
+fun Double.format(digits: Int) = "%.${digits}f".format(this)

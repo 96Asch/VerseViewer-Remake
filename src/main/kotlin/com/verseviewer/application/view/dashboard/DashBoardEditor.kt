@@ -3,9 +3,10 @@ package com.verseviewer.application.view.dashboard
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.DashBoardController
 import com.verseviewer.application.controller.DashBoardEditorController
-import com.verseviewer.application.model.scope.ProjectionEditorScope
+import com.verseviewer.application.model.event.PlaceInFlightTile
 import javafx.scene.control.TabPane
 import javafx.scene.input.MouseEvent
+import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
 import org.controlsfx.glyphfont.FontAwesome
 import org.controlsfx.glyphfont.GlyphFontRegistry
@@ -16,6 +17,13 @@ class DashBoardEditor : View() {
     private val controller : DashBoardEditorController by inject()
     private val dashboardController : DashBoardController by inject()
     private val dashboard = find<DashBoard>(mapOf("inEditor" to true))
+
+    private val dragPane : Pane by lazy {
+        pane {
+            this.addClass(Styles.transparent)
+            isMouseTransparent = true
+        }
+    }
 
     override val root = stackpane {
         borderpane {
@@ -84,10 +92,7 @@ class DashBoardEditor : View() {
             addEventFilter(MouseEvent.MOUSE_RELEASED, ::drop)
         }
 
-        pane {
-            this.addClass(Styles.transparent)
-            isMouseTransparent = true
-        }
+        this += dragPane
     }
 
     private fun eraseGrid() {
@@ -98,22 +103,24 @@ class DashBoardEditor : View() {
     }
 
     private fun refreshGrid() {
-        dashboardController.refreshTiles()
         dashboard.refreshTiles()
+        dashboardController.refreshTiles()
         controller.dirty = false
         controller.requiredComponentsUsed = true
     }
 
     private fun saveGrid() {
-        controller.updateGridToDB()
+        controller.saveDashboard()
     }
 
     private fun startDrag(evt: MouseEvent) {
-        controller.startDrag(evt)
+        val mousePt = root.sceneToLocal(evt.sceneX, evt.sceneY)
+        controller.startDrag(evt, mousePt)
     }
 
     private fun animateDrag(evt : MouseEvent) {
-        controller.animateDrag(evt)
+        val mousePt = root.sceneToLocal(evt.sceneX, evt.sceneY)
+        controller.animateDrag(evt, mousePt)
     }
 
     private fun stopDrag (evt : MouseEvent) {
@@ -121,6 +128,13 @@ class DashBoardEditor : View() {
     }
 
     private fun drop(evt: MouseEvent) {
-        controller.drop(evt)
+        val mousePt = root.sceneToLocal(evt.sceneX, evt.sceneY)
+        controller.drop(evt, mousePt)
+    }
+
+    init {
+        subscribe<PlaceInFlightTile> {
+            dragPane.add(it.tile)
+        }
     }
 }

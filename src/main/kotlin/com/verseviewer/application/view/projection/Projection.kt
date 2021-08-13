@@ -1,7 +1,6 @@
 package com.verseviewer.application.view.projection
 
 import com.verseviewer.application.app.Styles
-import com.verseviewer.application.controller.ProjectionController
 import com.verseviewer.application.model.VerseGroupModel
 import com.verseviewer.application.model.SnapshotModel
 import com.verseviewer.application.model.ProjectionModel
@@ -16,7 +15,6 @@ import tornadofx.*
 class Projection : Fragment() {
 
     private val verseGroupModel : VerseGroupModel by inject()
-    private val controller : ProjectionController by inject()
     private val projectionModel : ProjectionModel by inject()
     private val preferenceModel : SnapshotModel by inject()
 
@@ -31,27 +29,6 @@ class Projection : Fragment() {
 
 
     override val root = anchorpane {
-
-        opacity = 0.0
-        addClass(Styles.invisible)
-
-        fadeOutTransition = FadeTransition(fadeDuration, this).apply {
-            fromValueProperty().bind(opacityProperty())
-            toValue = 0.0
-            setOnFinished { if (isCloseable) currentStage?.close() }
-            delay = Duration.seconds(2.0)
-        }
-
-        subscribe<OpenProjection> {
-            fadeOutTransition.stop()
-            opacityProperty().animate(1.0, fadeDuration)
-            fire(PlayFrameAnimation(scope))
-        }
-
-        subscribe<CloseProjection> {
-            fadeOutTransition.playFromStart()
-            fire(PlayReverseFrameAnimation(scope))
-        }
 
         hbox = HBox().apply {
             anchorpaneConstraints {
@@ -105,6 +82,27 @@ class Projection : Fragment() {
                 project(preferenceModel.orientation, lastNumTranslations != verseGroupModel.sorted.value.size)
             }
         }
+
+        opacity = 0.0
+        addClass(Styles.projector)
+
+        fadeOutTransition = FadeTransition(fadeDuration, this).apply {
+            fromValueProperty().bind(opacityProperty())
+            toValue = 0.0
+            setOnFinished { if (isCloseable) currentStage?.close() }
+            delay = Duration.seconds(2.0)
+        }
+
+        subscribe<OpenProjection> {
+            fadeOutTransition.stop()
+            opacityProperty().animate(1.0, fadeDuration)
+            fire(PlayFrameAnimation(scope))
+        }
+
+        subscribe<CloseProjection> {
+            fadeOutTransition.playFromStart()
+            fire(PlayReverseFrameAnimation(scope))
+        }
     }
 
     init {
@@ -112,7 +110,6 @@ class Projection : Fragment() {
     }
 
     override fun onDock() {
-        println("onDock Projection")
         initStageSettings()
         project(preferenceModel.orientation, lastNumTranslations != verseGroupModel.sorted.value.size)
     }
@@ -141,7 +138,7 @@ class Projection : Fragment() {
         if (layout != null) {
             var calcWidth = projectionModel.screenBoundsProperty.value.width
             var calcHeight = projectionModel.screenBoundsProperty.value.height
-            println(calcHeight)
+
             when (layout) {
                 Orientation.VERTICAL -> calcHeight /= currentSize
                 Orientation.HORIZONTAL -> calcWidth /= currentSize

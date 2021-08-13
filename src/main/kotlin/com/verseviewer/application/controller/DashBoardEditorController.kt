@@ -3,26 +3,38 @@ package com.verseviewer.application.controller
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.model.SnapshotModel
 import com.verseviewer.application.model.TilePropertiesModel
+import com.verseviewer.application.model.datastructure.Dimension
+import com.verseviewer.application.model.event.HighlightCells
+import com.verseviewer.application.model.event.PlaceInFlightTile
 import com.verseviewer.application.view.dashboard.DashBoardEditor
 import com.verseviewer.application.view.dashboard.DndSkin
 import eu.hansolo.tilesfx.Tile
 import javafx.beans.property.SimpleBooleanProperty
+import javafx.geometry.Point2D
 import javafx.scene.Node
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Region
 import tornadofx.*
+
+enum class EditAction {
+    NONE,
+    REMOVE,
+    NEW_DRAG_DROP,
+    RELOCATE_DRAG_DROP,
+    RESIZE
+}
 
 class DashBoardEditorController : Controller() {
 
     val componentList = mutableListOf<Tile>()
 
     private val builder : ComponentBuilder by inject()
-    private val view : DashBoardEditor by inject()
-    private val dashboardController : DashBoardController by inject()
-    private val tileModel : TilePropertiesModel by inject()
 
-    private val dbController : DBController by inject(FX.defaultScope)
+    private val tileModel : TilePropertiesModel by inject()
     private val snapshotModel : SnapshotModel by inject(FX.defaultScope)
+
+    private val dashboardController : DashBoardController by inject()
+    private val dbController : DBController by inject(FX.defaultScope)
 
     private var inFlightTile: Tile? = null
     private var selectedTile: Tile? = null
@@ -36,16 +48,15 @@ class DashBoardEditorController : Controller() {
     val requiredComponentsUsedProperty = SimpleBooleanProperty(false)
     var requiredComponentsUsed by requiredComponentsUsedProperty
 
-    fun updateGridToDB() {
+    fun saveDashboard() {
         dashboardController.commitTiles()
         dbController.updateLayout(snapshotModel.item)
         dirty = false
     }
 
-    fun startDrag(evt : MouseEvent) {
+    fun startDrag(evt : MouseEvent, mousePt : Point2D) {
         val target = evt.target as Node
         val tile = target.findParentOfType(Tile::class)
-        val mousePt = view.root.sceneToLocal(evt.sceneX, evt.sceneY)
 
         tile?.let {
             dropDimension = null
@@ -80,16 +91,17 @@ class DashBoardEditorController : Controller() {
 
     private fun setInFlight(tile : Tile) {
         inFlightTile = builder.createTile(tile)
-                .apply { addClass(Styles.partialTransparant)
+                .apply {
+                    addClass(Styles.partialTransparant)
                     relocate(tile.layoutX, tile.layoutY)
-                    isVisible = false }
-        view.root.children.last().add(inFlightTile!!)
+                    isVisible = false
+                    fire(PlaceInFlightTile(this))
+                }
     }
 
-    fun animateDrag(evt : MouseEvent) {
+    fun animateDrag(evt : MouseEvent, mousePt: Point2D) {
         if (action != EditAction.NONE) {
             selectedTile?.apply { if (isVisible) isVisible = false }
-            val mousePt = view.root.sceneToLocal(evt.sceneX, evt.sceneY)
             inFlightTile?.apply {
                 isVisible = true
                 toFront()
@@ -127,7 +139,7 @@ class DashBoardEditorController : Controller() {
 
             if (cell == null) {
                 dropDimension?.let {
-                    dashboardController.highlightCells(Styles.placementNotAllowed, it.x, it.y, it.width, it.height)
+                    fire(HighlightCells(false, Dimension(it.x, it.y, it.width, it.height)))
                 }
             }
         }
@@ -139,9 +151,7 @@ class DashBoardEditorController : Controller() {
         }
     }
 
-    fun drop(evt: MouseEvent) {
-        val mousePt = view.root.sceneToLocal(evt.sceneX, evt.sceneY)
-
+    fun drop(evt: MouseEvent, mousePt : Point2D) {
         if (dashboardController.isPointOnDashboard(mousePt) && dropDimension != null) {
             when (action) {
                 EditAction.NEW_DRAG_DROP -> {
@@ -197,22 +207,4 @@ class DashBoardEditorController : Controller() {
             builder.decreaseInstances(it.tile)
         }
     }
-}
-
-data class Dimension(val x : Int, val y: Int, val width: Int, val height: Int) {
-    infix fun intersects(other: Dimension) : Boolean {
-        val x2 = x + width
-        val y2 = y + height
-        val otherX2 = other.x + other.width
-        val otherY2 = other.y + other.height
-        return (x < otherX2 && x2 > other.x && y < otherY2 && y2 > other.y)
-    }
-}
-
-enum class EditAction {
-    NONE,
-    REMOVE,
-    NEW_DRAG_DROP,
-    RELOCATE_DRAG_DROP,
-    RESIZE
 }

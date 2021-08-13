@@ -11,7 +11,8 @@ import tornadofx.ItemViewModel
 import tornadofx.getValue
 import tornadofx.setValue
 
-class ProjectionData() {
+class ProjectionData {
+
     val liveProperty = SimpleBooleanProperty(false)
     var isLive by liveProperty
 
@@ -31,6 +32,7 @@ class ProjectionData() {
 }
 
 class ProjectionModel : ItemViewModel<ProjectionData>() {
+
     val liveProperty = bind(ProjectionData::liveProperty)
     val boxWidthProperty = bind(ProjectionData::widthProperty)
     val boxHeightProperty = bind(ProjectionData::heightProperty)

@@ -5,6 +5,8 @@ import com.verseviewer.application.model.*
 import com.verseviewer.application.model.event.PlaceTile
 import com.verseviewer.application.view.dashboard.DashBoard
 import com.verseviewer.application.view.dashboard.GridCell
+import com.verseviewer.application.model.datastructure.Dimension
+import com.verseviewer.application.model.event.HighlightCells
 import eu.hansolo.tilesfx.Tile
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.Point2D
@@ -33,7 +35,7 @@ class DashBoardController : Controller() {
 
     fun isPointOnDashboard(point : Point2D) = view.root.contains(point)
 
-    private fun tileIntersectsWithList(tileDimension: Dimension) : Boolean {
+    private fun dimensionIntersects(tileDimension: Dimension) : Boolean {
         val list = if (tileModel.item != null) tileList.filterNot { tileModel.item == it } else tileList
         return list.any { tileDimension intersects Dimension(it.x, it.y, it.colspan, it.rowspan) }
     }
@@ -44,18 +46,20 @@ class DashBoardController : Controller() {
     }
 
     fun validateDrop(x : Int, y : Int, colspan: Int, rowspan: Int) : Dimension? {
-        val (boundsX, boundsY) = Pair(x + colspan, y + rowspan)
-        val placementCells = view.root.children
-                .filterIsInstance<GridCell>()
-                .filter { it.x in x until boundsX
-                        && it.y in y until boundsY  }
+//        val (boundsX, boundsY) = Pair(x + colspan, y + rowspan)
+//        val placementCells = view.root.children
+//                .filterIsInstance<GridCell>()
+//                .filter { it.x in x until boundsX
+//                        && it.y in y until boundsY  }
         val dimension = Dimension(x, y, colspan, rowspan)
-        return if (!tileIntersectsWithList(dimension)) {
-            highlightCells(allowedStyle, placementCells)
+        return if (!dimensionIntersects(dimension)) {
+//            highlightCells(allowedStyle, placementCells)
+            fire(HighlightCells(true, dimension))
             dimension
         }
         else {
-            highlightCells(notAllowedStyle, placementCells)
+            fire(HighlightCells(false, dimension))
+//            highlightCells(notAllowedStyle, placementCells)
             null
         }
     }
@@ -108,7 +112,6 @@ class DashBoardController : Controller() {
 
             EditAction.RESIZE -> {
                 selectedTile?.let { view.root.children.remove(it) }
-                println("Spans (${dropDimension.width}:${dropDimension.height})")
                 tileModel.setSpans(dropDimension.width, dropDimension.height)
                 tileModel.item
             }
@@ -177,6 +180,7 @@ class DashBoardController : Controller() {
     fun clearTiles() {
         tileList.clear()
         builder.refreshCounters()
+        view.refreshTiles()
     }
 
     fun getTiles() = tileList.toList()
@@ -198,7 +202,6 @@ class DashBoardController : Controller() {
 
     fun initGrid() {
         tileList.clear()
-        println("SNapshot: ${snapshotModel.layoutProperty}")
         tileList.addAll(build(snapshotModel.layout, builder))
     }
 }

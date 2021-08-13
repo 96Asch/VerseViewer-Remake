@@ -65,7 +65,6 @@ class PassageBox : Fragment() {
             fontProperty().bind(headerFontProperty)
             maxWidth = boxWidth / 2.5
             textAlignment = TextAlignment.CENTER
-            frame.buildHeaderFadeTransition(this)
         }
 
         bodyTextFlow = TextFlow().apply {
@@ -83,12 +82,11 @@ class PassageBox : Fragment() {
             paddingLeftProperty.bind(textFlowMarginProperty)
             paddingRightProperty.bind(textFlowMarginProperty)
             maxHeight = boxHeight - textflowMargin - heightMargin - frameHeightMargin - 30.0
-            frame.buildBodyFadeTransition(this)
         }
 
         subscribe<InitAfterBoundsSet> {
             frame.buildSimpleSequentialAnimation(textflowMargin, frameHeightMargin, topLineFactor)
-            frame.initAnimation()
+            frame.initAnimation(headerText, bodyTextFlow)
         }
 
         maxWidth = boxWidth
@@ -166,7 +164,7 @@ class PassageBox : Fragment() {
                 strokeProperty().bind(preferenceModel.strokeProperty)
                 strokeWidthProperty().bind(preferenceModel.strokeWidthProperty)
             }
-            val body = Text(it.second).apply {
+            val body = Text(it.second + "\n").apply {
                 fontProperty().bind(bodyFontProperty)
                 fillProperty().bind(preferenceModel.fillProperty)
                 strokeProperty().bind(preferenceModel.strokeProperty)

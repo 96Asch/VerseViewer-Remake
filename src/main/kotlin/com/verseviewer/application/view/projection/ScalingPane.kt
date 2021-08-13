@@ -1,10 +1,13 @@
 package com.verseviewer.application.view.projection
 
 import javafx.beans.property.SimpleDoubleProperty
+import javafx.event.EventTarget
 import javafx.scene.Node
+import javafx.scene.control.Pagination
 import javafx.scene.layout.Pane
 import javafx.scene.transform.Scale
 import tornadofx.onChange
+import tornadofx.opcr
 
 class ScalingPane(child : Node, screenWidth : Double, screenHeight : Double) : Pane(child) {
 
@@ -30,6 +33,9 @@ class ScalingPane(child : Node, screenWidth : Double, screenHeight : Double) : P
             transforms.add(Scale(scaleXProperty.value, it, 0.0, 0.0))
         }
     }
+}
 
-
+fun EventTarget.scalingpane(child : Node, screenWidth : Double, screenHeight : Double, op: ScalingPane.() -> Unit = {}): ScalingPane {
+    val scalingPane = ScalingPane(child, screenWidth, screenHeight)
+    return opcr(this, scalingPane, op)
 }
