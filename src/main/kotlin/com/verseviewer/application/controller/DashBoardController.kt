@@ -2,12 +2,10 @@ package com.verseviewer.application.controller
 
 import com.verseviewer.application.app.Styles
 import com.verseviewer.application.model.*
-import com.verseviewer.application.model.event.PlaceTile
 import com.verseviewer.application.view.dashboard.DashBoard
 import com.verseviewer.application.view.dashboard.GridCell
 import com.verseviewer.application.model.datastructure.Dimension
-import com.verseviewer.application.model.event.ClearHighlights
-import com.verseviewer.application.model.event.HighlightCells
+import com.verseviewer.application.model.event.*
 import eu.hansolo.tilesfx.Tile
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.Point2D
@@ -25,8 +23,8 @@ class DashBoardController : Controller() {
     val inEditorProperty = SimpleBooleanProperty(false)
     var inEditor by inEditorProperty
 
-    private val allowedStyle = Styles.placementAllowed
-    private val notAllowedStyle = Styles.placementNotAllowed
+    val heightTiles = 16
+    val widthTiles = 32
 
     fun pickCell(evt : MouseEvent) = view.root.children.firstOrNull {
             val mPt = it.sceneToLocal(evt.sceneX, evt.sceneY)
@@ -72,13 +70,13 @@ class DashBoardController : Controller() {
             }
 
             EditAction.RELOCATE_DRAG_DROP -> {
-                selectedTile?.let { view.root.children.remove(it) }
+                selectedTile?.let { fire(RemoveTile(it)) }
                 tileModel.setCoordinate(dropDimension.x, dropDimension.y)
                 tileModel.item
             }
 
             EditAction.RESIZE -> {
-                selectedTile?.let { view.root.children.remove(it) }
+                selectedTile?.let { fire(RemoveTile(it)) }
                 tileModel.setSpans(dropDimension.width, dropDimension.height)
                 tileModel.item
             }
@@ -96,10 +94,10 @@ class DashBoardController : Controller() {
         var x = cell.x
         var y = cell.y
 
-        if (x > view.widthTiles - colspan)
-            x = view.widthTiles - colspan
-        if (y > view.heightTiles - rowspan)
-            y = view.heightTiles - rowspan
+        if (x > widthTiles - colspan)
+            x = widthTiles - colspan
+        if (y > heightTiles - rowspan)
+            y = heightTiles - rowspan
 
         return Pair(x,y)
     }
@@ -122,8 +120,8 @@ class DashBoardController : Controller() {
 
     private fun removeProperty(tile : Tile) {
         getProperty(tile)?.apply {
-            println(tileList.remove(this))
-            tile.graphic.removeFromParent()
+            tileList.remove(this)
+            tile.removeFromParent()
             tileModel.item = null
         }
     }
@@ -147,28 +145,22 @@ class DashBoardController : Controller() {
     fun clearTiles() {
         tileList.clear()
         builder.refreshCounters()
-        view.refreshTiles()
+        fire(ResetTiles())
     }
 
     fun getTiles() = tileList.toList()
 
     fun removeTile(tile: Tile) {
-        println(view.root.children.remove(tile))
         builder.increaseInstances(tile)
         removeProperty(tile)
     }
 
-    fun refreshTiles() {
-        val tiles = snapshotModel.layout.tiles
-        if (tiles.isNotEmpty()) {
-            builder.refreshCounters()
-            tileList.clear()
-            tiles.forEach { tileList.add(buildTileProperties(it, builder)) }
-        }
-    }
-
     fun initGrid() {
+        builder.refreshCounters()
         tileList.clear()
         tileList.addAll(build(snapshotModel.layout, builder))
+        getTiles().forEach {
+            builder.decreaseInstances(it.tile)
+        }
     }
 }

@@ -4,9 +4,7 @@ import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.DashBoardController
 import com.verseviewer.application.model.TileProperties
 import com.verseviewer.application.model.datastructure.Dimension
-import com.verseviewer.application.model.event.ClearHighlights
-import com.verseviewer.application.model.event.HighlightCells
-import com.verseviewer.application.model.event.PlaceTile
+import com.verseviewer.application.model.event.*
 import eu.hansolo.tilesfx.Tile
 import javafx.geometry.HPos
 import javafx.geometry.VPos
@@ -21,8 +19,7 @@ fun GridPane.addTiles(tiles : List<TileProperties>) {
 }
 
 class DashBoard : View() {
-    val heightTiles = 16
-    val widthTiles = 32
+
     val tileSize = 25.0
 
     private val controller : DashBoardController by inject()
@@ -31,7 +28,7 @@ class DashBoard : View() {
 
     override val root = gridpane {
 
-        for (i in 0 until widthTiles) {
+        for (i in 0 until controller.widthTiles) {
             val c = ColumnConstraints().apply {
                 halignment = HPos.CENTER
                 hgrow = Priority.ALWAYS
@@ -40,7 +37,7 @@ class DashBoard : View() {
             columnConstraints.add(c)
         }
 
-        for (i in 0 until heightTiles) {
+        for (i in 0 until controller.heightTiles) {
             val r = RowConstraints().apply {
                 valignment = VPos.CENTER
                 vgrow = Priority.ALWAYS
@@ -49,23 +46,34 @@ class DashBoard : View() {
             rowConstraints.add(r)
         }
 
-        for (y in 0 until heightTiles) {
-            for (x in 0 until widthTiles) {
+        for (y in 0 until controller.heightTiles) {
+            for (x in 0 until controller.widthTiles) {
                 add(GridCell(x, y), x, y)
             }
         }
 
+        subscribe<PlaceTile> {
+            add(it.tileProperty.tile,
+                it.tileProperty.x,
+                it.tileProperty.y,
+                it.tileProperty.colspan,
+                it.tileProperty.rowspan)
+        }
+
+        subscribe<RemoveTile> {
+            children.remove(it.tile)
+        }
+
+        subscribe<ResetTiles> {
+            if (controller.inEditor)
+                children.removeIf { it is eu.hansolo.tilesfx.Tile }
+            else
+                children.clear()
+            addTiles(controller.getTiles())
+        }
+
         paddingAll = 2.5
         gridLinesVisibleProperty().bind(controller.inEditorProperty)
-    }
-
-    fun refreshTiles() {
-        if (controller.inEditor)
-            root.children.removeIf { it is Tile }
-        else
-            root.children.clear()
-
-        root.addTiles(controller.getTiles())
     }
 
     private fun highlightCells(style : CssRule, dimension : Dimension) {
@@ -100,18 +108,10 @@ class DashBoard : View() {
     override fun onDock() {
         controller.inEditor = params["inEditor"] as? Boolean ?: false
         controller.initGrid()
-        refreshTiles()
+        fire(ResetTiles())
     }
 
     init {
-        subscribe<PlaceTile> {
-            root.add(it.tileProperty.tile,
-                    it.tileProperty.x,
-                    it.tileProperty.y,
-                    it.tileProperty.colspan,
-                    it.tileProperty.rowspan)
-        }
-
         subscribe<HighlightCells> {
             val style = if (it.allowed) allowedStyle else notAllowedStyle
             highlightCells(style, it.dimension)

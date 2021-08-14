@@ -33,6 +33,12 @@ class ComponentBuilder : Controller() {
         BookList::class.simpleName to VVComponent(BookList::class, maxInstances = 1, required = false)
     )
 
+    fun test() {
+        components.forEach {
+            println(it)
+        }
+    }
+
     fun areRequiredComponentsUsed() = components.values.all {
         println("${it.classType}, ${it.required} ${it.instancesLeft}")
         if (it.required)
@@ -198,5 +204,9 @@ data class VVComponent (val classType : KClass<out Fragment>,
             (editorScope != null) -> find(classType, editorScope)
             else -> find(classType)
         }
+    }
+
+    override fun toString(): String {
+        return "[${classType.simpleName}: {scope:$scope}, {maxInstances:$maxInstances}, {required:$required}, {instancesLeft:$instancesLeft}]"
     }
 }

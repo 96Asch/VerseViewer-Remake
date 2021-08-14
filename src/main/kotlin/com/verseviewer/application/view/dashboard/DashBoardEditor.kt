@@ -4,6 +4,7 @@ import com.verseviewer.application.app.Styles
 import com.verseviewer.application.controller.DashBoardController
 import com.verseviewer.application.controller.DashBoardEditorController
 import com.verseviewer.application.model.event.PlaceInFlightTile
+import com.verseviewer.application.model.event.ResetTiles
 import javafx.geometry.Pos
 import javafx.scene.control.TabPane
 import javafx.scene.input.MouseEvent
@@ -59,21 +60,20 @@ class DashBoardEditor : View() {
                     }
                     tabClosingPolicy = TabPane.TabClosingPolicy.UNAVAILABLE
                 }
-                
+
                 hbox {
-                    val glyph = GlyphFontRegistry.font("FontAwesome")
                     val bWidth = 10.0
-                    button(graphic = glyph.create(FontAwesome.Glyph.SAVE)) {
+                    button(graphic=Styles.fontAwesome.create(FontAwesome.Glyph.SAVE)) {
                         paddingAll = bWidth
                         enableWhen(controller.dirtyProperty.and(controller.requiredComponentsUsedProperty))
                         action { saveGrid() }
                     }
-                    button(graphic = glyph.create(FontAwesome.Glyph.REFRESH)) {
+                    button(graphic=Styles.fontAwesome.create(FontAwesome.Glyph.REFRESH)) {
                         paddingAll = bWidth
                         enableWhen(controller.dirtyProperty)
                         action { refreshGrid() }
                     }
-                    button(graphic = glyph.create(FontAwesome.Glyph.ERASER)) {
+                    button(graphic=Styles.fontAwesome.create(FontAwesome.Glyph.ERASER)) {
                         paddingAll = bWidth
                         action { eraseGrid() }
                     }
@@ -93,16 +93,16 @@ class DashBoardEditor : View() {
 
     private fun eraseGrid() {
         dashboardController.clearTiles()
-        dashboard.refreshTiles()
         controller.dirty = true
         controller.requiredComponentsUsed = false
+        fire(ResetTiles())
     }
 
     private fun refreshGrid() {
-        dashboard.refreshTiles()
-        dashboardController.refreshTiles()
+        dashboardController.initGrid()
         controller.dirty = false
         controller.requiredComponentsUsed = true
+        fire(ResetTiles())
     }
 
     private fun saveGrid() {

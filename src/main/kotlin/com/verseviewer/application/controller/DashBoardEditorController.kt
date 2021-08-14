@@ -196,17 +196,9 @@ class DashBoardEditorController : Controller() {
     private fun isMouseInRegion(region : Region, evt: MouseEvent) : Boolean
             = region.contains(region.screenToLocal(evt.screenX, evt.screenY))
 
-    private fun refreshComponents() {
+    init {
         componentList.clear()
         componentList.addAll(builder.createListComponents())
         requiredComponentsUsed = builder.areRequiredComponentsUsed()
     }
-
-    init {
-        refreshComponents()
-        dashboardController.getTiles().forEach {
-            builder.decreaseInstances(it.tile)
-        }
-    }
 }
-
