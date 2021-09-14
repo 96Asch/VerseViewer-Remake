@@ -88,9 +88,9 @@ class Schedule : Fragment("My View") {
 
                 selectionModel.selectedItemProperty().onChange {
                     it?.let {
-                        controller.setDetail(it)
-                        if (armedProperty.value)
+                        if (armedProperty.value) {
                             displayModel.item = it
+                        }
                         fire(DeselectVerses(this.toString()))
                     }
                 }

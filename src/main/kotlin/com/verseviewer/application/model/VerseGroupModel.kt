@@ -48,9 +48,6 @@ class VerseGroup (passages: List<Passage> = listOf()) : JsonModel {
         return "VerseGroup {ids: $ids}"
     }
 
-    init {
-
-    }
 }
 
 class VerseGroupModel : ItemViewModel<VerseGroup>() {

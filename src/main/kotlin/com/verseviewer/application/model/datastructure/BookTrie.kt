@@ -13,7 +13,7 @@ class BookTrie() {
     }
 
     fun insert (book: Book) {
-        insert(book.name.toUpperCase().replace("\\s".toRegex(), ""), book.book_id)
+        insert(book.name.uppercase().replace("\\s".toRegex(), ""), book.book_id)
     }
 
     private fun insert (word: String, id: Int) {

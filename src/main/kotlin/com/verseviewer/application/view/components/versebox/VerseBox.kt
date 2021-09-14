@@ -30,7 +30,7 @@ class VerseBox : Fragment() {
     private val dragVerseController : DragVerseController by inject()
     private val verseSearchController : VerseSearchController by inject()
 
-    private val tv = tableview(controller.verseList)
+    private val tv by lazy { tableview(controller.verseList) }
 
     private val onSelectionChange : ListChangeListener<Passage> = ListChangeListener { changed ->
         if (changed.list.isEmpty().not() && !inGroupModeProperty.value && changed.list.size == 1) {
@@ -64,7 +64,7 @@ class VerseBox : Fragment() {
                 column("Text", Passage::textProperty).enableTextWrap().remainingWidth().isSortable = false
 
                 onUserSelect {
-                    openInternalWindow<VerseEditor>(escapeClosesWindow = true)
+                    find<VerseEditor>().openWindow(escapeClosesWindow = true, block = true)
                 }
                 bindSelected(passageModel)
                 multiSelect(true)
@@ -96,6 +96,7 @@ class VerseBox : Fragment() {
                 showForSeconds(it.type, it.message, it.duration)
             }
         }
+
         label {
             textProperty().bind(controller.translationProperty.stringBinding {"(${it?.abbreviation ?: ""}) - ${it?.name ?: ""}"})
             textAlignment = TextAlignment.CENTER
@@ -107,6 +108,7 @@ class VerseBox : Fragment() {
                 promptText = "Type .h for help"
                 hboxConstraints { hGrow = Priority.ALWAYS }
             }
+
             togglebutton {
                 text = "Filter"
                 verseSearchController.filterModeProperty.bind(selectedProperty())

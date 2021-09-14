@@ -45,16 +45,20 @@ class PassageBox : Fragment() {
         val boxHeight = projectionModel.boxHeight.toDouble()
         val boxWidth = projectionModel.boxWidth.toDouble()
 
-        val frame = Frame(boxWidth, boxHeight).apply {
-            subscribe<PlayFrameAnimation> {
-                this@apply.playFromStart()
+        frame(boxWidth, boxHeight) {
+            subscribe<InitAfterBoundsSet> {
+                buildSimpleSequentialAnimation(textflowMargin, frameHeightMargin, topLineFactor)
+                initAnimation(headerText, bodyTextFlow)
             }
+
+            subscribe<PlayFrameAnimation> {
+                playFromStart()
+            }
+
             subscribe<PlayReverseFrameAnimation> {
-                this@apply.reversePlay()
+                reversePlay()
             }
         }
-
-        this += frame
 
         headerText = Text().apply {
             anchorpaneConstraints {
@@ -82,11 +86,6 @@ class PassageBox : Fragment() {
             paddingLeftProperty.bind(textFlowMarginProperty)
             paddingRightProperty.bind(textFlowMarginProperty)
             maxHeight = boxHeight - textflowMargin - heightMargin - frameHeightMargin - 30.0
-        }
-
-        subscribe<InitAfterBoundsSet> {
-            frame.buildSimpleSequentialAnimation(textflowMargin, frameHeightMargin, topLineFactor)
-            frame.initAnimation(headerText, bodyTextFlow)
         }
 
         maxWidth = boxWidth

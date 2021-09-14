@@ -4,7 +4,6 @@ import com.verseviewer.application.app.Styles
 import com.verseviewer.application.model.event.NotificationType
 import javafx.animation.PauseTransition
 import javafx.event.EventHandler
-import javafx.scene.Node
 import javafx.scene.text.Font
 import javafx.scene.text.Text
 import javafx.util.Duration

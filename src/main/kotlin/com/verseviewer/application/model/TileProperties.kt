@@ -38,7 +38,7 @@ class TilePropertiesModel : ItemViewModel<TileProperties>() {
     val colspan : SimpleIntegerProperty =  bind(TileProperties::colspanProperty, autocommit = true)
 
     fun setCoordinate(x: Int, y: Int) {
-        this.x.value = x;
+        this.x.value = x
         this.y.value = y
     }
 

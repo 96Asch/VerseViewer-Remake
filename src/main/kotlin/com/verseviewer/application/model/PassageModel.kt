@@ -7,7 +7,6 @@ import javafx.beans.property.SimpleStringProperty
 import tornadofx.*
 import javax.json.JsonObject
 
-
 class Passage() : JsonModel   {
 
     val idProperty = SimpleIntegerProperty(0)
@@ -17,13 +16,13 @@ class Passage() : JsonModel   {
     var translation by translationProperty
 
     val bookProperty = SimpleStringProperty("")
-    var book by bookProperty
+    var book: String by bookProperty
 
     val chapterProperty = SimpleIntegerProperty(0)
     var chapter by chapterProperty
 
-    val verseProperty = SimpleObjectProperty<Range>(Range(0,0))
-    var verse by verseProperty
+    val verseProperty = SimpleObjectProperty(Range(0,0))
+    var verse: Range by verseProperty
 
     val textProperty = SimpleStringProperty("")
     var text: String by textProperty

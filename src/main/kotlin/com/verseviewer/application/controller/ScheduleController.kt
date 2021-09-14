@@ -1,17 +1,16 @@
 package com.verseviewer.application.controller
 
-import com.google.gson.JsonParseException
-import com.verseviewer.application.model.Passage
 import com.verseviewer.application.model.VerseGroup
 import com.verseviewer.application.model.event.NotificationType
 import com.verseviewer.application.model.event.SendScheduleNotification
 import javafx.scene.control.TableRow
 import javafx.scene.control.TableView
-import javafx.scene.image.Image
 import javafx.scene.image.WritableImage
-import javafx.scene.input.*
+import javafx.scene.input.ClipboardContent
+import javafx.scene.input.DragEvent
+import javafx.scene.input.MouseEvent
+import javafx.scene.input.TransferMode
 import javafx.stage.FileChooser
-import javafx.util.Duration
 import tornadofx.*
 import java.nio.file.Path
 import javax.json.stream.JsonParsingException
@@ -22,7 +21,6 @@ class ScheduleController : Controller() {
     val scheduleExt = listOf(FileChooser.ExtensionFilter("Schedule File", "*.vsched")).toTypedArray()
 
     val list = mutableListOf<VerseGroup>().asObservable()
-    val detailList = mutableListOf<Passage>().asObservable()
 
     private var dragVerse : VerseGroup? = null
 
@@ -39,10 +37,6 @@ class ScheduleController : Controller() {
         catch (e : JsonParsingException) {
             fire(SendScheduleNotification("${path.toFile().name} is not a valid .vsched file", NotificationType.ERROR, 3))
         }
-    }
-
-    fun setDetail(vg: VerseGroup) {
-        detailList.setAll(vg.verses)
     }
 
     fun dragDetected(evt: MouseEvent, row : TableRow<VerseGroup>) {
@@ -110,7 +104,6 @@ class ScheduleController : Controller() {
                 list.removeAt(it)
         }
         selectModel.clearAndSelect(firstIndex)
-        detailList.setAll(tv.selectedItem?.verses)
     }
 
     //todo: Allow multi selection
@@ -129,7 +122,6 @@ class ScheduleController : Controller() {
         }
 
         selectModel.clearAndSelect(firstIndex)
-        detailList.setAll(tv.selectedItem?.verses)
     }
 
     fun deleteSelected(tv: TableView<VerseGroup>) {
@@ -139,8 +131,6 @@ class ScheduleController : Controller() {
 
         val toRemove = selectModel.selectedItems
         list.removeAll(toRemove)
-        if (list.isEmpty())
-            detailList.clear()
     }
 
 }

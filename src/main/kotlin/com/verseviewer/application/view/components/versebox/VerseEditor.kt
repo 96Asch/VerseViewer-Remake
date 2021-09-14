@@ -20,40 +20,63 @@ class VerseEditor : Fragment() {
     private val stView : SpecialSymbolTable by inject()
 
     override val root = borderpane {
+        val master = masterdetailpane(detailSide=Side.BOTTOM, showDetail=true) {
+            masterNode = textarea(passageModel.text) {
+                isWrapText = true
+                focusedProperty().addListener { _, _, new ->
+                    if (new.not()) {
+                        symbolModel.caretPos = caretPosition
+                    }
+                }
+                symbolModel.symbol.addListener(insertCharListener(this))
+            }
+
+            detailNode =  scrollpane {
+                this += stView
+                isFitToWidth = true
+            }
+        }
+
+        center = master
 
         val glyph = GlyphFontRegistry.font("FontAwesome")
         left = vbox {
-            isFillWidth = true
             button(graphic = glyph.create(FontAwesome.Glyph.SAVE)) {
                 enableWhen(passageModel.dirty)
-                setOnAction(::save)
+                action { save() }
                 shortcut("Ctrl+S")
             }
+
             button(graphic = glyph.create(FontAwesome.Glyph.UNDO)) {
-                setOnAction(::save)
+                action { cancel() }
             }
+
             togglebutton {
                 graphic = glyph.create(FontAwesome.Glyph.ASTERISK)
-//                master.showDetailNodeProperty().bind(selectedProperty())
+                master.showDetailNodeProperty().bind(selectedProperty())
                 isSelected = false
                 shortcut("Ctrl+Y") {
                     this.isSelected = !this.isSelected
                 }
             }
-        }
 
+            isFillWidth = true
+        }
+    }
+
+    override fun onDock() {
+        primaryStage?.isAlwaysOnTop = true
     }
 
     override fun onUndock() {
         fire(RefreshList(listOf(passageModel.item)))
     }
 
-    private fun cancel(evt : ActionEvent) {
+    private fun cancel() {
         passageModel.rollback()
-        close()
     }
 
-    private fun save(evt: ActionEvent) {
+    private fun save() {
         passageModel.commit()
         dbController.updateVerseText(passageModel.item)
         close()

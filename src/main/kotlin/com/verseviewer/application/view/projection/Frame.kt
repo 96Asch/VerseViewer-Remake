@@ -6,6 +6,7 @@ import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.ReadOnlyBooleanWrapper
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.EventHandler
+import javafx.event.EventTarget
 import javafx.geometry.Rectangle2D
 import javafx.scene.CacheHint
 import javafx.scene.Group
@@ -114,5 +115,9 @@ class Frame(val width : Double, val height : Double) : Group() {
                 )
         )
     }
+}
 
+fun EventTarget.frame(width : Double, height : Double, op: Frame.() -> Unit = {}): Frame {
+    val frame = Frame(width, height)
+    return opcr(this, frame, op)
 }
