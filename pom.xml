@@ -26,7 +26,7 @@
     </repositories>
 
     <properties>
-        <kotlin.version>1.5.10</kotlin.version>
+        <kotlin.version>1.6.0</kotlin.version>
         <tornadofx.version>1.7.20</tornadofx.version>
         <main.class>com.verseviewer.application.app.MyApp</main.class>
 
